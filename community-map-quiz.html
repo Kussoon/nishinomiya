@@ -249,7 +249,7 @@
       },
       onEachFeature(feature,shape){
         if(feature.properties.community==='岡田山')return;
-        const offset=feature.properties.community==='上ヶ原'?L.point(25,20):L.point(0,0);
+        const offset=feature.properties.community==='上ヶ原'?L.point(15,10):L.point(0,0);
         shape.bindTooltip(feature.properties.community,{permanent:true,direction:'center',offset,className:'community-label',interactive:false});
       }
     }).addTo(overviewMap);
@@ -261,12 +261,6 @@
       const special=topojson.feature(topology,specialGeometry);
       special.properties={community:'1〜3 広田、4〜7 上ヶ原'};
       features.push(special);
-    }
-    const waterGeometry=geometries.find(item=>mapping.towns[item.properties.S_NAME]?.community==='対象外（水域）');
-    if(waterGeometry){
-      const water=topojson.feature(topology,waterGeometry);
-      water.properties={community:'対象外（水域）'};
-      features.push(water);
     }
     communityLayer=L.geoJSON({type:'FeatureCollection',features},{
       style:baseStyle,
