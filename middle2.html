@@ -31,8 +31,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .stage{background:#267bd5;color:#fff;border-radius:10px;padding:8px 3px;text-align:center;font-size:13px;font-weight:950}
 .stats{font-size:10.5px;line-height:1.4;text-align:right;font-weight:850}
 .questioncard{padding:12px;text-align:center}
-.prompt{font-size:12px;font-weight:800;color:#55758a}
+.prompt{font-size:18px;font-weight:900;color:#55758a}
 .town{margin-top:5px;font-size:clamp(28px,9vw,39px);line-height:1.15;font-weight:950;color:#15324a;word-break:keep-all}
+.reading{margin-top:5px;font-size:22px;line-height:1.25;font-weight:900;color:#527489}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex:1;align-content:center}
 .choice{min-height:62px;border:0;border-radius:15px;padding:12px 6px;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 9px #0002}
 .choice:nth-child(1){background:#287dd7}
@@ -42,9 +43,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .choice:disabled{opacity:.72}
 .feedbackrow{display:grid;grid-template-columns:65px 1fr;gap:8px;align-items:center;min-height:68px}
 .feedbackrow img{width:65px;height:64px;object-fit:contain;background:#f7fbfd;border-radius:12px}
-.feedback{padding:8px 10px;font-size:13px;line-height:1.45;font-weight:850}
+.feedback{padding:8px 10px;font-size:20px;line-height:1.4;font-weight:900}
 .good{color:#16713f} .bad{color:#aa3028}
-.feedback.good{font-size:18px;line-height:1.4;font-weight:950}
+.feedback.good{font-size:20px;line-height:1.4;font-weight:950}
 .resulthead{background:#287bd6;color:#fff;border-radius:13px;padding:10px;text-align:center;font-size:21px;font-weight:950}
 .resultbody{display:grid;grid-template-columns:42% 58%;gap:8px;align-items:center;flex:1}
 .resultbody img{width:100%;max-height:44vh;object-fit:contain}
@@ -72,7 +73,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   .choice{min-height:52px;font-size:16px}
   .feedbackrow{min-height:56px}
   .feedbackrow img{height:54px}
-  .feedback{font-size:11.5px}
+  .feedback{font-size:20px}
   .footer{font-size:9px}
 }
 </style>
@@ -104,8 +105,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     <div class="stats"><span id="progress">1 / 48</span><br>得点 <span id="scoreNow">48</span></div>
   </div>
   <div class="questioncard card">
-    <div class="prompt">この町名が属するコミュニティは？</div>
+    <div class="prompt">この町名はどのコミュニティ？</div>
     <div id="town" class="town"></div>
+    <div id="reading" class="reading"></div>
   </div>
   <div id="choices" class="choices"></div>
   <div class="feedbackrow">
@@ -176,6 +178,7 @@ function renderQuestion(){
   byId("progress").textContent=`${index+1} / ${questions.length}`;
   byId("scoreNow").textContent=score;
   byId("town").textContent=q.name;
+  byId("reading").textContent=q.reading;
   byId("feedback").className="feedback card";
   byId("feedback").textContent="答えを選んでください。";
   const box=byId("choices");
