@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>コミュニティの場所当て｜西宮市町名記憶ゲーム</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root{--navy:#16365c;--blue:#2f75b5;--green:#20a464;--red:#d94b4b;--ink:#203040}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:linear-gradient(#eef7ff,#fff);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Yu Gothic",Meiryo,sans-serif}
+    body{padding:env(safe-area-inset-top) 9px calc(16px + env(safe-area-inset-bottom))}
+    button{font:inherit;cursor:pointer}
+    .page{width:min(820px,100%);margin:auto}
+    .hidden{display:none!important}
+    .back{display:inline-flex;align-items:center;min-height:42px;padding:8px 14px;border:0;border-radius:999px;background:#fff;color:var(--navy);font-weight:800;text-decoration:none;box-shadow:0 2px 8px #16365c22}
+    h1{margin:8px 0 2px;text-align:center;color:var(--navy);font-size:clamp(23px,5.8vw,34px)}
+    .stage{text-align:center;color:var(--blue);font-weight:900;font-size:17px}
+    .teacher{display:grid;grid-template-columns:66px 1fr;gap:9px;align-items:center;margin:8px 0}
+    .teacher img{width:66px;height:66px;object-fit:cover;object-position:top;border-radius:50%;background:#fff;border:3px solid #fff;box-shadow:0 2px 10px #16365c33}
+    .speech{position:relative;background:#fff;border:2px solid #9bc9ef;border-radius:16px;padding:9px 12px;font-weight:700;line-height:1.5;box-shadow:0 2px 8px #16365c18}
+    .speech:before{content:"";position:absolute;left:-11px;top:24px;border-width:8px 11px 8px 0;border-style:solid;border-color:transparent #9bc9ef transparent transparent}
+    .speech:after{content:"";position:absolute;left:-8px;top:26px;border-width:6px 9px 6px 0;border-style:solid;border-color:transparent white transparent transparent}
+    .card{background:#fff;border-radius:18px;box-shadow:0 3px 12px #16365c24}
+    .intro{padding:16px;margin:10px 0;text-align:center;line-height:1.7}
+    .intro p{margin:4px 0 13px}.intro ul{display:inline-block;text-align:left;margin:0 0 16px;padding-left:1.4em}
+    .overview{margin:10px 0;padding:11px;background:#fff;border-radius:18px;box-shadow:0 3px 12px #16365c24}
+    .overview h2{margin:1px 0 3px;text-align:center;color:var(--navy);font-size:clamp(18px,5vw,25px)}
+    .overview-intro{margin:0 0 8px;text-align:center;color:#60758a;font-size:12px;font-weight:700}
+    #communityOverview{height:min(68vh,620px);min-height:480px;border-radius:14px;background:#dfeaf1;pointer-events:none}
+    .map-status{display:flex;min-height:480px;align-items:center;justify-content:center;padding:20px;text-align:center;color:#60758a;font-weight:800}
+    .community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:4px!important;padding:1px 3px!important;box-shadow:0 1px 3px #17385e55!important;font-size:clamp(7px,1.8vw,10px)!important;font-weight:900!important;line-height:1.15!important;white-space:nowrap!important}
+    .community-label:before{display:none!important}
+    .map-note{margin:7px 2px 1px;text-align:center;color:#60758a;font-size:10px;line-height:1.45}
+    .action{border:0;border-radius:13px;padding:12px 20px;background:var(--blue);color:#fff;font-weight:900;box-shadow:0 3px 8px #16365c33}
+    .action.secondary{background:#fff;color:var(--navy);border:2px solid #9bc9ef;box-shadow:none}
+    .actionrow{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin:13px 0}
+    .questionbar{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch;margin:7px 0}
+    .question{min-height:67px;border-radius:14px;background:var(--navy);color:#fff;text-align:center;display:flex;flex-direction:column;justify-content:center;padding:7px 11px;box-shadow:0 3px 10px #16365c33}
+    .question small{font-size:11px;opacity:.84}.question strong{font-size:clamp(22px,6vw,34px);line-height:1.15;color:#ffdc65}
+    .stats{min-width:105px;border-radius:14px;background:#fff;text-align:center;padding:8px 10px;font-weight:800;box-shadow:0 3px 10px #16365c22}.stats span{color:var(--red);font-size:18px}
+    .feedback{min-height:42px;margin:7px 0;border-radius:12px;background:#fff;padding:9px 12px;text-align:center;font-weight:800;box-shadow:0 2px 8px #16365c1b}
+    .feedback.good{background:#dff7e9;color:#08743f}.feedback.bad{background:#ffe5e5;color:#a52121}
+    .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
+    #map{height:min(60vh,650px);min-height:430px;background:#dfeaf1}
+    .tools{position:absolute;z-index:500;right:8px;top:8px}.tools button{border:0;border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:9px 11px;box-shadow:0 2px 8px #16365c33}
+    .hint{margin:7px 3px 0;color:#596a78;font-size:11px;text-align:center}
+    .result{padding:17px;margin:11px 0;text-align:center}.score{font-size:clamp(48px,15vw,72px);line-height:1;font-weight:950;color:var(--red);margin:12px}.result h2{color:var(--navy)}
+    .result p{line-height:1.65}.credit{margin-top:11px;padding-top:9px;border-top:1px solid #cad8e3;font-size:9px;line-height:1.5;color:#657786}.credit a{color:#356f9f}
+    .leaflet-container{font:inherit}
+    @media(max-width:520px){body{padding-left:6px;padding-right:6px}.teacher{grid-template-columns:54px 1fr}.teacher img{width:54px;height:54px}.speech{font-size:13px;padding:8px 10px}.questionbar{grid-template-columns:1fr 92px}.stats{min-width:0;font-size:12px;padding:6px}.stats span{font-size:16px}#map{height:54vh;min-height:390px}#communityOverview{height:62vh;min-height:460px}.overview{padding:8px}.feedback{font-size:13px}.intro{font-size:14px}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <button type="button" class="back" id="backBtn">← ゲームトップへ</button>
+  <h1>西宮市町名記憶ゲーム</h1>
+  <div class="stage">📍 コミュニティの場所当て</div>
+
+  <section class="teacher">
+    <img src="images/guide-character.png" alt="案内キャラクター">
+    <div class="speech" id="message">26のコミュニティを、正確な町域地図で当てましょう！</div>
+  </section>
+
+  <section id="introScreen">
+    <div class="overview" aria-labelledby="overviewTitle">
+      <h2 id="overviewTitle">西宮市 26コミュニティ全図</h2>
+      <p class="overview-intro">コミュニティ名と位置を、まず全体で確認できます。</p>
+      <div id="communityOverview" aria-label="西宮市を26コミュニティに色分けした地図">
+        <div class="map-status">地図を読み込んでいます…</div>
+      </div>
+      <p class="map-note">白線はコミュニティの境界です。岡田山は黄色で「1〜3 広田、4〜7 上ヶ原」を示しています。</p>
+    </div>
+    <div class="intro card">
+      <p>画面に表示されたコミュニティの町域を、地図から探してタップします。</p>
+      <ul>
+        <li>全26問・出題順は毎回ランダム</li>
+        <li>26コミュニティを独自の色で表示</li>
+        <li>コミュニティ区域のどこをタップしても正解</li>
+        <li>誤タップ1回につき1点減点</li>
+        <li>地図は拡大・縮小・移動できます</li>
+      </ul><br>
+      <button type="button" class="action" id="startBtn">チャレンジ開始</button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="hidden">
+    <div class="questionbar">
+      <div class="question"><small>このコミュニティをタップ</small><strong id="prompt">山口</strong></div>
+      <div class="stats"><span id="counter">1 / 26</span><br>誤タップ <span id="wrongNow">0</span></div>
+    </div>
+    <div class="feedback" id="feedback" aria-live="polite">地図をタップしてください。</div>
+    <div class="map-wrap">
+      <div id="map" aria-label="西宮市コミュニティ場所当て地図"></div>
+      <div class="tools"><button type="button" id="resetView">全体表示</button></div>
+    </div>
+    <p class="hint">指1本で移動、2本指で拡大・縮小できます。白線がコミュニティの境界です。</p>
+  </section>
+
+  <section id="resultScreen" class="hidden">
+    <div class="result card">
+      <h2>全26問終了！</h2>
+      <div class="score" id="score">26点</div>
+      <p>誤タップ：<strong id="mistakes">0</strong>回</p>
+      <p id="evaluation">全問一発正解です。完璧ですね！</p>
+      <div class="actionrow">
+        <button type="button" class="action" id="retryBtn">もう一度</button>
+        <button type="button" class="action secondary" id="resultHomeBtn">ゲームトップへ</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="credit">地図データ：<a href="https://geoshape.ex.nii.ac.jp/ka/resource/28204.html">『国勢調査町丁・字等別境界データセット』</a>（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度（2003年度）西宮市市民自然調査結果報告「<a href="https://ikimono.leaf.or.jp/district/town/index.html">コミュニティ町名一覧</a>」を参考に、現在の26地区に合わせて一部統合・調整。<br>本地図は個人制作の非公式な学習用コンテンツで、西宮市および関係団体が運営・監修するものではありません。</p>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+(() => {
+  const screens = ['introScreen','gameScreen','resultScreen'];
+  const prompt = document.getElementById('prompt');
+  const counter = document.getElementById('counter');
+  const wrongNow = document.getElementById('wrongNow');
+  const feedback = document.getElementById('feedback');
+  const message = document.getElementById('message');
+  const overviewContainer=document.getElementById('communityOverview');
+  const overviewMap=L.map(overviewContainer,{
+    attributionControl:false,zoomControl:false,dragging:false,touchZoom:false,
+    scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,
+    tap:false,zoomSnap:.1
+  });
+  const map = L.map('map',{zoomControl:true,attributionControl:false,minZoom:10,maxZoom:18});
+  let mapping;
+  let communityLayer;
+  let allBounds;
+  let communities=[];
+  let order=[];
+  let index=0;
+  let target='';
+  let totalWrong=0;
+  let currentWrong=0;
+  let locked=false;
+  let marked=new Map();
+
+  const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.94};
+  const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.94};
+
+  function show(id){screens.forEach(name=>document.getElementById(name).classList.toggle('hidden',name!==id));}
+  function shuffle(items){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function colorFor(name){
+    if(name==='1〜3 広田、4〜7 上ヶ原')return '#ffd34d';
+    if(name==='対象外（水域）')return '#9ba9b5';
+    const position=communities.indexOf(name);
+    return `hsl(${(position*137.508)%360} 63% 57%)`;
+  }
+  function baseStyle(feature){return{color:'#fff',weight:2,fillColor:colorFor(feature.properties.community),fillOpacity:.86};}
+  function infoFor(feature){return feature.properties;}
+  function accepted(info,answer){return info.community===answer || (info.community==='1〜3 広田、4〜7 上ヶ原'&&(answer==='広田'||answer==='上ヶ原'));}
+  function answerLabel(info){return info.community;}
+
+  function clearMarks(){
+    marked.forEach(timer=>clearTimeout(timer));
+    marked.clear();
+    if(communityLayer)communityLayer.setStyle(baseStyle);
+  }
+
+  function loadQuestion(){
+    clearMarks();
+    target=order[index];currentWrong=0;locked=false;
+    prompt.textContent=target;
+    counter.textContent=`${index+1} / ${order.length}`;
+    wrongNow.textContent=totalWrong;
+    feedback.className='feedback';feedback.textContent='地図をタップしてください。';
+    message.textContent=`「${target}」はどこでしょう？ 地図を拡大して探してください。`;
+  }
+
+  function startRound(){
+    if(!communityLayer){message.textContent='地図を読み込んでいます。少しお待ちください。';return;}
+    order=shuffle(communities);index=0;totalWrong=0;show('gameScreen');
+    setTimeout(()=>{
+      map.invalidateSize();
+      if(allBounds)map.fitBounds(allBounds,{padding:[8,8]});
+    },0);
+    loadQuestion();
+  }
+
+  function handleAnswer(info,layer){
+    if(!target||locked)return;
+    if(info.community==='対象外（水域）'){
+      feedback.className='feedback bad';feedback.textContent='そこは港湾水域です。陸地から探してください。';
+      return;
+    }
+    if(accepted(info,target)){
+      locked=true;
+      communityLayer.eachLayer(item=>{if(accepted(infoFor(item.feature),target))item.setStyle(correctStyle);});
+      feedback.className='feedback good';
+      feedback.textContent=currentWrong===0?'正解！ 一発で当たりました。':'正解！ 次の問題へ進みます。';
+      message.textContent=`正解です！ 緑色の区域が「${target}」です。`;
+      setTimeout(()=>{index++;index>=order.length?finishRound():loadQuestion();},900);
+    }else{
+      currentWrong++;totalWrong++;wrongNow.textContent=totalWrong;
+      layer.setStyle(wrongStyle);
+      feedback.className='feedback bad';feedback.textContent=`そこは「${answerLabel(info)}」です。もう一度探してください。`;
+      if(marked.has(layer))clearTimeout(marked.get(layer));
+      marked.set(layer,setTimeout(()=>{if(!locked)layer.setStyle(baseStyle(layer.feature));marked.delete(layer);},650));
+    }
+  }
+
+  function finishRound(){
+    clearMarks();
+    const result=Math.max(0,communities.length-totalWrong);
+    document.getElementById('score').textContent=`${result}点`;
+    document.getElementById('mistakes').textContent=totalWrong;
+    let evaluation;
+    if(result===26)evaluation='全問一発正解です。完璧ですね！';
+    else if(result>=21)evaluation='かなりよく覚えています！';
+    else if(result>=11)evaluation='いい調子です。もう一度でさらに定着します。';
+    else evaluation='最後までやり切りました。繰り返せば必ず覚えられます。';
+    document.getElementById('evaluation').textContent=evaluation;
+    message.textContent='お疲れさまでした！ また挑戦してくださいね。';
+    show('resultScreen');
+  }
+
+  Promise.all([
+    fetch('nishinomiya-towns.topojson').then(r=>{if(!r.ok)throw Error('境界データ');return r.json()}),
+    fetch('community-town-map.json').then(r=>{if(!r.ok)throw Error('割り当てデータ');return r.json()})
+  ]).then(([topology,mapData])=>{
+    mapping=mapData;communities=mapping.communities;
+    const geometries=topology.objects.town.geometries;
+    const communityFeatures=communities.map(community=>{
+      const members=geometries.filter(item=>mapping.towns[item.properties.S_NAME]?.community===community);
+      const merged=topojson.merge(topology,members);
+      merged.properties={community};
+      return merged;
+    });
+    const specialGeometry=geometries.find(item=>item.properties.S_NAME==='岡田山');
+    const overviewFeatures=[...communityFeatures];
+    if(specialGeometry){
+      const overviewSpecial=topojson.feature(topology,specialGeometry);
+      overviewSpecial.properties={community:'岡田山'};
+      overviewFeatures.push(overviewSpecial);
+    }
+    overviewContainer.querySelector('.map-status')?.remove();
+    const overviewLayer=L.geoJSON({type:'FeatureCollection',features:overviewFeatures},{
+      interactive:false,
+      style(feature){
+        const special=feature.properties.community==='岡田山';
+        return{color:'#fff',weight:special?1.4:2,fillColor:special?'#ffd34d':colorFor(feature.properties.community),fillOpacity:.88};
+      },
+      onEachFeature(feature,shape){
+        if(feature.properties.community==='岡田山')return;
+        const offset=feature.properties.community==='上ヶ原'?L.point(25,20):L.point(0,0);
+        shape.bindTooltip(feature.properties.community,{permanent:true,direction:'center',offset,className:'community-label',interactive:false});
+      }
+    }).addTo(overviewMap);
+    overviewMap.fitBounds(overviewLayer.getBounds(),{padding:[5,5],animate:false});
+    setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
+
+    const features=[...communityFeatures];
+    if(specialGeometry){
+      const special=topojson.feature(topology,specialGeometry);
+      special.properties={community:'1〜3 広田、4〜7 上ヶ原'};
+      features.push(special);
+    }
+    const waterGeometry=geometries.find(item=>mapping.towns[item.properties.S_NAME]?.community==='対象外（水域）');
+    if(waterGeometry){
+      const water=topojson.feature(topology,waterGeometry);
+      water.properties={community:'対象外（水域）'};
+      features.push(water);
+    }
+    communityLayer=L.geoJSON({type:'FeatureCollection',features},{
+      style:baseStyle,
+      onEachFeature(feature,layer){layer.on('click',()=>handleAnswer(infoFor(feature),layer));}
+    }).addTo(map);
+    allBounds=communityLayer.getBounds();map.fitBounds(allBounds,{padding:[8,8]});
+  }).catch(error=>{
+    message.textContent='地図を読み込めませんでした。必要なデータファイルを確認してください。';
+    document.getElementById('startBtn').disabled=true;
+    console.error(error);
+  });
+
+  document.getElementById('startBtn').addEventListener('click',startRound);
+  document.getElementById('retryBtn').addEventListener('click',startRound);
+  document.getElementById('resetView').addEventListener('click',()=>{if(allBounds)map.fitBounds(allBounds,{padding:[8,8]});});
+  document.getElementById('resultHomeBtn').addEventListener('click',()=>location.href='index.html');
+  document.getElementById('backBtn').addEventListener('click',()=>{
+    if(document.getElementById('gameScreen').classList.contains('hidden')||confirm('ラウンドをやめてゲームトップへ戻りますか？'))location.href='index.html';
+  });
+})();
+</script>
+</body>
+</html>
