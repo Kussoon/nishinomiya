@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#e8f7ff">
+<title>中部2 町名チャレンジ｜西宮市町名ゲーム</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;background:#e8f7ff}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#15324a;display:flex;justify-content:center}
+button,a{font:inherit;-webkit-tap-highlight-color:transparent}
+.app{width:min(100vw,430px);min-height:100dvh;background:linear-gradient(180deg,#e8f7ff 0%,#fff 100%);position:relative;overflow:hidden}
+.screen{min-height:100dvh;padding:max(8px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+.hidden{display:none!important}
+.card{background:#fff;border:1px solid #bdddea;border-radius:15px;box-shadow:0 3px 12px #1f55731a}
+.back{align-self:flex-start;text-decoration:none;color:#245b7d;background:#fff;border:1px solid #bad9e7;border-radius:10px;padding:8px 11px;font-size:12px;font-weight:900}
+h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;color:#155189;font-weight:950}
+.subtitle{text-align:center;font-size:15px;font-weight:900;color:#39708f}
+.hero{display:grid;grid-template-columns:38% 62%;align-items:center;overflow:hidden;min-height:128px}
+.hero img{width:100%;height:128px;object-fit:contain;background:#f7fbfd}
+.speech{padding:10px;font-size:14px;line-height:1.5;font-weight:750}
+.intro-map{padding:9px}.intro-map h2{margin:0 0 7px;text-align:center;color:#155189;font-size:18px}
+.district-overview{height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
+.map-status{height:100%;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center;color:#60758a;font-size:13px;font-weight:800}
+.community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;padding:2px 5px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}.community-label:before{display:none!important}
+.rules{padding:11px 14px;font-size:12.5px;line-height:1.55}
+.rules p{margin:3px 0}
+.start{border:0;border-radius:14px;padding:15px;background:#287dd7;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 10px #287dd744}
+.start:active,.choice:active,.action:active{transform:translateY(1px)}
+.footer{margin-top:auto;text-align:center;font-size:10px;line-height:1.45;color:#66808e}
+.footer strong{display:block;font-size:11px;color:#456a80}
+.topbar{display:grid;grid-template-columns:72px 1fr 72px;gap:6px;align-items:center}
+.smallbtn{border:1px solid #bad9e7;background:#fff;color:#245b7d;border-radius:10px;padding:8px 4px;font-weight:900;font-size:11px}
+.stage{background:#267bd5;color:#fff;border-radius:10px;padding:8px 3px;text-align:center;font-size:13px;font-weight:950}
+.stats{font-size:10.5px;line-height:1.4;text-align:right;font-weight:850}
+.questioncard{padding:12px;text-align:center}
+.prompt{font-size:18px;font-weight:900;color:#55758a}
+.town{margin-top:5px;font-size:clamp(28px,9vw,39px);line-height:1.15;font-weight:950;color:#15324a;word-break:keep-all}
+.reading{margin-top:5px;font-size:22px;line-height:1.25;font-weight:900;color:#527489}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex:1;align-content:center}
+.choice{min-height:62px;border:0;border-radius:15px;padding:12px 6px;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 9px #0002}
+.choice:nth-child(1){background:#287dd7}
+.choice:nth-child(2){background:#4aa86d}
+.choice:nth-child(3){background:#efa033}
+.choice:nth-child(4){background:#9a67d0}.choice:nth-child(5){background:#dc6464;grid-column:1 / -1}
+.choice:disabled{opacity:.72}
+.feedbackrow{display:grid;grid-template-columns:65px 1fr;gap:8px;align-items:center;min-height:68px}
+.feedbackrow img{width:65px;height:64px;object-fit:contain;background:#f7fbfd;border-radius:12px}
+.feedback{padding:8px 10px;font-size:20px;line-height:1.4;font-weight:900}
+.good{color:#16713f} .bad{color:#aa3028}
+.feedback.good{font-size:20px;line-height:1.4;font-weight:950}
+.answer-overlay{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:12px;background:#17324ad9}
+.answer-panel{width:min(100%,410px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:13px;background:#fff;border-radius:19px;box-shadow:0 14px 40px #0005}
+.answer-panel h2{margin:0;text-align:center;color:#15713f;font-size:25px}
+.answer-text{margin:6px 0 9px;text-align:center;font-size:18px;line-height:1.4;font-weight:900;color:#173f6c}
+.answer-map-wrap{padding:7px;border-radius:15px;background:#dfeaf1}
+#answerMap{height:330px;border-radius:11px;background:#dfeaf1;pointer-events:none}
+.answer-legend{display:flex;justify-content:center;gap:14px;margin:8px 0 2px;font-size:13px;font-weight:850;color:#4c6a7c}
+.legend-mark{display:inline-block;width:16px;height:12px;margin-right:4px;border:2px solid #fff;border-radius:3px;vertical-align:-1px;box-shadow:0 0 0 1px #aac}
+.legend-community{background:#5f87d8}.legend-town{background:#ffd34d}
+.next-question{display:block;width:100%;margin-top:10px;border:0;border-radius:13px;padding:13px;background:#287dd7;color:#fff;font-size:18px;font-weight:950}
+.page-links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}.page-links a{display:flex;min-height:34px;align-items:center;justify-content:center;padding:6px 3px;border:1px solid #bddae7;border-radius:10px;background:#fff;color:#245b7d;text-align:center;text-decoration:none;font-size:11px;font-weight:900;line-height:1.2}
+.resulthead{background:#287bd6;color:#fff;border-radius:13px;padding:10px;text-align:center;font-size:21px;font-weight:950}
+.resultbody{display:grid;grid-template-columns:42% 58%;gap:8px;align-items:center;flex:1}
+.resultbody img{width:100%;max-height:44vh;object-fit:contain}
+.scorebox{padding:12px;text-align:center}
+.outof{font-size:17px;font-weight:900;color:#14528a}
+.score{font-size:clamp(52px,16vw,72px);line-height:1;font-weight:950;color:#df4747}
+.mistakes{font-size:17px;font-weight:850;margin:9px 0}
+.resultbuttons{display:grid;gap:8px}
+.action{display:block;width:100%;border:0;border-radius:12px;padding:12px;text-align:center;text-decoration:none;font-size:14px;font-weight:950}
+.primary{background:#287dd7;color:#fff} .secondary{background:#eef8fc;color:#235c7d;border:1px solid #bddae7}
+.overlay{position:absolute;inset:0;background:#15324acc;display:flex;align-items:center;justify-content:center;padding:18px;z-index:20}
+.dialog{width:100%;background:#fff;border-radius:17px;padding:17px;text-align:center;box-shadow:0 12px 40px #0005}
+.dialog h2{margin:0 0 8px;font-size:21px}
+.dialog p{font-size:13px;line-height:1.5}
+.dialogbuttons{display:grid;gap:8px;margin-top:13px}
+@media(max-height:670px){
+  .screen{gap:5px}
+  h1{font-size:24px}
+  .subtitle{font-size:13px}
+  .hero{min-height:103px}
+  .hero img{height:103px}
+  .speech{font-size:12px;padding:7px}
+  .rules{font-size:11px;padding:7px 11px;line-height:1.38}
+  .start{padding:12px}
+  .choice{min-height:52px;font-size:16px}
+  .feedbackrow{min-height:56px}
+  .feedbackrow img{height:54px}
+  .feedback{font-size:20px}
+  .footer{font-size:9px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<section id="intro" class="screen">
+  <a class="back" href="../area-select.html">← 区域選択へ</a>
+  <h1>中部2　町名チャレンジ</h1>
+  <div class="subtitle">広田・平木・芦原・瓦木・北口の5択クイズ</div>
+  <div class="hero card">
+    <img src="../images/guide-character.png" alt="案内キャラクター">
+    <div class="speech">町名を見て、それが中部2のどのコミュニティに属するか当ててください！</div>
+  </div>
+  <div class="intro-map card">
+    <h2>中部2の5コミュニティ</h2>
+    <div class="district-overview" data-community-overview="広田,平木,芦原,瓦木,北口" aria-label="中部2のコミュニティ地図"><div class="map-status">地図を読み込んでいます…</div></div>
+  </div>
+  <p style="margin:2px 3px 8px;color:#657786;font-size:8px;line-height:1.45">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p>
+  <div class="rules card">
+    <p><strong>出題数：48問</strong></p>
+    <p>同じ町名は1ラウンドに1回だけ出ます。</p>
+    <p>間違えた場合は、正解するまで同じ問題を続けます。</p>
+    <p>誤答1回につき1点減点します。</p>
+  </div>
+  <button id="startBtn" class="start" type="button">クイズスタート！</button>
+  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+</section>
+
+<section id="quiz" class="screen hidden">
+  <div class="topbar">
+    <button id="quitBtn" class="smallbtn" type="button">ここでやめる</button>
+    <div class="stage">中部2</div>
+    <div class="stats"><span id="progress">1 / 48</span><br>得点 <span id="scoreNow">48</span></div>
+  </div>
+  <div class="questioncard card">
+    <div class="prompt">この町名はどのコミュニティ？</div>
+    <div id="town" class="town"></div>
+    <div id="reading" class="reading"></div>
+  </div>
+  <div id="choices" class="choices"></div>
+  <div class="feedbackrow">
+    <img src="../images/guide-character.png" alt="">
+    <div id="feedback" class="feedback card">答えを選んでください。</div>
+  </div>
+</section>
+
+<section id="result" class="screen hidden">
+  <div class="resulthead">中部2チャレンジ　結果</div>
+  <div class="resultbody">
+    <img src="../images/guide-character.png" alt="案内キャラクター">
+    <div class="scorebox card">
+      <div id="resultTotal" class="outof">48問中</div>
+      <div id="finalScore" class="score">48</div>
+      <div class="outof">点</div>
+      <div id="mistakes" class="mistakes">誤答 0回</div>
+      <p id="resultComment">おつかれさまでした！</p>
+    </div>
+  </div>
+  <div class="resultbuttons">
+    <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
+    <a class="action secondary" href="middle2.html">中部2トップ</a>
+    <a class="action secondary" href="../area-select.html">6地区トップ</a>
+    <a class="action secondary" href="../index.html">トップページ</a>
+  </div>
+  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+</section>
+
+<div id="quitOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quitTitle">
+  <div class="dialog">
+    <h2 id="quitTitle">ここでやめますか？</h2>
+    <p>現在のラウンドの結果は保存されません。</p>
+    <div class="dialogbuttons">
+      <a class="action secondary" href="../area-select.html">区域選択へ</a>
+      <a class="action secondary" href="../index.html">ゲームトップへ</a>
+      <button id="cancelQuit" class="action primary" type="button">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<section id="answerOverlay" class="answer-overlay hidden" aria-live="polite">
+  <div class="answer-panel">
+    <h2>正解！</h2>
+    <p id="answerText" class="answer-text"></p>
+    <div class="answer-map-wrap"><div id="answerMap" aria-label="正解した町域を強調したコミュニティ地図"></div></div>
+    <div class="answer-legend">
+      <span><i class="legend-mark legend-community"></i>コミュニティ全域</span>
+      <span><i class="legend-mark legend-town"></i>正解した町域</span>
+    </div>
+    <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
+    <nav class="page-links" aria-label="ページ移動">
+      <a href="middle2.html">中部2トップ</a><a href="../area-select.html">6地区トップ</a><a href="../index.html">トップページ</a>
+    </nav>
+  </div>
+</section>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="../scripts/district-overview.js"></script>
+<script>
+const ALL_QUESTIONS=[{"name":"岡田山1〜3番","reading":"おかだやま","community":"広田"},{"name":"愛宕山","reading":"あたごやま","community":"広田"},{"name":"高座町","reading":"たかくらちょう","community":"広田"},{"name":"能登町","reading":"のとちょう","community":"広田"},{"name":"広田町","reading":"ひろたちょう","community":"広田"},{"name":"大畑町","reading":"おおはたちょう","community":"広田"},{"name":"中屋町","reading":"なかやちょう","community":"広田"},{"name":"河原町","reading":"かわはらちょう","community":"広田"},{"name":"丸橋町","reading":"まるはしちょう","community":"広田"},{"name":"北昭和町","reading":"きたしょうわちょう","community":"広田"},{"name":"平木町","reading":"ひらきちょう","community":"平木"},{"name":"青木町","reading":"あおきちょう","community":"平木"},{"name":"南昭和町","reading":"みなみしょうわちょう","community":"平木"},{"name":"両度町","reading":"りょうどちょう","community":"平木"},{"name":"高松町","reading":"たかまつちょう","community":"平木"},{"name":"芦原町","reading":"あしはらちょう","community":"芦原"},{"name":"神祇官町","reading":"じんぎかんちょう","community":"芦原"},{"name":"森下町","reading":"もりしたちょう","community":"芦原"},{"name":"神明町","reading":"しんめいちょう","community":"芦原"},{"name":"西福町","reading":"さいふくちょう","community":"芦原"},{"name":"中殿町","reading":"なかどのちょう","community":"芦原"},{"name":"津田町","reading":"つだちょう","community":"芦原"},{"name":"堤町","reading":"つつみちょう","community":"北口"},{"name":"上之町","reading":"かみのちょう","community":"北口"},{"name":"日野町","reading":"ひのちょう","community":"北口"},{"name":"荒木町","reading":"あらきちょう","community":"北口"},{"name":"大森町","reading":"おおもりちょう","community":"北口"},{"name":"薬師町","reading":"やくしちょう","community":"北口"},{"name":"伏原町","reading":"ふしはらちょう","community":"北口"},{"name":"高木東町","reading":"たかぎひがしまち","community":"北口"},{"name":"高木西町","reading":"たかぎにしまち","community":"北口"},{"name":"長田町","reading":"ながたちょう","community":"北口"},{"name":"北口町","reading":"きたぐちちょう","community":"北口"},{"name":"甲風園","reading":"こうふうえん","community":"北口"},{"name":"林田町","reading":"はやしだちょう","community":"北口"},{"name":"野間町","reading":"のまちょう","community":"北口"},{"name":"深津町","reading":"ふかずちょう","community":"瓦木"},{"name":"高畑町","reading":"たかはたちょう","community":"瓦木"},{"name":"田代町","reading":"たしろちょう","community":"瓦木"},{"name":"大屋町","reading":"おおやちょう","community":"瓦木"},{"name":"中島町","reading":"なかじまちょう","community":"瓦木"},{"name":"瓦林町","reading":"かわらばやしちょう","community":"瓦木"},{"name":"天道町","reading":"てんどうちょう","community":"瓦木"},{"name":"松山町","reading":"まつやまちょう","community":"瓦木"},{"name":"松並町","reading":"まつなみちょう","community":"瓦木"},{"name":"熊野町","reading":"くまのちょう","community":"瓦木"},{"name":"二見町","reading":"ふたみちょう","community":"瓦木"},{"name":"甲子園口北町","reading":"こうしえんぐちきたまち","community":"瓦木"}];
+const COMMUNITIES=["広田","平木","芦原","瓦木","北口"];
+let questions=[],index=0,score=48,wrong=0,locked=false,missedQuestions=new Map();
+let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=null,answerBoundaryLayer=null;
+
+const answerMap=L.map("answerMap",{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,zoomSnap:.1});
+Promise.all([
+  fetch("../data/nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
+  fetch("../data/community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
+]).then(([topology,mapping])=>{mapTopology=topology;mapMapping=mapping}).catch(console.error);
+
+const byId=id=>document.getElementById(id);
+function shuffle(a){
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [b[i],b[j]]=[b[j],b[i]];
+  }
+  return b;
+}
+function showScreen(id){
+  ["intro","quiz","result"].forEach(x=>byId(x).classList.toggle("hidden",x!==id));
+}
+function beginGame(source){
+  questions=shuffle(source);
+  index=0;score=questions.length;wrong=0;locked=false;missedQuestions=new Map();
+  showScreen("quiz");
+  renderQuestion();
+}
+function startGame(){beginGame(ALL_QUESTIONS)}
+function retryMistakes(){const retry=[...missedQuestions.values()];if(retry.length)beginGame(retry)}
+function renderQuestion(){
+  locked=false;
+  const q=questions[index];
+  byId("progress").textContent=`${index+1} / ${questions.length}`;
+  byId("scoreNow").textContent=score;
+  byId("town").textContent=q.name;
+  byId("reading").textContent=q.reading;
+  byId("feedback").className="feedback card";
+  byId("feedback").textContent="答えを選んでください。";
+  const box=byId("choices");
+  box.innerHTML="";
+  shuffle(COMMUNITIES).forEach(name=>{
+    const b=document.createElement("button");
+    b.type="button"; b.className="choice"; b.textContent=name;
+    b.addEventListener("click",()=>answer(name));
+    box.appendChild(b);
+  });
+}
+function setButtonsDisabled(disabled){
+  document.querySelectorAll(".choice").forEach(b=>b.disabled=disabled);
+}
+function townGeometriesFor(name){
+  const geometries=mapTopology.objects.town.geometries;
+  if(name==="岡田山1〜3番")return geometries.filter(g=>g.properties.S_NAME==="岡田山");
+  const exact=geometries.filter(g=>g.properties.S_NAME===name);
+  return exact.length?exact:geometries.filter(g=>g.properties.S_NAME.startsWith(name));
+}
+function showAnswerMap(question){
+  byId("answerText").textContent=`「${question.name}（${question.reading}）」は、${question.community}コミュニティです。`;
+  byId("nextQuestionBtn").textContent=index===questions.length-1?"結果発表":"次の問題へ";
+  byId("answerOverlay").classList.remove("hidden");
+  setTimeout(()=>{
+    answerMap.invalidateSize({animate:false});
+    if(answerCommunityLayer)answerCommunityLayer.remove();
+    if(answerTownLayer)answerTownLayer.remove();
+    if(answerBoundaryLayer)answerBoundaryLayer.remove();
+    if(!mapTopology||!mapMapping)return;
+    const geometries=mapTopology.objects.town.geometries;
+    const communityMembers=geometries.filter(g=>mapMapping.towns[g.properties.S_NAME]?.community===question.community||(question.community==="広田"&&g.properties.S_NAME==="岡田山"));
+    const communityFeature=topojson.merge(mapTopology,communityMembers);
+    answerCommunityLayer=L.geoJSON(communityFeature,{interactive:false,style:{color:"#fff",weight:2.5,fillColor:"#5f87d8",fillOpacity:.9}}).addTo(answerMap);
+    const townMembers=townGeometriesFor(question.name);
+    if(townMembers.length){
+      answerTownLayer=L.geoJSON(topojson.merge(mapTopology,townMembers),{interactive:false,style:{color:"#fff",weight:3,fillColor:"#ffd34d",fillOpacity:1}}).addTo(answerMap);
+    }
+    const townFeatures=topojson.feature(mapTopology,{type:"GeometryCollection",geometries:communityMembers});
+    answerBoundaryLayer=L.geoJSON(townFeatures,{interactive:false,style:{color:"#f8fbff",weight:.75,opacity:.9,fillOpacity:0}}).addTo(answerMap);
+    answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[2,2],animate:false});
+  },0);
+}
+function nextQuestion(){
+  byId("answerOverlay").classList.add("hidden");
+  index++;
+  if(index>=questions.length)finishGame();else renderQuestion();
+}
+function answer(selected){
+  if(locked)return;
+  const q=questions[index];
+  if(selected===q.community){
+    locked=true;
+    setButtonsDisabled(true);
+    byId("feedback").className="feedback card good";
+    byId("feedback").textContent=`〇 正解！「${q.name}（${q.reading}）」は、${q.community}コミュニティです。`;
+    showAnswerMap(q);
+  }else{
+    wrong++;
+    missedQuestions.set(q.name,q);
+    score=Math.max(0,score-1);
+    byId("scoreNow").textContent=score;
+    byId("feedback").className="feedback card bad";
+    byId("feedback").textContent=`× ちがいます。もう一度、同じ問題にチャレンジ！`;
+    locked=true;
+    setButtonsDisabled(true);
+    setTimeout(()=>{
+      locked=false;
+      setButtonsDisabled(false);
+    },650);
+  }
+}
+function finishGame(){
+  byId("resultTotal").textContent=`${questions.length}問中`;
+  byId("finalScore").textContent=score;
+  byId("mistakes").textContent=`誤答 ${wrong}回`;
+  byId("resultComment").textContent=
+    score===questions.length?"全問ノーミス！すばらしいです！":
+    score>=Math.ceil(questions.length*.9)?"かなりよく覚えています！":
+    score>=Math.ceil(questions.length*.75)?"あと少しでマスターです！":
+    "繰り返すほど、しっかり身につきます！";
+  byId("retryMistakesBtn").classList.toggle("hidden",missedQuestions.size===0);
+  showScreen("result");
+}
+byId("startBtn").addEventListener("click",startGame);
+byId("retryBtn").addEventListener("click",startGame);
+byId("retryMistakesBtn").addEventListener("click",retryMistakes);
+byId("nextQuestionBtn").addEventListener("click",nextQuestion);
+byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
+byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
+</script>
+</body>
+</html>
