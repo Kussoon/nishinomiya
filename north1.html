@@ -202,7 +202,7 @@ body{
 const questions=[{"town": "山口町名来", "reading": "やまぐちちょうならい", "answer": "山口"}, {"town": "山口町下山口", "reading": "やまぐちちょうしもやまぐち", "answer": "山口"}, {"town": "山口町上山口", "reading": "やまぐちちょうかみやまぐち", "answer": "山口"}, {"town": "山口町中野", "reading": "やまぐちちょうなかの", "answer": "山口"}, {"town": "山口町船坂", "reading": "やまぐちちょうふなさか", "answer": "山口"}, {"town": "山口町金仙寺", "reading": "やまぐちちょうきんせんじ", "answer": "山口"}, {"town": "山口町阪神流通センター", "reading": "やまぐちちょうはんしんりゅうつうせんたー", "answer": "山口"}, {"town": "北六甲台", "reading": "きたろっこうだい", "answer": "山口"}, {"town": "すみれ台", "reading": "すみれだい", "answer": "山口"}, {"town": "塩瀬町名塩", "reading": "しおせちょうなじお", "answer": "名塩"}, {"town": "清瀬台", "reading": "きよせだい", "answer": "名塩"}, {"town": "名塩木之元", "reading": "なじおこのもと", "answer": "名塩"}, {"town": "名塩南台", "reading": "なじおみなみだい", "answer": "名塩"}, {"town": "名塩山荘", "reading": "なじおさんそう", "answer": "名塩"}, {"town": "名塩ガーデン", "reading": "なじおがーでん", "answer": "名塩"}, {"town": "名塩平成台", "reading": "なじおへいせいだい", "answer": "名塩"}, {"town": "名塩新町", "reading": "なじおしんまち", "answer": "名塩"}, {"town": "東山台", "reading": "ひがしやまだい", "answer": "名塩"}, {"town": "国見台", "reading": "くにみだい", "answer": "名塩"}, {"town": "名塩", "reading": "なじお", "answer": "名塩"}, {"town": "名塩茶園町", "reading": "なじおちゃえんちょう", "answer": "名塩"}, {"town": "名塩さくら台", "reading": "なじおさくらだい", "answer": "名塩"}, {"town": "名塩東久保", "reading": "なじおとうくぼ", "answer": "名塩"}, {"town": "名塩赤坂", "reading": "なじおあかさか", "answer": "名塩"}, {"town": "塩瀬町生瀬", "reading": "しおせちょうなまぜ", "answer": "生瀬"}, {"town": "宝生ケ丘", "reading": "ほうしょうがおか", "answer": "生瀬"}, {"town": "生瀬高台", "reading": "なまぜたかだい", "answer": "生瀬"}, {"town": "花の峯", "reading": "はなのみね", "answer": "生瀬"}, {"town": "青葉台", "reading": "あおばだい", "answer": "生瀬"}, {"town": "生瀬東町", "reading": "なまぜひがしまち", "answer": "生瀬"}, {"town": "生瀬武庫川町", "reading": "なまぜむこがわちょう", "answer": "生瀬"}, {"town": "生瀬町", "reading": "なまぜちょう", "answer": "生瀬"}];
 const communities=["山口","名塩","生瀬"];
 let order=[],index=0,totalWrong=0,locked=false,current=null;
-let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=null;
+let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=null,answerBoundaryLayer=null;
 
 const answerMap=L.map("answerMap",{
   zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,
@@ -262,6 +262,7 @@ function showAnswerMap(question){
     answerMap.invalidateSize({animate:false});
     if(answerCommunityLayer)answerCommunityLayer.remove();
     if(answerTownLayer)answerTownLayer.remove();
+    if(answerBoundaryLayer)answerBoundaryLayer.remove();
     if(!mapTopology||!mapMapping){
       answerMap.setView([34.78,135.31],11);
       return;
@@ -275,6 +276,8 @@ function showAnswerMap(question){
       const townFeature=topojson.merge(mapTopology,townMembers);
       answerTownLayer=L.geoJSON(townFeature,{interactive:false,style:{color:"#fff",weight:3,fillColor:"#ffd34d",fillOpacity:1}}).addTo(answerMap);
     }
+    const communityTownFeatures=topojson.feature(mapTopology,{type:"GeometryCollection",geometries:communityMembers});
+    answerBoundaryLayer=L.geoJSON(communityTownFeatures,{interactive:false,style:{color:"#f8fbff",weight:.75,opacity:.9,fillOpacity:0}}).addTo(answerMap);
     answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[2,2],animate:false});
   },0);
 }
