@@ -37,9 +37,11 @@
       interactive: false,
       style: { color: "#fff", weight: 3, fillColor: "#5f87d8", fillOpacity: .92 },
       onEachFeature(feature, shape) {
+        const offset = feature.properties.community === "上ヶ原" ? L.point(15, 10) : L.point(0, 0);
         shape.bindTooltip(feature.properties.community, {
           permanent: true,
           direction: "center",
+          offset,
           className: "community-label",
           interactive: false
         });
