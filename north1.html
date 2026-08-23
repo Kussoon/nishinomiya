@@ -206,7 +206,8 @@ let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=n
 
 const answerMap=L.map("answerMap",{
   zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,
-  doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false
+  doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,
+  zoomSnap:0.1
 });
 
 const overviewMap=L.map("north1Overview",{
@@ -274,7 +275,7 @@ function showAnswerMap(question){
       const townFeature=topojson.merge(mapTopology,townMembers);
       answerTownLayer=L.geoJSON(townFeature,{interactive:false,style:{color:"#fff",weight:3,fillColor:"#ffd34d",fillOpacity:1}}).addTo(answerMap);
     }
-    answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[8,8],animate:false});
+    answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[2,2],animate:false});
   },0);
 }
 function nextQuestion(){
