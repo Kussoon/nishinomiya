@@ -51,6 +51,17 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .feedback{padding:8px 10px;font-size:20px;line-height:1.4;font-weight:900}
 .good{color:#16713f} .bad{color:#aa3028}
 .feedback.good{font-size:20px;line-height:1.4;font-weight:950}
+.answer-overlay{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:12px;background:#17324ad9}
+.answer-panel{width:min(100%,410px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:13px;background:#fff;border-radius:19px;box-shadow:0 14px 40px #0005}
+.answer-panel h2{margin:0;text-align:center;color:#15713f;font-size:25px}
+.answer-text{margin:6px 0 9px;text-align:center;font-size:18px;line-height:1.4;font-weight:900;color:#173f6c}
+.answer-map-wrap{padding:7px;border-radius:15px;background:#dfeaf1}
+#answerMap{height:330px;border-radius:11px;background:#dfeaf1;pointer-events:none}
+.answer-legend{display:flex;justify-content:center;gap:14px;margin:8px 0 2px;font-size:13px;font-weight:850;color:#4c6a7c}
+.legend-mark{display:inline-block;width:16px;height:12px;margin-right:4px;border:2px solid #fff;border-radius:3px;vertical-align:-1px;box-shadow:0 0 0 1px #aac}
+.legend-community{background:#5f87d8}.legend-town{background:#ffd34d}
+.next-question{display:block;width:100%;margin-top:10px;border:0;border-radius:13px;padding:13px;background:#287dd7;color:#fff;font-size:18px;font-weight:950}
+.page-links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}.page-links a{display:flex;min-height:34px;align-items:center;justify-content:center;padding:6px 3px;border:1px solid #bddae7;border-radius:10px;background:#fff;color:#245b7d;text-align:center;text-decoration:none;font-size:11px;font-weight:900;line-height:1.2}
 .resulthead{background:#287bd6;color:#fff;border-radius:13px;padding:10px;text-align:center;font-size:21px;font-weight:950}
 .resultbody{display:grid;grid-template-columns:42% 58%;gap:8px;align-items:center;flex:1}
 .resultbody img{width:100%;max-height:44vh;object-fit:contain}
@@ -140,8 +151,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
     <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
-    <a class="action secondary" href="area-select.html">区域選択へ</a>
-    <a class="action secondary" href="index.html">ゲームトップへ</a>
+    <a class="action secondary" href="middle2.html">中部2トップ</a>
+    <a class="action secondary" href="area-select.html">6地区トップ</a>
+    <a class="action secondary" href="index.html">トップページ</a>
   </div>
   <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
 </section>
@@ -157,6 +169,22 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
   </div>
 </div>
+
+<section id="answerOverlay" class="answer-overlay hidden" aria-live="polite">
+  <div class="answer-panel">
+    <h2>正解！</h2>
+    <p id="answerText" class="answer-text"></p>
+    <div class="answer-map-wrap"><div id="answerMap" aria-label="正解した町域を強調したコミュニティ地図"></div></div>
+    <div class="answer-legend">
+      <span><i class="legend-mark legend-community"></i>コミュニティ全域</span>
+      <span><i class="legend-mark legend-town"></i>正解した町域</span>
+    </div>
+    <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
+    <nav class="page-links" aria-label="ページ移動">
+      <a href="middle2.html">中部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">トップページ</a>
+    </nav>
+  </div>
+</section>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -166,6 +194,13 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 const ALL_QUESTIONS=[{"name":"岡田山1〜3番","reading":"おかだやま","community":"広田"},{"name":"愛宕山","reading":"あたごやま","community":"広田"},{"name":"高座町","reading":"たかくらちょう","community":"広田"},{"name":"能登町","reading":"のとちょう","community":"広田"},{"name":"広田町","reading":"ひろたちょう","community":"広田"},{"name":"大畑町","reading":"おおはたちょう","community":"広田"},{"name":"中屋町","reading":"なかやちょう","community":"広田"},{"name":"河原町","reading":"かわはらちょう","community":"広田"},{"name":"丸橋町","reading":"まるはしちょう","community":"広田"},{"name":"北昭和町","reading":"きたしょうわちょう","community":"広田"},{"name":"平木町","reading":"ひらきちょう","community":"平木"},{"name":"青木町","reading":"あおきちょう","community":"平木"},{"name":"南昭和町","reading":"みなみしょうわちょう","community":"平木"},{"name":"両度町","reading":"りょうどちょう","community":"平木"},{"name":"高松町","reading":"たかまつちょう","community":"平木"},{"name":"芦原町","reading":"あしはらちょう","community":"芦原"},{"name":"神祇官町","reading":"じんぎかんちょう","community":"芦原"},{"name":"森下町","reading":"もりしたちょう","community":"芦原"},{"name":"神明町","reading":"しんめいちょう","community":"芦原"},{"name":"西福町","reading":"さいふくちょう","community":"芦原"},{"name":"中殿町","reading":"なかどのちょう","community":"芦原"},{"name":"津田町","reading":"つだちょう","community":"芦原"},{"name":"堤町","reading":"つつみちょう","community":"北口"},{"name":"上之町","reading":"かみのちょう","community":"北口"},{"name":"日野町","reading":"ひのちょう","community":"北口"},{"name":"荒木町","reading":"あらきちょう","community":"北口"},{"name":"大森町","reading":"おおもりちょう","community":"北口"},{"name":"薬師町","reading":"やくしちょう","community":"北口"},{"name":"伏原町","reading":"ふしはらちょう","community":"北口"},{"name":"高木東町","reading":"たかぎひがしまち","community":"北口"},{"name":"高木西町","reading":"たかぎにしまち","community":"北口"},{"name":"長田町","reading":"ながたちょう","community":"北口"},{"name":"北口町","reading":"きたぐちちょう","community":"北口"},{"name":"甲風園","reading":"こうふうえん","community":"北口"},{"name":"林田町","reading":"はやしだちょう","community":"北口"},{"name":"野間町","reading":"のまちょう","community":"北口"},{"name":"深津町","reading":"ふかずちょう","community":"瓦木"},{"name":"高畑町","reading":"たかはたちょう","community":"瓦木"},{"name":"田代町","reading":"たしろちょう","community":"瓦木"},{"name":"大屋町","reading":"おおやちょう","community":"瓦木"},{"name":"中島町","reading":"なかじまちょう","community":"瓦木"},{"name":"瓦林町","reading":"かわらばやしちょう","community":"瓦木"},{"name":"天道町","reading":"てんどうちょう","community":"瓦木"},{"name":"松山町","reading":"まつやまちょう","community":"瓦木"},{"name":"松並町","reading":"まつなみちょう","community":"瓦木"},{"name":"熊野町","reading":"くまのちょう","community":"瓦木"},{"name":"二見町","reading":"ふたみちょう","community":"瓦木"},{"name":"甲子園口北町","reading":"こうしえんぐちきたまち","community":"瓦木"}];
 const COMMUNITIES=["広田","平木","芦原","瓦木","北口"];
 let questions=[],index=0,score=48,wrong=0,locked=false,missedQuestions=new Map();
+let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=null,answerBoundaryLayer=null;
+
+const answerMap=L.map("answerMap",{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,zoomSnap:.1});
+Promise.all([
+  fetch("nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
+  fetch("community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
+]).then(([topology,mapping])=>{mapTopology=topology;mapMapping=mapping}).catch(console.error);
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
@@ -208,6 +243,40 @@ function renderQuestion(){
 function setButtonsDisabled(disabled){
   document.querySelectorAll(".choice").forEach(b=>b.disabled=disabled);
 }
+function townGeometriesFor(name){
+  const geometries=mapTopology.objects.town.geometries;
+  if(name==="岡田山1〜3番")return geometries.filter(g=>g.properties.S_NAME==="岡田山");
+  const exact=geometries.filter(g=>g.properties.S_NAME===name);
+  return exact.length?exact:geometries.filter(g=>g.properties.S_NAME.startsWith(name));
+}
+function showAnswerMap(question){
+  byId("answerText").textContent=`「${question.name}（${question.reading}）」は、${question.community}コミュニティです。`;
+  byId("nextQuestionBtn").textContent=index===questions.length-1?"結果発表":"次の問題へ";
+  byId("answerOverlay").classList.remove("hidden");
+  setTimeout(()=>{
+    answerMap.invalidateSize({animate:false});
+    if(answerCommunityLayer)answerCommunityLayer.remove();
+    if(answerTownLayer)answerTownLayer.remove();
+    if(answerBoundaryLayer)answerBoundaryLayer.remove();
+    if(!mapTopology||!mapMapping)return;
+    const geometries=mapTopology.objects.town.geometries;
+    const communityMembers=geometries.filter(g=>mapMapping.towns[g.properties.S_NAME]?.community===question.community||(question.community==="広田"&&g.properties.S_NAME==="岡田山"));
+    const communityFeature=topojson.merge(mapTopology,communityMembers);
+    answerCommunityLayer=L.geoJSON(communityFeature,{interactive:false,style:{color:"#fff",weight:2.5,fillColor:"#5f87d8",fillOpacity:.9}}).addTo(answerMap);
+    const townMembers=townGeometriesFor(question.name);
+    if(townMembers.length){
+      answerTownLayer=L.geoJSON(topojson.merge(mapTopology,townMembers),{interactive:false,style:{color:"#fff",weight:3,fillColor:"#ffd34d",fillOpacity:1}}).addTo(answerMap);
+    }
+    const townFeatures=topojson.feature(mapTopology,{type:"GeometryCollection",geometries:communityMembers});
+    answerBoundaryLayer=L.geoJSON(townFeatures,{interactive:false,style:{color:"#f8fbff",weight:.75,opacity:.9,fillOpacity:0}}).addTo(answerMap);
+    answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[2,2],animate:false});
+  },0);
+}
+function nextQuestion(){
+  byId("answerOverlay").classList.add("hidden");
+  index++;
+  if(index>=questions.length)finishGame();else renderQuestion();
+}
 function answer(selected){
   if(locked)return;
   const q=questions[index];
@@ -216,11 +285,7 @@ function answer(selected){
     setButtonsDisabled(true);
     byId("feedback").className="feedback card good";
     byId("feedback").textContent=`〇 正解！「${q.name}（${q.reading}）」は、${q.community}コミュニティです。`;
-    setTimeout(()=>{
-      index++;
-      if(index>=questions.length)finishGame();
-      else renderQuestion();
-    },2000);
+    showAnswerMap(q);
   }else{
     wrong++;
     missedQuestions.set(q.name,q);
@@ -251,6 +316,7 @@ function finishGame(){
 byId("startBtn").addEventListener("click",startGame);
 byId("retryBtn").addEventListener("click",startGame);
 byId("retryMistakesBtn").addEventListener("click",retryMistakes);
+byId("nextQuestionBtn").addEventListener("click",nextQuestion);
 byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
 byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
 </script>

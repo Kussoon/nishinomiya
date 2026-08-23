@@ -51,6 +51,17 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .feedback{padding:8px 10px;font-size:20px;line-height:1.4;font-weight:900}
 .good{color:#16713f} .bad{color:#aa3028}
 .feedback.good{font-size:20px;line-height:1.4;font-weight:950}
+.answer-overlay{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:12px;background:#17324ad9}
+.answer-panel{width:min(100%,410px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:13px;background:#fff;border-radius:19px;box-shadow:0 14px 40px #0005}
+.answer-panel h2{margin:0;text-align:center;color:#15713f;font-size:25px}
+.answer-text{margin:6px 0 9px;text-align:center;font-size:18px;line-height:1.4;font-weight:900;color:#173f6c}
+.answer-map-wrap{padding:7px;border-radius:15px;background:#dfeaf1}
+#answerMap{height:330px;border-radius:11px;background:#dfeaf1;pointer-events:none}
+.answer-legend{display:flex;justify-content:center;gap:14px;margin:8px 0 2px;font-size:13px;font-weight:850;color:#4c6a7c}
+.legend-mark{display:inline-block;width:16px;height:12px;margin-right:4px;border:2px solid #fff;border-radius:3px;vertical-align:-1px;box-shadow:0 0 0 1px #aac}
+.legend-community{background:#5f87d8}.legend-town{background:#ffd34d}
+.next-question{display:block;width:100%;margin-top:10px;border:0;border-radius:13px;padding:13px;background:#287dd7;color:#fff;font-size:18px;font-weight:950}
+.page-links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}.page-links a{display:flex;min-height:34px;align-items:center;justify-content:center;padding:6px 3px;border:1px solid #bddae7;border-radius:10px;background:#fff;color:#245b7d;text-align:center;text-decoration:none;font-size:11px;font-weight:900;line-height:1.2}
 .resulthead{background:#287bd6;color:#fff;border-radius:13px;padding:10px;text-align:center;font-size:21px;font-weight:950}
 .resultbody{display:grid;grid-template-columns:42% 58%;gap:8px;align-items:center;flex:1}
 .resultbody img{width:100%;max-height:44vh;object-fit:contain}
@@ -140,8 +151,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
     <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
-    <a class="action secondary" href="area-select.html">区域選択へ</a>
-    <a class="action secondary" href="index.html">ゲームトップへ</a>
+    <a class="action secondary" href="south2.html">南部2トップ</a>
+    <a class="action secondary" href="area-select.html">6地区トップ</a>
+    <a class="action secondary" href="index.html">トップページ</a>
   </div>
   <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
 </section>
@@ -157,6 +169,22 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
   </div>
 </div>
+
+<section id="answerOverlay" class="answer-overlay hidden" aria-live="polite">
+  <div class="answer-panel">
+    <h2>正解！</h2>
+    <p id="answerText" class="answer-text"></p>
+    <div class="answer-map-wrap"><div id="answerMap" aria-label="正解した町域を強調したコミュニティ地図"></div></div>
+    <div class="answer-legend">
+      <span><i class="legend-mark legend-community"></i>コミュニティ全域</span>
+      <span><i class="legend-mark legend-town"></i>正解した町域</span>
+    </div>
+    <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
+    <nav class="page-links" aria-label="ページ移動">
+      <a href="south2.html">南部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">トップページ</a>
+    </nav>
+  </div>
+</section>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -166,6 +194,13 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 const ALL_QUESTIONS=[{"name":"津門飯田町","reading":"つといいでんちょう","community":"津門"},{"name":"津門大塚町","reading":"つとおおつかちょう","community":"津門"},{"name":"津門大箇町","reading":"つとおおごちょう","community":"津門"},{"name":"津門綾羽町","reading":"つとあやはちょう","community":"津門"},{"name":"津門呉羽町","reading":"つとくれはちょう","community":"津門"},{"name":"津門稲荷町","reading":"つといなりちょう","community":"津門"},{"name":"津門仁辺町","reading":"つとにべちょう","community":"津門"},{"name":"津門西口町","reading":"つとにしぐちちょう","community":"津門"},{"name":"津門宝津町","reading":"つとほうずちょう","community":"津門"},{"name":"今津山中町","reading":"いまづやまなかちょう","community":"津門"},{"name":"今津曙町","reading":"いまづあけぼのちょう","community":"津門"},{"name":"津門川町","reading":"つとがわちょう","community":"今津"},{"name":"津門住江町","reading":"つとすみえちょう","community":"今津"},{"name":"今津水波町","reading":"いまづみずなみちょう","community":"今津"},{"name":"甲子園高潮町","reading":"こうしえんたかしおちょう","community":"今津"},{"name":"甲子園洲鳥町","reading":"こうしえんすどりちょう","community":"今津"},{"name":"甲子園網引町","reading":"こうしえんあびきちょう","community":"今津"},{"name":"今津久寿川町","reading":"いまづくすがわちょう","community":"今津"},{"name":"今津社前町","reading":"いまづしゃぜんちょう","community":"今津"},{"name":"今津大東町","reading":"いまづおおひがしちょう","community":"今津"},{"name":"今津二葉町","reading":"いまづふたばちょう","community":"今津"},{"name":"今津出在家町","reading":"いまづでざいけちょう","community":"今津"},{"name":"今津港町","reading":"いまづみなとちょう","community":"今津"},{"name":"今津巽町","reading":"いまづたつみちょう","community":"今津"},{"name":"今津西浜町","reading":"いまづにしはまちょう","community":"今津"},{"name":"今津真砂町","reading":"いまづまさごちょう","community":"今津"},{"name":"甲子園春風町","reading":"こうしえんはるかぜちょう","community":"春風"},{"name":"今津野田町","reading":"いまづのだちょう","community":"春風"},{"name":"今津上野町","reading":"いまづうえのちょう","community":"春風"},{"name":"甲子園浜田町","reading":"こうしえんはまだちょう","community":"春風"},{"name":"甲子園砂田町","reading":"こうしえんすなだちょう","community":"春風"},{"name":"甲子園六石町","reading":"こうしえんろっこくちょう","community":"春風"},{"name":"甲子園浦風町","reading":"こうしえんうらかぜちょう","community":"春風"},{"name":"甲子園三保町","reading":"こうしえんみほちょう","community":"春風"},{"name":"上甲子園","reading":"かみこうしえん","community":"春風"},{"name":"甲子園口","reading":"こうしえんぐち","community":"甲子園口"},{"name":"戸崎町","reading":"とざきちょう","community":"甲子園口"},{"name":"小曽根町","reading":"こそねちょう","community":"鳴尾"},{"name":"小松北町","reading":"こまつきたまち","community":"鳴尾"},{"name":"小松東町","reading":"こまつひがしまち","community":"鳴尾"},{"name":"小松町","reading":"こまつちょう","community":"鳴尾"},{"name":"小松西町","reading":"こまつにしまち","community":"鳴尾"},{"name":"小松南町","reading":"こまつみなみまち","community":"鳴尾"},{"name":"若草町","reading":"わかくさちょう","community":"鳴尾"},{"name":"花園町","reading":"はなぞのちょう","community":"鳴尾"},{"name":"学文殿町","reading":"がくぶんでんちょう","community":"鳴尾"},{"name":"里中町","reading":"さとなかちょう","community":"鳴尾"},{"name":"上鳴尾町","reading":"あげなるおちょう","community":"鳴尾"},{"name":"甲子園一番町","reading":"こうしえん1ばんちょう","community":"鳴尾"},{"name":"甲子園二番町","reading":"こうしえん2ばんちょう","community":"鳴尾"},{"name":"甲子園三番町","reading":"こうしえん3ばんちょう","community":"鳴尾"},{"name":"甲子園四番町","reading":"こうしえん4ばんちょう","community":"鳴尾"},{"name":"甲子園五番町","reading":"こうしえん5ばんちょう","community":"鳴尾"},{"name":"甲子園六番町","reading":"こうしえん6ばんちょう","community":"鳴尾"},{"name":"甲子園七番町","reading":"こうしえん7ばんちょう","community":"鳴尾"},{"name":"甲子園八番町","reading":"こうしえん8ばんちょう","community":"鳴尾"},{"name":"甲子園九番町","reading":"こうしえん9ばんちょう","community":"鳴尾"},{"name":"武庫川町","reading":"むこがわちょう","community":"鳴尾"},{"name":"池開町","reading":"いけびらきちょう","community":"鳴尾"},{"name":"東鳴尾町","reading":"ひがしなるおちょう","community":"鳴尾"},{"name":"笠屋町","reading":"かさやちょう","community":"鳴尾"},{"name":"上田東町","reading":"うえだひがしまち","community":"鳴尾"},{"name":"上田中町","reading":"うえだなかまち","community":"鳴尾"},{"name":"上田西町","reading":"うえだにしまち","community":"鳴尾"},{"name":"鳴尾町","reading":"なるおちょう","community":"鳴尾"},{"name":"古川町","reading":"ふるかわちょう","community":"鳴尾"},{"name":"枝川町","reading":"えだがわちょう","community":"鳴尾"},{"name":"甲子園町","reading":"こうしえんちょう","community":"鳴尾"},{"name":"南甲子園","reading":"みなみこうしえん","community":"鳴尾"},{"name":"浜甲子園","reading":"はまこうしえん","community":"鳴尾"},{"name":"甲子園浜","reading":"こうしえんはま","community":"鳴尾"},{"name":"高須町","reading":"たかすちょう","community":"鳴尾"},{"name":"鳴尾浜","reading":"なるおはま","community":"鳴尾"}];
 const COMMUNITIES=["津門","今津","鳴尾","春風","甲子園口"];
 let questions=[],index=0,score=73,wrong=0,locked=false,missedQuestions=new Map();
+let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=null,answerBoundaryLayer=null;
+
+const answerMap=L.map("answerMap",{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,zoomSnap:.1});
+Promise.all([
+  fetch("nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
+  fetch("community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
+]).then(([topology,mapping])=>{mapTopology=topology;mapMapping=mapping}).catch(console.error);
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
@@ -208,6 +243,41 @@ function renderQuestion(){
 function setButtonsDisabled(disabled){
   document.querySelectorAll(".choice").forEach(b=>b.disabled=disabled);
 }
+function townGeometriesFor(name){
+  const geometries=mapTopology.objects.town.geometries;
+  if(name==="甲子園口")return geometries.filter(g=>/^甲子園口[一二三四五六]丁目$/.test(g.properties.S_NAME));
+  if(name==="甲子園浜")return geometries.filter(g=>/^甲子園浜[一二三]丁目$/.test(g.properties.S_NAME));
+  const exact=geometries.filter(g=>g.properties.S_NAME===name);
+  return exact.length?exact:geometries.filter(g=>g.properties.S_NAME.startsWith(name));
+}
+function showAnswerMap(question){
+  byId("answerText").textContent=`「${question.name}（${question.reading}）」は、${question.community}コミュニティです。`;
+  byId("nextQuestionBtn").textContent=index===questions.length-1?"結果発表":"次の問題へ";
+  byId("answerOverlay").classList.remove("hidden");
+  setTimeout(()=>{
+    answerMap.invalidateSize({animate:false});
+    if(answerCommunityLayer)answerCommunityLayer.remove();
+    if(answerTownLayer)answerTownLayer.remove();
+    if(answerBoundaryLayer)answerBoundaryLayer.remove();
+    if(!mapTopology||!mapMapping)return;
+    const geometries=mapTopology.objects.town.geometries;
+    const communityMembers=geometries.filter(g=>mapMapping.towns[g.properties.S_NAME]?.community===question.community);
+    const communityFeature=topojson.merge(mapTopology,communityMembers);
+    answerCommunityLayer=L.geoJSON(communityFeature,{interactive:false,style:{color:"#fff",weight:2.5,fillColor:"#5f87d8",fillOpacity:.9}}).addTo(answerMap);
+    const townMembers=townGeometriesFor(question.name);
+    if(townMembers.length){
+      answerTownLayer=L.geoJSON(topojson.merge(mapTopology,townMembers),{interactive:false,style:{color:"#fff",weight:3,fillColor:"#ffd34d",fillOpacity:1}}).addTo(answerMap);
+    }
+    const townFeatures=topojson.feature(mapTopology,{type:"GeometryCollection",geometries:communityMembers});
+    answerBoundaryLayer=L.geoJSON(townFeatures,{interactive:false,style:{color:"#f8fbff",weight:.75,opacity:.9,fillOpacity:0}}).addTo(answerMap);
+    answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[2,2],animate:false});
+  },0);
+}
+function nextQuestion(){
+  byId("answerOverlay").classList.add("hidden");
+  index++;
+  if(index>=questions.length)finishGame();else renderQuestion();
+}
 function answer(selected){
   if(locked)return;
   const q=questions[index];
@@ -216,11 +286,7 @@ function answer(selected){
     setButtonsDisabled(true);
     byId("feedback").className="feedback card good";
     byId("feedback").textContent=`〇 正解！「${q.name}（${q.reading}）」は、${q.community}コミュニティです。`;
-    setTimeout(()=>{
-      index++;
-      if(index>=questions.length)finishGame();
-      else renderQuestion();
-    },2000);
+    showAnswerMap(q);
   }else{
     wrong++;
     missedQuestions.set(q.name,q);
@@ -251,6 +317,7 @@ function finishGame(){
 byId("startBtn").addEventListener("click",startGame);
 byId("retryBtn").addEventListener("click",startGame);
 byId("retryMistakesBtn").addEventListener("click",retryMistakes);
+byId("nextQuestionBtn").addEventListener("click",nextQuestion);
 byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
 byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
 </script>

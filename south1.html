@@ -51,6 +51,17 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .feedback{padding:8px 10px;font-size:20px;line-height:1.4;font-weight:900}
 .good{color:#16713f} .bad{color:#aa3028}
 .feedback.good{font-size:20px;line-height:1.4;font-weight:950}
+.answer-overlay{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:12px;background:#17324ad9}
+.answer-panel{width:min(100%,410px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:13px;background:#fff;border-radius:19px;box-shadow:0 14px 40px #0005}
+.answer-panel h2{margin:0;text-align:center;color:#15713f;font-size:25px}
+.answer-text{margin:6px 0 9px;text-align:center;font-size:18px;line-height:1.4;font-weight:900;color:#173f6c}
+.answer-map-wrap{padding:7px;border-radius:15px;background:#dfeaf1}
+#answerMap{height:330px;border-radius:11px;background:#dfeaf1;pointer-events:none}
+.answer-legend{display:flex;justify-content:center;gap:14px;margin:8px 0 2px;font-size:13px;font-weight:850;color:#4c6a7c}
+.legend-mark{display:inline-block;width:16px;height:12px;margin-right:4px;border:2px solid #fff;border-radius:3px;vertical-align:-1px;box-shadow:0 0 0 1px #aac}
+.legend-community{background:#5f87d8}.legend-town{background:#ffd34d}
+.next-question{display:block;width:100%;margin-top:10px;border:0;border-radius:13px;padding:13px;background:#287dd7;color:#fff;font-size:18px;font-weight:950}
+.page-links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}.page-links a{display:flex;min-height:34px;align-items:center;justify-content:center;padding:6px 3px;border:1px solid #bddae7;border-radius:10px;background:#fff;color:#245b7d;text-align:center;text-decoration:none;font-size:11px;font-weight:900;line-height:1.2}
 .resulthead{background:#287bd6;color:#fff;border-radius:13px;padding:10px;text-align:center;font-size:21px;font-weight:950}
 .resultbody{display:grid;grid-template-columns:42% 58%;gap:8px;align-items:center;flex:1}
 .resultbody img{width:100%;max-height:44vh;object-fit:contain}
@@ -140,8 +151,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
     <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
-    <a class="action secondary" href="area-select.html">区域選択へ</a>
-    <a class="action secondary" href="index.html">ゲームトップへ</a>
+    <a class="action secondary" href="south1.html">南部1トップ</a>
+    <a class="action secondary" href="area-select.html">6地区トップ</a>
+    <a class="action secondary" href="index.html">トップページ</a>
   </div>
   <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
 </section>
@@ -157,6 +169,22 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
   </div>
 </div>
+
+<section id="answerOverlay" class="answer-overlay hidden" aria-live="polite">
+  <div class="answer-panel">
+    <h2>正解！</h2>
+    <p id="answerText" class="answer-text"></p>
+    <div class="answer-map-wrap"><div id="answerMap" aria-label="正解した町域を強調したコミュニティ地図"></div></div>
+    <div class="answer-legend">
+      <span><i class="legend-mark legend-community"></i>コミュニティ全域</span>
+      <span><i class="legend-mark legend-town"></i>正解した町域</span>
+    </div>
+    <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
+    <nav class="page-links" aria-label="ページ移動">
+      <a href="south1.html">南部1トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">トップページ</a>
+    </nav>
+  </div>
+</section>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -166,6 +194,13 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 const ALL_QUESTIONS=[{"name":"松下町","reading":"まつしたちょう","community":"香櫨園"},{"name":"屋敷町","reading":"やしきちょう","community":"香櫨園"},{"name":"弓場町","reading":"ゆばちょう","community":"香櫨園"},{"name":"川西町","reading":"かわにしちょう","community":"香櫨園"},{"name":"中浜町","reading":"なかはまちょう","community":"香櫨園"},{"name":"堀切町","reading":"ほりきりちょう","community":"香櫨園"},{"name":"上葭原町","reading":"かみよしはらちょう","community":"香櫨園"},{"name":"中葭原町","reading":"なかよしはらちょう","community":"香櫨園"},{"name":"下葭原町","reading":"しもよしはらちょう","community":"香櫨園"},{"name":"大浜町","reading":"おおはまちょう","community":"香櫨園"},{"name":"川東町","reading":"かわひがしちょう","community":"香櫨園"},{"name":"川添町","reading":"かわぞえちょう","community":"香櫨園"},{"name":"神楽町","reading":"かぐらちょう","community":"浜脇"},{"name":"産所町","reading":"さんしょちょう","community":"浜脇"},{"name":"宮西町","reading":"みやにしちょう","community":"浜脇"},{"name":"市庭町","reading":"いちにわちょう","community":"浜脇"},{"name":"社家町","reading":"しゃけちょう","community":"浜脇"},{"name":"宮前町","reading":"みやまえちょう","community":"浜脇"},{"name":"荒戎町","reading":"あらえびすちょう","community":"浜脇"},{"name":"建石町","reading":"たていしちょう","community":"浜脇"},{"name":"前浜町","reading":"まえはまちょう","community":"浜脇"},{"name":"泉町","reading":"いずみちょう","community":"浜脇"},{"name":"西波止町","reading":"にしはとちょう","community":"浜脇"},{"name":"和上町","reading":"わじょうちょう","community":"浜脇"},{"name":"六湛寺町","reading":"ろくたんじちょう","community":"浜脇"},{"name":"今在家町","reading":"いまざいけちょう","community":"浜脇"},{"name":"田中町","reading":"たなかちょう","community":"浜脇"},{"name":"馬場町","reading":"ばばちょう","community":"浜脇"},{"name":"戸田町","reading":"とだちょう","community":"浜脇"},{"name":"本町","reading":"ほんまち","community":"浜脇"},{"name":"久保町","reading":"くぼちょう","community":"浜脇"},{"name":"鞍掛町","reading":"くらかけちょう","community":"浜脇"},{"name":"浜脇町","reading":"はまわきちょう","community":"浜脇"},{"name":"浜町","reading":"はまちょう","community":"浜脇"},{"name":"与古道町","reading":"よこみちちょう","community":"用海"},{"name":"用海町","reading":"ようがいちょう","community":"用海"},{"name":"浜松原町","reading":"はままつばらちょう","community":"用海"},{"name":"東浜町","reading":"ひがしはまちょう","community":"用海"},{"name":"東町","reading":"ひがしまち","community":"用海"},{"name":"石在町","reading":"いしざいちょう","community":"用海"},{"name":"朝凪町","reading":"あさなぎちょう","community":"用海"},{"name":"池田町","reading":"いけだちょう","community":"用海"},{"name":"松原町","reading":"まつばらちょう","community":"用海"},{"name":"染殿町","reading":"そめどのちょう","community":"用海"},{"name":"西宮浜","reading":"にしのみやはま","community":"西宮浜"}];
 const COMMUNITIES=["香櫨園","浜脇","用海","西宮浜"];
 let questions=[],index=0,score=45,wrong=0,locked=false,missedQuestions=new Map();
+let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=null,answerBoundaryLayer=null;
+
+const answerMap=L.map("answerMap",{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,zoomSnap:.1});
+Promise.all([
+  fetch("nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
+  fetch("community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
+]).then(([topology,mapping])=>{mapTopology=topology;mapMapping=mapping}).catch(console.error);
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
@@ -208,6 +243,39 @@ function renderQuestion(){
 function setButtonsDisabled(disabled){
   document.querySelectorAll(".choice").forEach(b=>b.disabled=disabled);
 }
+function townGeometriesFor(name){
+  const geometries=mapTopology.objects.town.geometries;
+  const exact=geometries.filter(g=>g.properties.S_NAME===name);
+  return exact.length?exact:geometries.filter(g=>g.properties.S_NAME.startsWith(name));
+}
+function showAnswerMap(question){
+  byId("answerText").textContent=`「${question.name}（${question.reading}）」は、${question.community}コミュニティです。`;
+  byId("nextQuestionBtn").textContent=index===questions.length-1?"結果発表":"次の問題へ";
+  byId("answerOverlay").classList.remove("hidden");
+  setTimeout(()=>{
+    answerMap.invalidateSize({animate:false});
+    if(answerCommunityLayer)answerCommunityLayer.remove();
+    if(answerTownLayer)answerTownLayer.remove();
+    if(answerBoundaryLayer)answerBoundaryLayer.remove();
+    if(!mapTopology||!mapMapping)return;
+    const geometries=mapTopology.objects.town.geometries;
+    const communityMembers=geometries.filter(g=>mapMapping.towns[g.properties.S_NAME]?.community===question.community);
+    const communityFeature=topojson.merge(mapTopology,communityMembers);
+    answerCommunityLayer=L.geoJSON(communityFeature,{interactive:false,style:{color:"#fff",weight:2.5,fillColor:"#5f87d8",fillOpacity:.9}}).addTo(answerMap);
+    const townMembers=townGeometriesFor(question.name);
+    if(townMembers.length){
+      answerTownLayer=L.geoJSON(topojson.merge(mapTopology,townMembers),{interactive:false,style:{color:"#fff",weight:3,fillColor:"#ffd34d",fillOpacity:1}}).addTo(answerMap);
+    }
+    const townFeatures=topojson.feature(mapTopology,{type:"GeometryCollection",geometries:communityMembers});
+    answerBoundaryLayer=L.geoJSON(townFeatures,{interactive:false,style:{color:"#f8fbff",weight:.75,opacity:.9,fillOpacity:0}}).addTo(answerMap);
+    answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[2,2],animate:false});
+  },0);
+}
+function nextQuestion(){
+  byId("answerOverlay").classList.add("hidden");
+  index++;
+  if(index>=questions.length)finishGame();else renderQuestion();
+}
 function answer(selected){
   if(locked)return;
   const q=questions[index];
@@ -216,11 +284,7 @@ function answer(selected){
     setButtonsDisabled(true);
     byId("feedback").className="feedback card good";
     byId("feedback").textContent=`〇 正解！「${q.name}（${q.reading}）」は、${q.community}コミュニティです。`;
-    setTimeout(()=>{
-      index++;
-      if(index>=questions.length)finishGame();
-      else renderQuestion();
-    },2000);
+    showAnswerMap(q);
   }else{
     wrong++;
     missedQuestions.set(q.name,q);
@@ -251,6 +315,7 @@ function finishGame(){
 byId("startBtn").addEventListener("click",startGame);
 byId("retryBtn").addEventListener("click",startGame);
 byId("retryMistakesBtn").addEventListener("click",retryMistakes);
+byId("nextQuestionBtn").addEventListener("click",nextQuestion);
 byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
 byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
 </script>
