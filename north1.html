@@ -212,7 +212,8 @@ const answerMap=L.map("answerMap",{
 
 const overviewMap=L.map("north1Overview",{
   zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,
-  doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false
+  doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,
+  zoomSnap:0.1
 });
 Promise.all([
   fetch("nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
@@ -236,7 +237,7 @@ Promise.all([
       shape.bindTooltip(feature.properties.community,{permanent:true,direction:"center",className:"community-label",interactive:false});
     }
   }).addTo(overviewMap);
-  overviewMap.fitBounds(layer.getBounds(),{padding:[8,8],animate:false});
+  overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
   setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
 }).catch(error=>{
   document.querySelector("#north1Overview .map-status").textContent="地図を読み込めませんでした。データファイルを確認してください。";

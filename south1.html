@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#e8f7ff">
 <title>南部1 町名チャレンジ｜西宮市町名ゲーム</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;min-height:100%;background:#e8f7ff}
@@ -20,6 +21,10 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .hero{display:grid;grid-template-columns:38% 62%;align-items:center;overflow:hidden;min-height:128px}
 .hero img{width:100%;height:128px;object-fit:contain;background:#f7fbfd}
 .speech{padding:10px;font-size:14px;line-height:1.5;font-weight:750}
+.intro-map{padding:9px}.intro-map h2{margin:0 0 7px;text-align:center;color:#155189;font-size:18px}
+.district-overview{height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
+.map-status{height:100%;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center;color:#60758a;font-size:13px;font-weight:800}
+.community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;padding:2px 5px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}.community-label:before{display:none!important}
 .rules{padding:11px 14px;font-size:12.5px;line-height:1.55}
 .rules p{margin:3px 0}
 .start{border:0;border-radius:14px;padding:15px;background:#287dd7;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 10px #287dd744}
@@ -88,6 +93,10 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     <img src="images/guide-character.png" alt="案内キャラクター">
     <div class="speech">町名を見て、それが南部1のどのコミュニティに属するか当ててください！</div>
   </div>
+  <div class="intro-map card">
+    <h2>南部1の4コミュニティ</h2>
+    <div class="district-overview" data-community-overview="香櫨園,浜脇,用海,西宮浜" aria-label="南部1のコミュニティ地図"><div class="map-status">地図を読み込んでいます…</div></div>
+  </div>
   <div class="rules card">
     <p><strong>出題数：45問</strong></p>
     <p>同じ町名は1ラウンドに1回だけ出ます。</p>
@@ -149,6 +158,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="district-overview.js"></script>
 <script>
 const ALL_QUESTIONS=[{"name":"松下町","reading":"まつしたちょう","community":"香櫨園"},{"name":"屋敷町","reading":"やしきちょう","community":"香櫨園"},{"name":"弓場町","reading":"ゆばちょう","community":"香櫨園"},{"name":"川西町","reading":"かわにしちょう","community":"香櫨園"},{"name":"中浜町","reading":"なかはまちょう","community":"香櫨園"},{"name":"堀切町","reading":"ほりきりちょう","community":"香櫨園"},{"name":"上葭原町","reading":"かみよしはらちょう","community":"香櫨園"},{"name":"中葭原町","reading":"なかよしはらちょう","community":"香櫨園"},{"name":"下葭原町","reading":"しもよしはらちょう","community":"香櫨園"},{"name":"大浜町","reading":"おおはまちょう","community":"香櫨園"},{"name":"川東町","reading":"かわひがしちょう","community":"香櫨園"},{"name":"川添町","reading":"かわぞえちょう","community":"香櫨園"},{"name":"神楽町","reading":"かぐらちょう","community":"浜脇"},{"name":"産所町","reading":"さんしょちょう","community":"浜脇"},{"name":"宮西町","reading":"みやにしちょう","community":"浜脇"},{"name":"市庭町","reading":"いちにわちょう","community":"浜脇"},{"name":"社家町","reading":"しゃけちょう","community":"浜脇"},{"name":"宮前町","reading":"みやまえちょう","community":"浜脇"},{"name":"荒戎町","reading":"あらえびすちょう","community":"浜脇"},{"name":"建石町","reading":"たていしちょう","community":"浜脇"},{"name":"前浜町","reading":"まえはまちょう","community":"浜脇"},{"name":"泉町","reading":"いずみちょう","community":"浜脇"},{"name":"西波止町","reading":"にしはとちょう","community":"浜脇"},{"name":"和上町","reading":"わじょうちょう","community":"浜脇"},{"name":"六湛寺町","reading":"ろくたんじちょう","community":"浜脇"},{"name":"今在家町","reading":"いまざいけちょう","community":"浜脇"},{"name":"田中町","reading":"たなかちょう","community":"浜脇"},{"name":"馬場町","reading":"ばばちょう","community":"浜脇"},{"name":"戸田町","reading":"とだちょう","community":"浜脇"},{"name":"本町","reading":"ほんまち","community":"浜脇"},{"name":"久保町","reading":"くぼちょう","community":"浜脇"},{"name":"鞍掛町","reading":"くらかけちょう","community":"浜脇"},{"name":"浜脇町","reading":"はまわきちょう","community":"浜脇"},{"name":"浜町","reading":"はまちょう","community":"浜脇"},{"name":"与古道町","reading":"よこみちちょう","community":"用海"},{"name":"用海町","reading":"ようがいちょう","community":"用海"},{"name":"浜松原町","reading":"はままつばらちょう","community":"用海"},{"name":"東浜町","reading":"ひがしはまちょう","community":"用海"},{"name":"東町","reading":"ひがしまち","community":"用海"},{"name":"石在町","reading":"いしざいちょう","community":"用海"},{"name":"朝凪町","reading":"あさなぎちょう","community":"用海"},{"name":"池田町","reading":"いけだちょう","community":"用海"},{"name":"松原町","reading":"まつばらちょう","community":"用海"},{"name":"染殿町","reading":"そめどのちょう","community":"用海"},{"name":"西宮浜","reading":"にしのみやはま","community":"西宮浜"}];
 const COMMUNITIES=["香櫨園","浜脇","用海","西宮浜"];

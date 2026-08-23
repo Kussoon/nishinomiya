@@ -22,6 +22,8 @@
     .mode:hover{transform:translateY(-1px);box-shadow:0 5px 15px #17385e30}.mode:active{transform:translateY(1px)}
     .mode small{display:block;margin:4px 0 0 32px;color:#60758a;font-size:13px;font-weight:700}
     .mode.primary{background:linear-gradient(135deg,#276eaf,#48a0d7);color:#fff}.mode.primary small{color:#eaf7ff}
+    .mode.upcoming{cursor:default}
+    .mode.upcoming:hover,.mode.upcoming:active{transform:none;box-shadow:0 3px 12px #17385e25}
     .note{margin:14px 3px;text-align:center;color:#647586;font-size:11px;line-height:1.5}
     .footer{margin-top:14px;padding-top:10px;border-top:1px solid #cfdae3;text-align:center;color:#71808d;font-size:10px}
     @media(max-width:480px){body{padding-left:8px;padding-right:8px}.hero{grid-template-columns:70px 1fr;gap:9px;padding:9px}.hero img{width:70px;height:70px}.speech{font-size:13px;padding:9px 11px}.mode{min-height:68px}}
@@ -39,7 +41,8 @@
 
   <nav class="menu" aria-label="ゲームモード">
     <button class="mode primary" type="button" onclick="location.href='community-map-quiz.html'">📍 コミュニティの場所当て<small>色分け地図で26コミュニティを当てよう</small></button>
-    <button class="mode" type="button" onclick="location.href='area-select.html'">🏠 コミュニティごとの町名チャレンジ<small>区域を選んで町名に挑戦</small></button>
+    <button class="mode" type="button" onclick="location.href='area-select.html'">🗺️ 6つの地区で町名チャレンジ<small>6地区から選んで町名に挑戦</small></button>
+    <div class="mode upcoming">🏠 コミュニティごとに町名チャレンジ</div>
     <button class="mode" type="button" onclick="location.href='all-area.html'">🌐 全域チャレンジ<small>町別地図で学習</small></button>
   </nav>
 

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#e8f7ff">
 <title>中部2 町名チャレンジ｜西宮市町名ゲーム</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;min-height:100%;background:#e8f7ff}
@@ -20,6 +21,10 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .hero{display:grid;grid-template-columns:38% 62%;align-items:center;overflow:hidden;min-height:128px}
 .hero img{width:100%;height:128px;object-fit:contain;background:#f7fbfd}
 .speech{padding:10px;font-size:14px;line-height:1.5;font-weight:750}
+.intro-map{padding:9px}.intro-map h2{margin:0 0 7px;text-align:center;color:#155189;font-size:18px}
+.district-overview{height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
+.map-status{height:100%;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center;color:#60758a;font-size:13px;font-weight:800}
+.community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;padding:2px 5px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}.community-label:before{display:none!important}
 .rules{padding:11px 14px;font-size:12.5px;line-height:1.55}
 .rules p{margin:3px 0}
 .start{border:0;border-radius:14px;padding:15px;background:#287dd7;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 10px #287dd744}
@@ -88,6 +93,10 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     <img src="images/guide-character.png" alt="案内キャラクター">
     <div class="speech">町名を見て、それが中部2のどのコミュニティに属するか当ててください！</div>
   </div>
+  <div class="intro-map card">
+    <h2>中部2の5コミュニティ</h2>
+    <div class="district-overview" data-community-overview="広田,平木,芦原,瓦木,北口" aria-label="中部2のコミュニティ地図"><div class="map-status">地図を読み込んでいます…</div></div>
+  </div>
   <div class="rules card">
     <p><strong>出題数：48問</strong></p>
     <p>同じ町名は1ラウンドに1回だけ出ます。</p>
@@ -149,6 +158,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="district-overview.js"></script>
 <script>
 const ALL_QUESTIONS=[{"name":"岡田山1〜3番","reading":"おかだやま","community":"広田"},{"name":"愛宕山","reading":"あたごやま","community":"広田"},{"name":"高座町","reading":"たかくらちょう","community":"広田"},{"name":"能登町","reading":"のとちょう","community":"広田"},{"name":"広田町","reading":"ひろたちょう","community":"広田"},{"name":"大畑町","reading":"おおはたちょう","community":"広田"},{"name":"中屋町","reading":"なかやちょう","community":"広田"},{"name":"河原町","reading":"かわはらちょう","community":"広田"},{"name":"丸橋町","reading":"まるはしちょう","community":"広田"},{"name":"北昭和町","reading":"きたしょうわちょう","community":"広田"},{"name":"平木町","reading":"ひらきちょう","community":"平木"},{"name":"青木町","reading":"あおきちょう","community":"平木"},{"name":"南昭和町","reading":"みなみしょうわちょう","community":"平木"},{"name":"両度町","reading":"りょうどちょう","community":"平木"},{"name":"高松町","reading":"たかまつちょう","community":"平木"},{"name":"芦原町","reading":"あしはらちょう","community":"芦原"},{"name":"神祇官町","reading":"じんぎかんちょう","community":"芦原"},{"name":"森下町","reading":"もりしたちょう","community":"芦原"},{"name":"神明町","reading":"しんめいちょう","community":"芦原"},{"name":"西福町","reading":"さいふくちょう","community":"芦原"},{"name":"中殿町","reading":"なかどのちょう","community":"芦原"},{"name":"津田町","reading":"つだちょう","community":"芦原"},{"name":"堤町","reading":"つつみちょう","community":"北口"},{"name":"上之町","reading":"かみのちょう","community":"北口"},{"name":"日野町","reading":"ひのちょう","community":"北口"},{"name":"荒木町","reading":"あらきちょう","community":"北口"},{"name":"大森町","reading":"おおもりちょう","community":"北口"},{"name":"薬師町","reading":"やくしちょう","community":"北口"},{"name":"伏原町","reading":"ふしはらちょう","community":"北口"},{"name":"高木東町","reading":"たかぎひがしまち","community":"北口"},{"name":"高木西町","reading":"たかぎにしまち","community":"北口"},{"name":"長田町","reading":"ながたちょう","community":"北口"},{"name":"北口町","reading":"きたぐちちょう","community":"北口"},{"name":"甲風園","reading":"こうふうえん","community":"北口"},{"name":"林田町","reading":"はやしだちょう","community":"北口"},{"name":"野間町","reading":"のまちょう","community":"北口"},{"name":"深津町","reading":"ふかずちょう","community":"瓦木"},{"name":"高畑町","reading":"たかはたちょう","community":"瓦木"},{"name":"田代町","reading":"たしろちょう","community":"瓦木"},{"name":"大屋町","reading":"おおやちょう","community":"瓦木"},{"name":"中島町","reading":"なかじまちょう","community":"瓦木"},{"name":"瓦林町","reading":"かわらばやしちょう","community":"瓦木"},{"name":"天道町","reading":"てんどうちょう","community":"瓦木"},{"name":"松山町","reading":"まつやまちょう","community":"瓦木"},{"name":"松並町","reading":"まつなみちょう","community":"瓦木"},{"name":"熊野町","reading":"くまのちょう","community":"瓦木"},{"name":"二見町","reading":"ふたみちょう","community":"瓦木"},{"name":"甲子園口北町","reading":"こうしえんぐちきたまち","community":"瓦木"}];
 const COMMUNITIES=["広田","平木","芦原","瓦木","北口"];

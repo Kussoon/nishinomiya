@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#e8f7ff">
 <title>中部1 町名チャレンジ｜西宮市町名ゲーム</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;min-height:100%;background:#e8f7ff}
@@ -20,6 +21,10 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .hero{display:grid;grid-template-columns:38% 62%;align-items:center;overflow:hidden;min-height:128px}
 .hero img{width:100%;height:128px;object-fit:contain;background:#f7fbfd}
 .speech{padding:10px;font-size:14px;line-height:1.5;font-weight:750}
+.intro-map{padding:9px}.intro-map h2{margin:0 0 7px;text-align:center;color:#155189;font-size:18px}
+.district-overview{height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
+.map-status{height:100%;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center;color:#60758a;font-size:13px;font-weight:800}
+.community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;padding:2px 5px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}.community-label:before{display:none!important}
 .rules{padding:11px 14px;font-size:12.5px;line-height:1.55}
 .rules p{margin:3px 0}
 .start{border:0;border-radius:14px;padding:15px;background:#287dd7;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 10px #287dd744}
@@ -88,6 +93,10 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     <img src="images/guide-character.png" alt="案内キャラクター">
     <div class="speech">町名を見て、それが中部1のどのコミュニティに属するか当ててください！</div>
   </div>
+  <div class="intro-map card">
+    <h2>中部1の5コミュニティ</h2>
+    <div class="district-overview" data-community-overview="越木岩,夙川,安井,大社,神原" aria-label="中部1のコミュニティ地図"><div class="map-status">地図を読み込んでいます…</div></div>
+  </div>
   <div class="rules card">
     <p><strong>出題数：59問</strong></p>
     <p>同じ町名は1ラウンドに1回だけ出ます。</p>
@@ -149,6 +158,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script src="district-overview.js"></script>
 <script>
 const ALL_QUESTIONS=[{"name":"甑岩町","reading":"こしきいわちょう","community":"越木岩"},{"name":"毘沙門町","reading":"びしゃもんちょう","community":"越木岩"},{"name":"角石町","reading":"すみいしちょう","community":"越木岩"},{"name":"西平町","reading":"にしひらちょう","community":"越木岩"},{"name":"美作町","reading":"みさくちょう","community":"越木岩"},{"name":"桜町","reading":"さくらまち","community":"越木岩"},{"name":"豊楽町","reading":"ほうらくちょう","community":"越木岩"},{"name":"松風町","reading":"まつかぜちょう","community":"越木岩"},{"name":"石刎町","reading":"いしばねちょう","community":"越木岩"},{"name":"樋之池町","reading":"ひのいけちょう","community":"越木岩"},{"name":"老松町","reading":"おいまつちょう","community":"越木岩"},{"name":"深谷町","reading":"ふかたにちょう","community":"越木岩"},{"name":"松ケ丘町","reading":"まつがおかちょう","community":"越木岩"},{"name":"菊谷町","reading":"きくたにちょう","community":"越木岩"},{"name":"南越木岩町","reading":"みなみこしきいわちょう","community":"越木岩"},{"name":"松生町","reading":"まつおいちょう","community":"越木岩"},{"name":"久出ケ谷町","reading":"くでがやちょう","community":"越木岩"},{"name":"木津山町","reading":"きずやまちょう","community":"夙川"},{"name":"高塚町","reading":"たかつかちょう","community":"夙川"},{"name":"殿山町","reading":"とのやまちょう","community":"夙川"},{"name":"雲井町","reading":"くもいちょう","community":"夙川"},{"name":"相生町","reading":"あいおいちょう","community":"夙川"},{"name":"羽衣町","reading":"はごろもちょう","community":"夙川"},{"name":"霞町","reading":"かすみちょう","community":"夙川"},{"name":"松園町","reading":"まつぞのちょう","community":"夙川"},{"name":"大谷町","reading":"おおたにちょう","community":"夙川"},{"name":"郷免町","reading":"ごうめんちょう","community":"夙川"},{"name":"御茶家所町","reading":"おちゃやしょちょう","community":"夙川"},{"name":"獅子ケ口町","reading":"ししがぐちちょう","community":"神原"},{"name":"神原","reading":"かんばら","community":"神原"},{"name":"奥畑","reading":"おくはた","community":"神原"},{"name":"北名次町","reading":"きたなつぎちょう","community":"神原"},{"name":"名次町","reading":"なつぎちょう","community":"神原"},{"name":"結善町","reading":"けつぜんちょう","community":"神原"},{"name":"大社町","reading":"たいしゃちょう","community":"大社"},{"name":"柳本町","reading":"やなぎもとちょう","community":"大社"},{"name":"室川町","reading":"むろかわちょう","community":"大社"},{"name":"神垣町","reading":"かみがきちょう","community":"大社"},{"name":"越水町","reading":"こしみずちょう","community":"大社"},{"name":"城山","reading":"しろやま","community":"大社"},{"name":"桜谷町","reading":"さくらだにちょう","community":"大社"},{"name":"西田町","reading":"にしだちょう","community":"大社"},{"name":"満池谷町","reading":"まんちだにちょう","community":"大社"},{"name":"清水町","reading":"しみずちょう","community":"大社"},{"name":"南郷町","reading":"なんごうちょう","community":"大社"},{"name":"若松町","reading":"わかまつちょう","community":"大社"},{"name":"大井手町","reading":"おおいでちょう","community":"大社"},{"name":"中須佐町","reading":"なかすさちょう","community":"安井"},{"name":"中前田町","reading":"なかまえだちょう","community":"安井"},{"name":"櫨塚町","reading":"はぜつかちょう","community":"安井"},{"name":"城ケ堀町","reading":"じょうがぼりちょう","community":"安井"},{"name":"江上町","reading":"えがみちょう","community":"安井"},{"name":"末広町","reading":"すえひろちょう","community":"安井"},{"name":"分銅町","reading":"ぶんどうちょう","community":"安井"},{"name":"常磐町","reading":"ときわちょう","community":"安井"},{"name":"平松町","reading":"ひらまつちょう","community":"安井"},{"name":"寿町","reading":"ことぶきちょう","community":"安井"},{"name":"千歳町","reading":"ちとせちょう","community":"安井"},{"name":"安井町","reading":"やすいちょう","community":"安井"}];
 const COMMUNITIES=["越木岩","夙川","安井","大社","神原"];
