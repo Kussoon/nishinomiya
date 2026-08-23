@@ -20,7 +20,7 @@
 </main>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
-const map=L.map('map',{attributionControl:false,zoomControl:false,dragging:false,touchZoom:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,tap:false,zoomSnap:.1});
+const map=L.map('map',{attributionControl:false,zoomControl:true,dragging:true,touchZoom:true,scrollWheelZoom:true,doubleClickZoom:true,boxZoom:false,keyboard:true,zoomSnap:.1});
 const message=document.getElementById('message');
 Promise.all([fetch('nishinomiya-towns.topojson').then(r=>r.json()),fetch('community-town-map.json').then(r=>r.json())]).then(([topology,mapping])=>{
  const geometries=topology.objects.town.geometries;
