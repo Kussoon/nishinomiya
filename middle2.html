@@ -130,7 +130,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbody">
     <img src="images/guide-character.png" alt="案内キャラクター">
     <div class="scorebox card">
-      <div class="outof">48問中</div>
+      <div id="resultTotal" class="outof">48問中</div>
       <div id="finalScore" class="score">48</div>
       <div class="outof">点</div>
       <div id="mistakes" class="mistakes">誤答 0回</div>
@@ -139,6 +139,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
     <a class="action secondary" href="area-select.html">区域選択へ</a>
     <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
@@ -164,7 +165,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 <script>
 const ALL_QUESTIONS=[{"name":"岡田山1〜3番","reading":"おかだやま","community":"広田"},{"name":"愛宕山","reading":"あたごやま","community":"広田"},{"name":"高座町","reading":"たかくらちょう","community":"広田"},{"name":"能登町","reading":"のとちょう","community":"広田"},{"name":"広田町","reading":"ひろたちょう","community":"広田"},{"name":"大畑町","reading":"おおはたちょう","community":"広田"},{"name":"中屋町","reading":"なかやちょう","community":"広田"},{"name":"河原町","reading":"かわはらちょう","community":"広田"},{"name":"丸橋町","reading":"まるはしちょう","community":"広田"},{"name":"北昭和町","reading":"きたしょうわちょう","community":"広田"},{"name":"平木町","reading":"ひらきちょう","community":"平木"},{"name":"青木町","reading":"あおきちょう","community":"平木"},{"name":"南昭和町","reading":"みなみしょうわちょう","community":"平木"},{"name":"両度町","reading":"りょうどちょう","community":"平木"},{"name":"高松町","reading":"たかまつちょう","community":"平木"},{"name":"芦原町","reading":"あしはらちょう","community":"芦原"},{"name":"神祇官町","reading":"じんぎかんちょう","community":"芦原"},{"name":"森下町","reading":"もりしたちょう","community":"芦原"},{"name":"神明町","reading":"しんめいちょう","community":"芦原"},{"name":"西福町","reading":"さいふくちょう","community":"芦原"},{"name":"中殿町","reading":"なかどのちょう","community":"芦原"},{"name":"津田町","reading":"つだちょう","community":"芦原"},{"name":"堤町","reading":"つつみちょう","community":"北口"},{"name":"上之町","reading":"かみのちょう","community":"北口"},{"name":"日野町","reading":"ひのちょう","community":"北口"},{"name":"荒木町","reading":"あらきちょう","community":"北口"},{"name":"大森町","reading":"おおもりちょう","community":"北口"},{"name":"薬師町","reading":"やくしちょう","community":"北口"},{"name":"伏原町","reading":"ふしはらちょう","community":"北口"},{"name":"高木東町","reading":"たかぎひがしまち","community":"北口"},{"name":"高木西町","reading":"たかぎにしまち","community":"北口"},{"name":"長田町","reading":"ながたちょう","community":"北口"},{"name":"北口町","reading":"きたぐちちょう","community":"北口"},{"name":"甲風園","reading":"こうふうえん","community":"北口"},{"name":"林田町","reading":"はやしだちょう","community":"北口"},{"name":"野間町","reading":"のまちょう","community":"北口"},{"name":"深津町","reading":"ふかずちょう","community":"瓦木"},{"name":"高畑町","reading":"たかはたちょう","community":"瓦木"},{"name":"田代町","reading":"たしろちょう","community":"瓦木"},{"name":"大屋町","reading":"おおやちょう","community":"瓦木"},{"name":"中島町","reading":"なかじまちょう","community":"瓦木"},{"name":"瓦林町","reading":"かわらばやしちょう","community":"瓦木"},{"name":"天道町","reading":"てんどうちょう","community":"瓦木"},{"name":"松山町","reading":"まつやまちょう","community":"瓦木"},{"name":"松並町","reading":"まつなみちょう","community":"瓦木"},{"name":"熊野町","reading":"くまのちょう","community":"瓦木"},{"name":"二見町","reading":"ふたみちょう","community":"瓦木"},{"name":"甲子園口北町","reading":"こうしえんぐちきたまち","community":"瓦木"}];
 const COMMUNITIES=["広田","平木","芦原","瓦木","北口"];
-let questions=[],index=0,score=48,wrong=0,locked=false;
+let questions=[],index=0,score=48,wrong=0,locked=false,missedQuestions=new Map();
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
@@ -178,12 +179,14 @@ function shuffle(a){
 function showScreen(id){
   ["intro","quiz","result"].forEach(x=>byId(x).classList.toggle("hidden",x!==id));
 }
-function startGame(){
-  questions=shuffle(ALL_QUESTIONS);
-  index=0;score=48;wrong=0;locked=false;
+function beginGame(source){
+  questions=shuffle(source);
+  index=0;score=questions.length;wrong=0;locked=false;missedQuestions=new Map();
   showScreen("quiz");
   renderQuestion();
 }
+function startGame(){beginGame(ALL_QUESTIONS)}
+function retryMistakes(){const retry=[...missedQuestions.values()];if(retry.length)beginGame(retry)}
 function renderQuestion(){
   locked=false;
   const q=questions[index];
@@ -220,6 +223,7 @@ function answer(selected){
     },2000);
   }else{
     wrong++;
+    missedQuestions.set(q.name,q);
     score=Math.max(0,score-1);
     byId("scoreNow").textContent=score;
     byId("feedback").className="feedback card bad";
@@ -233,17 +237,20 @@ function answer(selected){
   }
 }
 function finishGame(){
+  byId("resultTotal").textContent=`${questions.length}問中`;
   byId("finalScore").textContent=score;
   byId("mistakes").textContent=`誤答 ${wrong}回`;
   byId("resultComment").textContent=
-    score===48?"全問ノーミス！すばらしいです！":
-    score>=60?"かなりよく覚えています！":
-    score>=50?"あと少しで中部2マスターです！":
+    score===questions.length?"全問ノーミス！すばらしいです！":
+    score>=Math.ceil(questions.length*.9)?"かなりよく覚えています！":
+    score>=Math.ceil(questions.length*.75)?"あと少しでマスターです！":
     "繰り返すほど、しっかり身につきます！";
+  byId("retryMistakesBtn").classList.toggle("hidden",missedQuestions.size===0);
   showScreen("result");
 }
 byId("startBtn").addEventListener("click",startGame);
 byId("retryBtn").addEventListener("click",startGame);
+byId("retryMistakesBtn").addEventListener("click",retryMistakes);
 byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
 byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
 </script>

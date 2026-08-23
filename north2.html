@@ -51,6 +51,17 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .feedback{padding:8px 10px;font-size:20px;line-height:1.4;font-weight:900}
 .good{color:#16713f} .bad{color:#aa3028}
 .feedback.good{font-size:20px;line-height:1.4;font-weight:950}
+.answer-overlay{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:12px;background:#17324ad9}
+.answer-panel{width:min(100%,410px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:13px;background:#fff;border-radius:19px;box-shadow:0 14px 40px #0005}
+.answer-panel h2{margin:0;text-align:center;color:#15713f;font-size:25px}
+.answer-text{margin:6px 0 9px;text-align:center;font-size:18px;line-height:1.4;font-weight:900;color:#173f6c}
+.answer-map-wrap{padding:7px;border-radius:15px;background:#dfeaf1}
+#answerMap{height:330px;border-radius:11px;background:#dfeaf1;pointer-events:none}
+.answer-legend{display:flex;justify-content:center;gap:14px;margin:8px 0 2px;font-size:13px;font-weight:850;color:#4c6a7c}
+.legend-mark{display:inline-block;width:16px;height:12px;margin-right:4px;border:2px solid #fff;border-radius:3px;vertical-align:-1px;box-shadow:0 0 0 1px #aac}
+.legend-community{background:#5f87d8}.legend-town{background:#ffd34d}
+.next-question{display:block;width:100%;margin-top:10px;border:0;border-radius:13px;padding:13px;background:#287dd7;color:#fff;font-size:18px;font-weight:950}
+.page-links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:7px}.page-links a{display:flex;min-height:34px;align-items:center;justify-content:center;padding:6px 3px;border:1px solid #bddae7;border-radius:10px;background:#fff;color:#245b7d;text-align:center;text-decoration:none;font-size:11px;font-weight:900;line-height:1.2}
 .resulthead{background:#287bd6;color:#fff;border-radius:13px;padding:10px;text-align:center;font-size:21px;font-weight:950}
 .resultbody{display:grid;grid-template-columns:42% 58%;gap:8px;align-items:center;flex:1}
 .resultbody img{width:100%;max-height:44vh;object-fit:contain}
@@ -130,7 +141,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbody">
     <img src="images/guide-character.png" alt="案内キャラクター">
     <div class="scorebox card">
-      <div class="outof">66問中</div>
+      <div id="resultTotal" class="outof">66問中</div>
       <div id="finalScore" class="score">66</div>
       <div class="outof">点</div>
       <div id="mistakes" class="mistakes">誤答 0回</div>
@@ -139,6 +150,8 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
+    <a class="action secondary" href="north2.html">北部2トップ</a>
     <a class="action secondary" href="area-select.html">区域選択へ</a>
     <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
@@ -156,6 +169,22 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
   </div>
 </div>
+
+<section id="answerOverlay" class="answer-overlay hidden" aria-live="polite">
+  <div class="answer-panel">
+    <h2>正解！</h2>
+    <p id="answerText" class="answer-text"></p>
+    <div class="answer-map-wrap"><div id="answerMap" aria-label="正解した町域を強調したコミュニティ地図"></div></div>
+    <div class="answer-legend">
+      <span><i class="legend-mark legend-community"></i>コミュニティ全域</span>
+      <span><i class="legend-mark legend-town"></i>正解した町域</span>
+    </div>
+    <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
+    <nav class="page-links" aria-label="ページ移動">
+      <a href="north2.html">北部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">トップページ</a>
+    </nav>
+  </div>
+</section>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -164,7 +193,14 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 <script>
 const ALL_QUESTIONS=[{"name":"越水字社家郷山","reading":"こしみずあざしゃけごうやま","community":"苦楽園"},{"name":"湯元町","reading":"ゆのもとちょう","community":"苦楽園"},{"name":"鷲林寺","reading":"じゅうりんじ","community":"苦楽園"},{"name":"鷲林寺町","reading":"じゅうりんじちょう","community":"苦楽園"},{"name":"柏堂町","reading":"かやんどうちょう","community":"苦楽園"},{"name":"北山町","reading":"きたやまちょう","community":"苦楽園"},{"name":"苦楽園一番町","reading":"くらくえん1ばんちょう","community":"苦楽園"},{"name":"苦楽園二番町","reading":"くらくえん2ばんちょう","community":"苦楽園"},{"name":"苦楽園三番町","reading":"くらくえん3ばんちょう","community":"苦楽園"},{"name":"苦楽園四番町","reading":"くらくえん4ばんちょう","community":"苦楽園"},{"name":"苦楽園五番町","reading":"くらくえん5ばんちょう","community":"苦楽園"},{"name":"苦楽園六番町","reading":"くらくえん6ばんちょう","community":"苦楽園"},{"name":"鷲林寺字剣谷","reading":"じゅうりんじあざけんたに","community":"苦楽園"},{"name":"鷲林寺南町","reading":"じゅうりんじみなみまち","community":"苦楽園"},{"name":"柏堂西町","reading":"かやんどうにしまち","community":"苦楽園"},{"name":"剣谷町","reading":"けんだにちょう","community":"苦楽園"},{"name":"甲陽園目神山町","reading":"こうようえんめがみやまちょう","community":"甲陽"},{"name":"甲陽園東山町","reading":"こうようえんひがしやまちょう","community":"甲陽"},{"name":"甲陽園山王町","reading":"こうようえんさんのうちょう","community":"甲陽"},{"name":"甲陽園西山町","reading":"こうようえんにしやまちょう","community":"甲陽"},{"name":"甲陽園若江町","reading":"こうようえんわかえちょう","community":"甲陽"},{"name":"甲陽園本庄町","reading":"こうようえんほんじょうちょう","community":"甲陽"},{"name":"甲陽園日之出町","reading":"こうようえんひのでちょう","community":"甲陽"},{"name":"新甲陽町","reading":"しんこうようちょう","community":"甲陽"},{"name":"神園町","reading":"かみぞのちょう","community":"甲陽"},{"name":"五月ケ丘","reading":"さつきがおか","community":"甲陽"},{"name":"六軒町","reading":"ろっけんちょう","community":"甲陽"},{"name":"甲山町","reading":"かぶとやまちょう","community":"甲陽"},{"name":"一ケ谷町","reading":"いちがやちょう","community":"上ヶ原"},{"name":"仁川町","reading":"にがわちょう","community":"上ヶ原"},{"name":"仁川百合野町","reading":"にがわゆりのちょう","community":"上ヶ原"},{"name":"仁川五ケ山町","reading":"にがわごかやまちょう","community":"上ヶ原"},{"name":"上ケ原一番町","reading":"うえがはら1ばんちょう","community":"上ヶ原"},{"name":"上ケ原二番町","reading":"うえがはら2ばんちょう","community":"上ヶ原"},{"name":"上ケ原三番町","reading":"うえがはら3ばんちょう","community":"上ヶ原"},{"name":"上ケ原四番町","reading":"うえがはら4ばんちょう","community":"上ヶ原"},{"name":"上ケ原五番町","reading":"うえがはら5ばんちょう","community":"上ヶ原"},{"name":"上ケ原六番町","reading":"うえがはら6ばんちょう","community":"上ヶ原"},{"name":"上ケ原七番町","reading":"うえがはら7ばんちょう","community":"上ヶ原"},{"name":"上ケ原八番町","reading":"うえがはら8ばんちょう","community":"上ヶ原"},{"name":"上ケ原九番町","reading":"うえがはら9ばんちょう","community":"上ヶ原"},{"name":"上ケ原十番町","reading":"うえがはら10ばんちょう","community":"上ヶ原"},{"name":"上ケ原山田町","reading":"うえがはらやまだちょう","community":"上ヶ原"},{"name":"上ケ原山手町","reading":"うえがはらやまてちょう","community":"上ヶ原"},{"name":"岡田山4番以降","reading":"おかだやま","community":"上ヶ原"},{"name":"甲東園","reading":"こうとうえん","community":"甲東"},{"name":"松籟荘","reading":"しょうらいそう","community":"甲東"},{"name":"神呪町","reading":"かんのうちょう","community":"甲東"},{"name":"門戸東町","reading":"もんどひがしまち","community":"甲東"},{"name":"門戸西町","reading":"もんどにしまち","community":"甲東"},{"name":"門戸岡田町","reading":"もんどおかだちょう","community":"甲東"},{"name":"門戸荘","reading":"もんどそう","community":"甲東"},{"name":"上大市","reading":"かみおおいち","community":"甲東"},{"name":"下大市東町","reading":"しもおおいちひがしまち","community":"甲東"},{"name":"下大市西町","reading":"しもおおいちにしまち","community":"甲東"},{"name":"神呪字中谷","reading":"かんのうあざなかたに","community":"甲東"},{"name":"一里山町","reading":"いちりやまちょう","community":"甲東"},{"name":"段上町","reading":"だんじょうちょう","community":"甲東"},{"name":"樋ノ口町","reading":"ひのくちちょう","community":"甲東"},{"name":"大島町","reading":"おおしまちょう","community":"甲東"},{"name":"若山町","reading":"わかやまちょう","community":"甲東"},{"name":"門前町","reading":"もんぜんちょう","community":"甲東"},{"name":"田近野町","reading":"たじかのちょう","community":"甲東"},{"name":"上甲東園1〜3丁目","reading":"かみこうとうえん","community":"上ヶ原"},{"name":"上甲東園4丁目","reading":"かみこうとうえん","community":"甲東"},{"name":"上甲東園5丁目","reading":"かみこうとうえん","community":"上ヶ原"}];
 const COMMUNITIES=["苦楽園","甲陽","上ヶ原","甲東"];
-let questions=[],index=0,score=66,wrong=0,locked=false;
+let questions=[],index=0,score=66,wrong=0,locked=false,missedQuestions=new Map();
+let mapTopology=null,mapMapping=null,answerCommunityLayer=null,answerTownLayer=null,answerBoundaryLayer=null;
+
+const answerMap=L.map("answerMap",{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,touchZoom:false,zoomSnap:.1});
+Promise.all([
+  fetch("nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
+  fetch("community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
+]).then(([topology,mapping])=>{mapTopology=topology;mapMapping=mapping}).catch(console.error);
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
@@ -178,12 +214,14 @@ function shuffle(a){
 function showScreen(id){
   ["intro","quiz","result"].forEach(x=>byId(x).classList.toggle("hidden",x!==id));
 }
-function startGame(){
-  questions=shuffle(ALL_QUESTIONS);
-  index=0;score=66;wrong=0;locked=false;
+function beginGame(source){
+  questions=shuffle(source);
+  index=0;score=questions.length;wrong=0;locked=false;missedQuestions=new Map();
   showScreen("quiz");
   renderQuestion();
 }
+function startGame(){beginGame(ALL_QUESTIONS)}
+function retryMistakes(){const retry=[...missedQuestions.values()];if(retry.length)beginGame(retry)}
 function renderQuestion(){
   locked=false;
   const q=questions[index];
@@ -205,6 +243,47 @@ function renderQuestion(){
 function setButtonsDisabled(disabled){
   document.querySelectorAll(".choice").forEach(b=>b.disabled=disabled);
 }
+function townGeometriesFor(name){
+  const geometries=mapTopology.objects.town.geometries;
+  if(name==="越水字社家郷山")return geometries.filter(g=>g.properties.S_NAME==="越水");
+  if(name==="神呪字中谷")return geometries.filter(g=>g.properties.S_NAME==="神呪町");
+  if(name==="鷲林寺")return geometries.filter(g=>/^鷲林寺[一二]丁目$/.test(g.properties.S_NAME));
+  if(name==="仁川町")return geometries.filter(g=>/^仁川町[一二三四五六]丁目$/.test(g.properties.S_NAME));
+  if(name==="岡田山4番以降")return geometries.filter(g=>g.properties.S_NAME==="岡田山");
+  if(name==="上甲東園1〜3丁目")return geometries.filter(g=>/^上甲東園[一二三]丁目$/.test(g.properties.S_NAME));
+  if(name==="上甲東園4丁目")return geometries.filter(g=>g.properties.S_NAME==="上甲東園四丁目");
+  if(name==="上甲東園5丁目")return geometries.filter(g=>g.properties.S_NAME==="上甲東園五丁目");
+  const exact=geometries.filter(g=>g.properties.S_NAME===name);
+  return exact.length?exact:geometries.filter(g=>g.properties.S_NAME.startsWith(name));
+}
+function showAnswerMap(question){
+  byId("answerText").textContent=`「${question.name}（${question.reading}）」は、${question.community}コミュニティです。`;
+  byId("nextQuestionBtn").textContent=index===questions.length-1?"結果発表":"次の問題へ";
+  byId("answerOverlay").classList.remove("hidden");
+  setTimeout(()=>{
+    answerMap.invalidateSize({animate:false});
+    if(answerCommunityLayer)answerCommunityLayer.remove();
+    if(answerTownLayer)answerTownLayer.remove();
+    if(answerBoundaryLayer)answerBoundaryLayer.remove();
+    if(!mapTopology||!mapMapping)return;
+    const geometries=mapTopology.objects.town.geometries;
+    const communityMembers=geometries.filter(g=>mapMapping.towns[g.properties.S_NAME]?.community===question.community||(question.community==="上ヶ原"&&g.properties.S_NAME==="岡田山"));
+    const communityFeature=topojson.merge(mapTopology,communityMembers);
+    answerCommunityLayer=L.geoJSON(communityFeature,{interactive:false,style:{color:"#fff",weight:2.5,fillColor:"#5f87d8",fillOpacity:.9}}).addTo(answerMap);
+    const townMembers=townGeometriesFor(question.name);
+    if(townMembers.length){
+      answerTownLayer=L.geoJSON(topojson.merge(mapTopology,townMembers),{interactive:false,style:{color:"#fff",weight:3,fillColor:"#ffd34d",fillOpacity:1}}).addTo(answerMap);
+    }
+    const townFeatures=topojson.feature(mapTopology,{type:"GeometryCollection",geometries:communityMembers});
+    answerBoundaryLayer=L.geoJSON(townFeatures,{interactive:false,style:{color:"#f8fbff",weight:.75,opacity:.9,fillOpacity:0}}).addTo(answerMap);
+    answerMap.fitBounds(answerCommunityLayer.getBounds(),{padding:[2,2],animate:false});
+  },0);
+}
+function nextQuestion(){
+  byId("answerOverlay").classList.add("hidden");
+  index++;
+  if(index>=questions.length)finishGame();else renderQuestion();
+}
 function answer(selected){
   if(locked)return;
   const q=questions[index];
@@ -213,13 +292,10 @@ function answer(selected){
     setButtonsDisabled(true);
     byId("feedback").className="feedback card good";
     byId("feedback").textContent=`〇 正解！「${q.name}（${q.reading}）」は、${q.community}コミュニティです。`;
-    setTimeout(()=>{
-      index++;
-      if(index>=questions.length)finishGame();
-      else renderQuestion();
-    },2000);
+    showAnswerMap(q);
   }else{
     wrong++;
+    missedQuestions.set(q.name,q);
     score=Math.max(0,score-1);
     byId("scoreNow").textContent=score;
     byId("feedback").className="feedback card bad";
@@ -233,17 +309,21 @@ function answer(selected){
   }
 }
 function finishGame(){
+  byId("resultTotal").textContent=`${questions.length}問中`;
   byId("finalScore").textContent=score;
   byId("mistakes").textContent=`誤答 ${wrong}回`;
   byId("resultComment").textContent=
-    score===66?"全問ノーミス！すばらしいです！":
-    score>=60?"かなりよく覚えています！":
-    score>=50?"あと少しで北部2マスターです！":
+    score===questions.length?"全問ノーミス！すばらしいです！":
+    score>=Math.ceil(questions.length*.9)?"かなりよく覚えています！":
+    score>=Math.ceil(questions.length*.75)?"あと少しでマスターです！":
     "繰り返すほど、しっかり身につきます！";
+  byId("retryMistakesBtn").classList.toggle("hidden",missedQuestions.size===0);
   showScreen("result");
 }
 byId("startBtn").addEventListener("click",startGame);
 byId("retryBtn").addEventListener("click",startGame);
+byId("retryMistakesBtn").addEventListener("click",retryMistakes);
+byId("nextQuestionBtn").addEventListener("click",nextQuestion);
 byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
 byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
 </script>

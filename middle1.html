@@ -130,7 +130,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbody">
     <img src="images/guide-character.png" alt="案内キャラクター">
     <div class="scorebox card">
-      <div class="outof">59問中</div>
+      <div id="resultTotal" class="outof">59問中</div>
       <div id="finalScore" class="score">59</div>
       <div class="outof">点</div>
       <div id="mistakes" class="mistakes">誤答 0回</div>
@@ -139,6 +139,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
     <a class="action secondary" href="area-select.html">区域選択へ</a>
     <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
@@ -164,7 +165,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 <script>
 const ALL_QUESTIONS=[{"name":"甑岩町","reading":"こしきいわちょう","community":"越木岩"},{"name":"毘沙門町","reading":"びしゃもんちょう","community":"越木岩"},{"name":"角石町","reading":"すみいしちょう","community":"越木岩"},{"name":"西平町","reading":"にしひらちょう","community":"越木岩"},{"name":"美作町","reading":"みさくちょう","community":"越木岩"},{"name":"桜町","reading":"さくらまち","community":"越木岩"},{"name":"豊楽町","reading":"ほうらくちょう","community":"越木岩"},{"name":"松風町","reading":"まつかぜちょう","community":"越木岩"},{"name":"石刎町","reading":"いしばねちょう","community":"越木岩"},{"name":"樋之池町","reading":"ひのいけちょう","community":"越木岩"},{"name":"老松町","reading":"おいまつちょう","community":"越木岩"},{"name":"深谷町","reading":"ふかたにちょう","community":"越木岩"},{"name":"松ケ丘町","reading":"まつがおかちょう","community":"越木岩"},{"name":"菊谷町","reading":"きくたにちょう","community":"越木岩"},{"name":"南越木岩町","reading":"みなみこしきいわちょう","community":"越木岩"},{"name":"松生町","reading":"まつおいちょう","community":"越木岩"},{"name":"久出ケ谷町","reading":"くでがやちょう","community":"越木岩"},{"name":"木津山町","reading":"きずやまちょう","community":"夙川"},{"name":"高塚町","reading":"たかつかちょう","community":"夙川"},{"name":"殿山町","reading":"とのやまちょう","community":"夙川"},{"name":"雲井町","reading":"くもいちょう","community":"夙川"},{"name":"相生町","reading":"あいおいちょう","community":"夙川"},{"name":"羽衣町","reading":"はごろもちょう","community":"夙川"},{"name":"霞町","reading":"かすみちょう","community":"夙川"},{"name":"松園町","reading":"まつぞのちょう","community":"夙川"},{"name":"大谷町","reading":"おおたにちょう","community":"夙川"},{"name":"郷免町","reading":"ごうめんちょう","community":"夙川"},{"name":"御茶家所町","reading":"おちゃやしょちょう","community":"夙川"},{"name":"獅子ケ口町","reading":"ししがぐちちょう","community":"神原"},{"name":"神原","reading":"かんばら","community":"神原"},{"name":"奥畑","reading":"おくはた","community":"神原"},{"name":"北名次町","reading":"きたなつぎちょう","community":"神原"},{"name":"名次町","reading":"なつぎちょう","community":"神原"},{"name":"結善町","reading":"けつぜんちょう","community":"神原"},{"name":"大社町","reading":"たいしゃちょう","community":"大社"},{"name":"柳本町","reading":"やなぎもとちょう","community":"大社"},{"name":"室川町","reading":"むろかわちょう","community":"大社"},{"name":"神垣町","reading":"かみがきちょう","community":"大社"},{"name":"越水町","reading":"こしみずちょう","community":"大社"},{"name":"城山","reading":"しろやま","community":"大社"},{"name":"桜谷町","reading":"さくらだにちょう","community":"大社"},{"name":"西田町","reading":"にしだちょう","community":"大社"},{"name":"満池谷町","reading":"まんちだにちょう","community":"大社"},{"name":"清水町","reading":"しみずちょう","community":"大社"},{"name":"南郷町","reading":"なんごうちょう","community":"大社"},{"name":"若松町","reading":"わかまつちょう","community":"大社"},{"name":"大井手町","reading":"おおいでちょう","community":"大社"},{"name":"中須佐町","reading":"なかすさちょう","community":"安井"},{"name":"中前田町","reading":"なかまえだちょう","community":"安井"},{"name":"櫨塚町","reading":"はぜつかちょう","community":"安井"},{"name":"城ケ堀町","reading":"じょうがぼりちょう","community":"安井"},{"name":"江上町","reading":"えがみちょう","community":"安井"},{"name":"末広町","reading":"すえひろちょう","community":"安井"},{"name":"分銅町","reading":"ぶんどうちょう","community":"安井"},{"name":"常磐町","reading":"ときわちょう","community":"安井"},{"name":"平松町","reading":"ひらまつちょう","community":"安井"},{"name":"寿町","reading":"ことぶきちょう","community":"安井"},{"name":"千歳町","reading":"ちとせちょう","community":"安井"},{"name":"安井町","reading":"やすいちょう","community":"安井"}];
 const COMMUNITIES=["越木岩","夙川","安井","大社","神原"];
-let questions=[],index=0,score=59,wrong=0,locked=false;
+let questions=[],index=0,score=59,wrong=0,locked=false,missedQuestions=new Map();
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
@@ -178,12 +179,14 @@ function shuffle(a){
 function showScreen(id){
   ["intro","quiz","result"].forEach(x=>byId(x).classList.toggle("hidden",x!==id));
 }
-function startGame(){
-  questions=shuffle(ALL_QUESTIONS);
-  index=0;score=59;wrong=0;locked=false;
+function beginGame(source){
+  questions=shuffle(source);
+  index=0;score=questions.length;wrong=0;locked=false;missedQuestions=new Map();
   showScreen("quiz");
   renderQuestion();
 }
+function startGame(){beginGame(ALL_QUESTIONS)}
+function retryMistakes(){const retry=[...missedQuestions.values()];if(retry.length)beginGame(retry)}
 function renderQuestion(){
   locked=false;
   const q=questions[index];
@@ -220,6 +223,7 @@ function answer(selected){
     },2000);
   }else{
     wrong++;
+    missedQuestions.set(q.name,q);
     score=Math.max(0,score-1);
     byId("scoreNow").textContent=score;
     byId("feedback").className="feedback card bad";
@@ -233,17 +237,20 @@ function answer(selected){
   }
 }
 function finishGame(){
+  byId("resultTotal").textContent=`${questions.length}問中`;
   byId("finalScore").textContent=score;
   byId("mistakes").textContent=`誤答 ${wrong}回`;
   byId("resultComment").textContent=
-    score===59?"全問ノーミス！すばらしいです！":
-    score>=60?"かなりよく覚えています！":
-    score>=50?"あと少しで中部1マスターです！":
+    score===questions.length?"全問ノーミス！すばらしいです！":
+    score>=Math.ceil(questions.length*.9)?"かなりよく覚えています！":
+    score>=Math.ceil(questions.length*.75)?"あと少しでマスターです！":
     "繰り返すほど、しっかり身につきます！";
+  byId("retryMistakesBtn").classList.toggle("hidden",missedQuestions.size===0);
   showScreen("result");
 }
 byId("startBtn").addEventListener("click",startGame);
 byId("retryBtn").addEventListener("click",startGame);
+byId("retryMistakesBtn").addEventListener("click",retryMistakes);
 byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
 byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
 </script>

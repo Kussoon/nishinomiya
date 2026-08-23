@@ -130,7 +130,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbody">
     <img src="images/guide-character.png" alt="案内キャラクター">
     <div class="scorebox card">
-      <div class="outof">45問中</div>
+      <div id="resultTotal" class="outof">45問中</div>
       <div id="finalScore" class="score">45</div>
       <div class="outof">点</div>
       <div id="mistakes" class="mistakes">誤答 0回</div>
@@ -139,6 +139,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度チャレンジ！</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
     <a class="action secondary" href="area-select.html">区域選択へ</a>
     <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
@@ -164,7 +165,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 <script>
 const ALL_QUESTIONS=[{"name":"松下町","reading":"まつしたちょう","community":"香櫨園"},{"name":"屋敷町","reading":"やしきちょう","community":"香櫨園"},{"name":"弓場町","reading":"ゆばちょう","community":"香櫨園"},{"name":"川西町","reading":"かわにしちょう","community":"香櫨園"},{"name":"中浜町","reading":"なかはまちょう","community":"香櫨園"},{"name":"堀切町","reading":"ほりきりちょう","community":"香櫨園"},{"name":"上葭原町","reading":"かみよしはらちょう","community":"香櫨園"},{"name":"中葭原町","reading":"なかよしはらちょう","community":"香櫨園"},{"name":"下葭原町","reading":"しもよしはらちょう","community":"香櫨園"},{"name":"大浜町","reading":"おおはまちょう","community":"香櫨園"},{"name":"川東町","reading":"かわひがしちょう","community":"香櫨園"},{"name":"川添町","reading":"かわぞえちょう","community":"香櫨園"},{"name":"神楽町","reading":"かぐらちょう","community":"浜脇"},{"name":"産所町","reading":"さんしょちょう","community":"浜脇"},{"name":"宮西町","reading":"みやにしちょう","community":"浜脇"},{"name":"市庭町","reading":"いちにわちょう","community":"浜脇"},{"name":"社家町","reading":"しゃけちょう","community":"浜脇"},{"name":"宮前町","reading":"みやまえちょう","community":"浜脇"},{"name":"荒戎町","reading":"あらえびすちょう","community":"浜脇"},{"name":"建石町","reading":"たていしちょう","community":"浜脇"},{"name":"前浜町","reading":"まえはまちょう","community":"浜脇"},{"name":"泉町","reading":"いずみちょう","community":"浜脇"},{"name":"西波止町","reading":"にしはとちょう","community":"浜脇"},{"name":"和上町","reading":"わじょうちょう","community":"浜脇"},{"name":"六湛寺町","reading":"ろくたんじちょう","community":"浜脇"},{"name":"今在家町","reading":"いまざいけちょう","community":"浜脇"},{"name":"田中町","reading":"たなかちょう","community":"浜脇"},{"name":"馬場町","reading":"ばばちょう","community":"浜脇"},{"name":"戸田町","reading":"とだちょう","community":"浜脇"},{"name":"本町","reading":"ほんまち","community":"浜脇"},{"name":"久保町","reading":"くぼちょう","community":"浜脇"},{"name":"鞍掛町","reading":"くらかけちょう","community":"浜脇"},{"name":"浜脇町","reading":"はまわきちょう","community":"浜脇"},{"name":"浜町","reading":"はまちょう","community":"浜脇"},{"name":"与古道町","reading":"よこみちちょう","community":"用海"},{"name":"用海町","reading":"ようがいちょう","community":"用海"},{"name":"浜松原町","reading":"はままつばらちょう","community":"用海"},{"name":"東浜町","reading":"ひがしはまちょう","community":"用海"},{"name":"東町","reading":"ひがしまち","community":"用海"},{"name":"石在町","reading":"いしざいちょう","community":"用海"},{"name":"朝凪町","reading":"あさなぎちょう","community":"用海"},{"name":"池田町","reading":"いけだちょう","community":"用海"},{"name":"松原町","reading":"まつばらちょう","community":"用海"},{"name":"染殿町","reading":"そめどのちょう","community":"用海"},{"name":"西宮浜","reading":"にしのみやはま","community":"西宮浜"}];
 const COMMUNITIES=["香櫨園","浜脇","用海","西宮浜"];
-let questions=[],index=0,score=45,wrong=0,locked=false;
+let questions=[],index=0,score=45,wrong=0,locked=false,missedQuestions=new Map();
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
@@ -178,12 +179,14 @@ function shuffle(a){
 function showScreen(id){
   ["intro","quiz","result"].forEach(x=>byId(x).classList.toggle("hidden",x!==id));
 }
-function startGame(){
-  questions=shuffle(ALL_QUESTIONS);
-  index=0;score=45;wrong=0;locked=false;
+function beginGame(source){
+  questions=shuffle(source);
+  index=0;score=questions.length;wrong=0;locked=false;missedQuestions=new Map();
   showScreen("quiz");
   renderQuestion();
 }
+function startGame(){beginGame(ALL_QUESTIONS)}
+function retryMistakes(){const retry=[...missedQuestions.values()];if(retry.length)beginGame(retry)}
 function renderQuestion(){
   locked=false;
   const q=questions[index];
@@ -220,6 +223,7 @@ function answer(selected){
     },2000);
   }else{
     wrong++;
+    missedQuestions.set(q.name,q);
     score=Math.max(0,score-1);
     byId("scoreNow").textContent=score;
     byId("feedback").className="feedback card bad";
@@ -233,17 +237,20 @@ function answer(selected){
   }
 }
 function finishGame(){
+  byId("resultTotal").textContent=`${questions.length}問中`;
   byId("finalScore").textContent=score;
   byId("mistakes").textContent=`誤答 ${wrong}回`;
   byId("resultComment").textContent=
-    score===45?"全問ノーミス！すばらしいです！":
-    score>=60?"かなりよく覚えています！":
-    score>=50?"あと少しで南部1マスターです！":
+    score===questions.length?"全問ノーミス！すばらしいです！":
+    score>=Math.ceil(questions.length*.9)?"かなりよく覚えています！":
+    score>=Math.ceil(questions.length*.75)?"あと少しでマスターです！":
     "繰り返すほど、しっかり身につきます！";
+  byId("retryMistakesBtn").classList.toggle("hidden",missedQuestions.size===0);
   showScreen("result");
 }
 byId("startBtn").addEventListener("click",startGame);
 byId("retryBtn").addEventListener("click",startGame);
+byId("retryMistakesBtn").addEventListener("click",retryMistakes);
 byId("quitBtn").addEventListener("click",()=>byId("quitOverlay").classList.remove("hidden"));
 byId("cancelQuit").addEventListener("click",()=>byId("quitOverlay").classList.add("hidden"));
 </script>
