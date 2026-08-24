@@ -214,9 +214,17 @@
     show('resultScreen');
   }
 
+  async function loadJson(path,label){
+    const url=new URL(path,location.href);
+    url.searchParams.set('v','6.5.3');
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)throw Error(`${label}（HTTP ${response.status}）`);
+    return response.json();
+  }
+
   Promise.all([
-    fetch('nishinomiya-towns.topojson').then(r=>{if(!r.ok)throw Error('境界データ');return r.json()}),
-    fetch('community-town-map.json').then(r=>{if(!r.ok)throw Error('割り当てデータ');return r.json()})
+    loadJson('./data/nishinomiya-towns.topojson','境界データ'),
+    loadJson('./data/community-town-map.json','割り当てデータ')
   ]).then(([topology,mapData])=>{
     mapping=mapData;communities=mapping.communities;
     const geometries=topology.objects.town.geometries;
