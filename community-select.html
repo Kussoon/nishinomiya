@@ -15,7 +15,7 @@
 <a class="back" href="index.html">← トップページ</a>
 <h1>コミュニティを選択</h1>
 <p class="lead">地図から挑戦するコミュニティをタップしてください。</p>
-<section class="card"><div id="map" aria-label="西宮市26コミュニティ選択地図"><div class="map-status">地図を読み込んでいます…</div></div><p id="message" class="message">現在は「芦原」「今津」「上ヶ原」「瓦木」「神原」「北口」「名塩」「山口」を選択できます。</p></section>
+<section class="card"><div id="map" aria-label="西宮市26コミュニティ選択地図"><div class="map-status">地図を読み込んでいます…</div></div><p id="message" class="message">現在は「芦原」「今津」「上ヶ原」「瓦木」「神原」「北口」「苦楽園」「名塩」「山口」を選択できます。</p></section>
 <p class="map-credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p>
 <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </main>
@@ -33,7 +33,7 @@ Promise.all([fetch('data/nishinomiya-towns.topojson').then(r=>r.json()),fetch('d
  document.querySelector('.map-status')?.remove();
  const layer=L.geoJSON({type:'FeatureCollection',features},{
   style(f){const okada=f.properties.community==='岡田山';return{color:'#fff',weight:okada?1.4:2.2,fillColor:okada?'#ffd34d':'#5f87d8',fillOpacity:.88}},
-  onEachFeature(f,shape){const name=f.properties.community;if(name==='岡田山')return;const offset=name==='上ヶ原'?L.point(15,10):L.point(0,0);shape.bindTooltip(name,{permanent:true,direction:'center',offset,className:'community-label',interactive:false});shape.on('click',()=>{const pages={芦原:'communities/01ashihara/',今津:'communities/02imazu/',上ヶ原:'communities/03uegahara/',瓦木:'communities/04kawaragi/',神原:'communities/05kanbara/',北口:'communities/06kitaguchi/',名塩:'communities/16najio/',山口:'communities/25yamaguchi/'};if(pages[name])location.href=pages[name];else message.textContent=`「${name}」は順次追加します。現在は「芦原」「今津」「上ヶ原」「瓦木」「神原」「北口」「名塩」「山口」を選択できます。`;});}
+  onEachFeature(f,shape){const name=f.properties.community;if(name==='岡田山')return;const offset=name==='上ヶ原'?L.point(15,10):L.point(0,0);shape.bindTooltip(name,{permanent:true,direction:'center',offset,className:'community-label',interactive:false});shape.on('click',()=>{const pages={芦原:'communities/01ashihara/',今津:'communities/02imazu/',上ヶ原:'communities/03uegahara/',瓦木:'communities/04kawaragi/',神原:'communities/05kanbara/',北口:'communities/06kitaguchi/',苦楽園:'communities/07kurakuen/',名塩:'communities/16najio/',山口:'communities/25yamaguchi/'};if(pages[name])location.href=pages[name];else message.textContent=`「${name}」は順次追加します。現在は「芦原」「今津」「上ヶ原」「瓦木」「神原」「北口」「苦楽園」「名塩」「山口」を選択できます。`;});}
  }).addTo(map);map.fitBounds(layer.getBounds(),{padding:[5,5],animate:false});initialLabelZoom=map.getZoom();updateLabelScale();setTimeout(()=>map.invalidateSize({animate:false}),0);
 }).catch(()=>{message.textContent='地図を読み込めませんでした。データファイルを確認してください。'});
 </script></body></html>
