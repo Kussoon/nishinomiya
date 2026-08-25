@@ -90,9 +90,11 @@ const byId=id=>document.getElementById(id);
 const cityStyle={color:'#9aa7b5',weight:.65,fillColor:'#eef2f5',fillOpacity:.72};
 const baseStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const highlightStyle={color:'#d18a00',weight:2.4,fillColor:'#ffd34f',fillOpacity:.98};
+const highlightStyleDim={color:'#d8a536',weight:2.1,fillColor:'#fff0a3',fillOpacity:.72};
 const correctStyle={color:'#08743f',weight:2.4,fillColor:'#35c979',fillOpacity:.98};
 
 let items=[], order=[], index=0, score=0, wrong=0, locked=false, missed=new Set(), allBounds;
+let blinkTimer=null, blinkOn=true;
 
 function shuffle(a){
   const b=[...a];
@@ -117,6 +119,22 @@ function show(id){
 function resetStyles(){
   items.forEach(x=>x.layer.setStyle(baseStyle));
 }
+function stopBlink(){
+  if(blinkTimer!==null){
+    clearInterval(blinkTimer);
+    blinkTimer=null;
+  }
+}
+function startBlink(item){
+  stopBlink();
+  blinkOn=true;
+  item.layer.setStyle(highlightStyle);
+  blinkTimer=setInterval(()=>{
+    if(locked)return;
+    blinkOn=!blinkOn;
+    item.layer.setStyle(blinkOn?highlightStyle:highlightStyleDim);
+  },500);
+}
 function makeChoices(target){
   const sameBase=items.map(x=>x.name).filter(n=>n!==target && baseTown(n)===baseTown(target));
   const other=items.map(x=>x.name).filter(n=>n!==target && baseTown(n)!==baseTown(target));
@@ -128,10 +146,11 @@ function makeChoices(target){
 }
 function loadQuestion(){
   locked=false;
+  stopBlink();
   resetStyles();
   const target=order[index];
   const item=items.find(x=>x.name===target);
-  item.layer.setStyle(highlightStyle);
+  startBlink(item);
   byId('progress').textContent=`${index+1} / ${order.length}`;
   byId('scoreNow').textContent=score;
   byId('feedback').className='feedback';
@@ -152,6 +171,7 @@ function answer(button,name,item){
   const target=order[index];
   if(name===target){
     locked=true;
+    stopBlink();
     button.classList.add('correct');
     [...byId('choices').children].forEach(b=>b.disabled=true);
     item.layer.setStyle(correctStyle);
@@ -174,6 +194,7 @@ function answer(button,name,item){
   }
 }
 function start(names){
+  stopBlink();
   order=shuffle(names&&names.length?names:items.map(x=>x.name));
   index=0;
   score=order.length;
@@ -187,6 +208,7 @@ function start(names){
   },0);
 }
 function finish(){
+  stopBlink();
   byId('resultTotal').textContent=`${order.length}問中`;
   byId('finalScore').textContent=`${score}点`;
   byId('mistakes').textContent=`間違い ${wrong}回`;
@@ -261,7 +283,7 @@ Promise.all([
 
 byId('retryBtn').addEventListener('click',()=>start());
 byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
-byId('quitBtn').addEventListener('click',()=>location.href='./');
+byId('quitBtn').addEventListener('click',()=>{stopBlink();location.href='./'});
 </script>
 </body>
 </html>
