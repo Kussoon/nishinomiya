@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f3efff">
+<title>光った丁目を当てる｜西宮市町名記憶ゲーム</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#f3efff;color:#25304a;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+body{display:flex;justify-content:center}
+button,a{font:inherit;-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,620px);min-height:100dvh;background:linear-gradient(#f3efff,#fff)}
+.screen{min-height:100dvh;padding:max(9px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+.hidden{display:none!important}
+.topbar{display:grid;grid-template-columns:80px 1fr 82px;gap:6px;align-items:center}
+.smallbtn{border:1px solid #cabfe8;background:#fff;color:#55428a;border-radius:10px;padding:9px 3px;font-size:11px;font-weight:900}
+.stage{padding:9px 4px;border-radius:10px;background:#6650a3;color:#fff;text-align:center;font-size:14px;font-weight:950}
+.stats{text-align:right;font-size:12px;font-weight:900;line-height:1.35}
+.question{padding:9px;border:1px solid #d4cbed;border-radius:15px;background:#fff;text-align:center;box-shadow:0 3px 12px #4e3a7a16}
+.prompt{font-size:clamp(20px,5.8vw,28px);font-weight:950;color:#49347c}
+.mapwrap{position:relative;height:400px;border:1px solid #d4cbed;border-radius:16px;background:#fff;padding:7px;overflow:hidden}
+#map{width:100%;height:100%;border-radius:12px;background:#e4e2e8}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{min-height:62px;padding:8px 5px;border:0;border-radius:13px;background:#6650a3;color:#fff;font-size:17px;font-weight:950;box-shadow:0 3px 8px #4e3a7a2e;line-height:1.25}
+.choice.wrong{background:#e15454}.choice.correct{background:#2ca866}.choice:disabled{opacity:1}
+.feedback{min-height:56px;padding:10px 12px;border:1px solid #d4cbed;border-radius:13px;background:#fff;font-size:16px;font-weight:900;line-height:1.4}
+.feedback.good{min-height:68px;color:#16713f;font-size:clamp(20px,5.6vw,27px);font-weight:950}
+.bad{color:#aa3028}
+.links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.links a{display:flex;align-items:center;justify-content:center;min-height:36px;padding:4px 2px;border:1px solid #d4cbed;border-radius:10px;background:#fff;color:#55428a;text-decoration:none;text-align:center;font-size:11px;font-weight:900}
+.credit{margin:2px 1px 0;color:#6a7180;font-size:8px;line-height:1.45}
+.footer{margin-top:6px;text-align:center;color:#73798a;font-size:11px}
+.resulthead{padding:13px;border-radius:14px;background:#6650a3;color:#fff;text-align:center;font-size:23px;font-weight:950}
+.resultcard{margin:auto 0;padding:22px 14px;border:1px solid #d4cbed;border-radius:18px;background:#fff;text-align:center;box-shadow:0 4px 15px #4e3a7a16}
+.outof{font-size:20px;font-weight:900;color:#49347c}.score{margin:6px 0;color:#df4747;font-size:78px;line-height:1;font-weight:950}.mistakes{font-size:19px;font-weight:900}.comment{font-size:16px;line-height:1.5}
+.actions{display:grid;gap:8px}.action{width:100%;padding:13px;border:0;border-radius:12px;background:#6650a3;color:#fff;text-align:center;text-decoration:none;font-size:15px;font-weight:950}.action.secondary{border:1px solid #d4cbed;background:#f5f1ff;color:#55428a}
+.leaflet-control-zoom a{font-weight:900}
+</style>
+</head>
+<body>
+<main class="app">
+<section id="quiz" class="screen">
+  <div class="topbar">
+    <button id="quitBtn" class="smallbtn" type="button">ここでやめる</button>
+    <div class="stage">マニアック・4択</div>
+    <div class="stats"><span id="progress">1 / 1</span><br>得点 <span id="scoreNow">0</span></div>
+  </div>
+  <div class="question"><div class="prompt">光っている丁目は？</div></div>
+  <div class="mapwrap"><div id="map" aria-label="丁目4択地図"></div></div>
+  <div id="choices" class="choices" aria-label="丁目の選択肢"></div>
+  <div id="feedback" class="feedback">答えを選んでください。</div>
+  <nav class="links">
+    <a href="./">マニアック</a>
+    <a href="all-area-labeled.html">丁目入り全域図</a>
+    <a href="../index.html">トップページ</a>
+  </nav>
+  <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450</p>
+  <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
+</section>
+
+<section id="result" class="screen hidden">
+  <div class="resulthead">マニアック・4択　結果</div>
+  <div class="resultcard">
+    <div id="resultTotal" class="outof"></div>
+    <div id="finalScore" class="score"></div>
+    <div id="mistakes" class="mistakes"></div>
+    <p id="comment" class="comment"></p>
+  </div>
+  <div class="actions">
+    <button id="mistakeRetryBtn" class="action" type="button">間違えた問題にもう一度チャレンジ</button>
+    <button id="retryBtn" class="action" type="button">全丁目にもう一度チャレンジ</button>
+    <a class="action secondary" href="./">マニアックモード</a>
+    <a class="action secondary" href="../index.html">トップページ</a>
+  </div>
+  <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
+</section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+const CHOME_BASES = new Set([
+'鷲林寺','東町','西宮浜','小曽根町','小松北町','小松東町','小松町','小松西町','小松南町','若草町','学文殿町','里中町','東鳴尾町','高須町','鳴尾町','南甲子園','浜甲子園','甲子園浜','鳴尾浜','甲風園','甲子園口','上甲子園','仁川町','上甲東園','甲東園','段上町','上大市','樋ノ口町','名塩南台','東山台','国見台','名塩','名塩さくら台','宝生ケ丘','青葉台','生瀬町','山口町名来','山口町下山口','山口町上山口','山口町中野','山口町金仙寺','山口町阪神流通センター','北六甲台','すみれ台'
+]);
+
+const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
+const byId=id=>document.getElementById(id);
+const cityStyle={color:'#9aa7b5',weight:.65,fillColor:'#eef2f5',fillOpacity:.72};
+const baseStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
+const highlightStyle={color:'#d18a00',weight:2.4,fillColor:'#ffd34f',fillOpacity:.98};
+const correctStyle={color:'#08743f',weight:2.4,fillColor:'#35c979',fillOpacity:.98};
+
+let items=[], order=[], index=0, score=0, wrong=0, locked=false, missed=new Set(), allBounds;
+
+function shuffle(a){
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [b[i],b[j]]=[b[j],b[i]];
+  }
+  return b;
+}
+function isTargetChome(name){
+  const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
+  return !!(m && CHOME_BASES.has(m[1]));
+}
+function baseTown(name){
+  const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
+  return m?m[1]:'';
+}
+function show(id){
+  byId('quiz').classList.toggle('hidden',id!=='quiz');
+  byId('result').classList.toggle('hidden',id!=='result');
+}
+function resetStyles(){
+  items.forEach(x=>x.layer.setStyle(baseStyle));
+}
+function makeChoices(target){
+  const sameBase=items.map(x=>x.name).filter(n=>n!==target && baseTown(n)===baseTown(target));
+  const other=items.map(x=>x.name).filter(n=>n!==target && baseTown(n)!==baseTown(target));
+  let distractors=shuffle(sameBase).slice(0,3);
+  if(distractors.length<3){
+    distractors=distractors.concat(shuffle(other).slice(0,3-distractors.length));
+  }
+  return shuffle([target,...distractors]);
+}
+function loadQuestion(){
+  locked=false;
+  resetStyles();
+  const target=order[index];
+  const item=items.find(x=>x.name===target);
+  item.layer.setStyle(highlightStyle);
+  byId('progress').textContent=`${index+1} / ${order.length}`;
+  byId('scoreNow').textContent=score;
+  byId('feedback').className='feedback';
+  byId('feedback').textContent='答えを選んでください。';
+
+  const buttons=makeChoices(target).map(name=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='choice';
+    b.textContent=name;
+    b.addEventListener('click',()=>answer(b,name,item));
+    return b;
+  });
+  byId('choices').replaceChildren(...buttons);
+}
+function answer(button,name,item){
+  if(locked||button.disabled)return;
+  const target=order[index];
+  if(name===target){
+    locked=true;
+    button.classList.add('correct');
+    [...byId('choices').children].forEach(b=>b.disabled=true);
+    item.layer.setStyle(correctStyle);
+    byId('feedback').className='feedback good';
+    byId('feedback').textContent=`正解！ ここは「${target}」です。`;
+    setTimeout(()=>{
+      index++;
+      if(index>=order.length)finish();
+      else loadQuestion();
+    },850);
+  }else{
+    wrong++;
+    missed.add(target);
+    score=Math.max(0,score-1);
+    byId('scoreNow').textContent=score;
+    button.disabled=true;
+    button.classList.add('wrong');
+    byId('feedback').className='feedback bad';
+    byId('feedback').textContent=`「${name}」ではありません。もう一度選んでください。`;
+  }
+}
+function start(names){
+  order=shuffle(names&&names.length?names:items.map(x=>x.name));
+  index=0;
+  score=order.length;
+  wrong=0;
+  missed=new Set();
+  show('quiz');
+  setTimeout(()=>{
+    map.invalidateSize();
+    if(allBounds)map.fitBounds(allBounds,{padding:[6,6],animate:false});
+    loadQuestion();
+  },0);
+}
+function finish(){
+  byId('resultTotal').textContent=`${order.length}問中`;
+  byId('finalScore').textContent=`${score}点`;
+  byId('mistakes').textContent=`間違い ${wrong}回`;
+  byId('comment').textContent=score===order.length
+    ? '全問一発正解です！'
+    : score>=Math.ceil(order.length*.8)
+      ? 'かなりよく覚えています！'
+      : '間違えた丁目を地図で確認して、もう一度挑戦しましょう。';
+  byId('mistakeRetryBtn').hidden=missed.size===0;
+  show('result');
+}
+
+Promise.all([
+  fetch('../data/nishinomiya-towns.topojson').then(r=>{
+    if(!r.ok)throw new Error('境界データ');
+    return r.json();
+  }),
+  fetch('../data/community-town-map.json').then(r=>{
+    if(!r.ok)throw new Error('コミュニティデータ');
+    return r.json();
+  })
+]).then(([topology,mapping])=>{
+  const obj=topology.objects.town||topology.objects[Object.keys(topology.objects)[0]];
+  const allGeometries=obj.geometries||[];
+  const validCommunities=new Set(mapping.communities||[]);
+
+  const cityGeometries=allGeometries.filter(g=>{
+    const name=g.properties?.S_NAME||'';
+    const community=mapping.towns?.[name]?.community;
+    return name==='岡田山'||validCommunities.has(community);
+  });
+  const cityFeatures=cityGeometries.map(g=>{
+    const f=topojson.feature(topology,g);
+    f.properties={S_NAME:g.properties.S_NAME};
+    return f;
+  });
+  const cityLayer=L.geoJSON(
+    {type:'FeatureCollection',features:cityFeatures},
+    {interactive:false,style:cityStyle}
+  ).addTo(map);
+
+  const geometries=allGeometries.filter(g=>{
+    const name=g.properties?.S_NAME||'';
+    if(!isTargetChome(name))return false;
+    const community=mapping.towns?.[name]?.community;
+    return validCommunities.has(community);
+  });
+
+  const features=geometries.map(g=>{
+    const f=topojson.feature(topology,g);
+    f.properties={S_NAME:g.properties.S_NAME};
+    return f;
+  });
+
+  L.geoJSON(
+    {type:'FeatureCollection',features},
+    {
+      interactive:false,
+      style:baseStyle,
+      onEachFeature(f,layer){
+        items.push({name:f.properties.S_NAME,layer});
+      }
+    }
+  ).addTo(map);
+
+  allBounds=cityLayer.getBounds();
+  start();
+}).catch(err=>{
+  console.error(err);
+  byId('feedback').textContent='地図を読み込めませんでした。';
+});
+
+byId('retryBtn').addEventListener('click',()=>start());
+byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
+byId('quitBtn').addEventListener('click',()=>location.href='./');
+</script>
+</body>
+</html>
