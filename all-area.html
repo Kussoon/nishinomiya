@@ -137,8 +137,10 @@
       // 「海域」など別分類が community 欄に入っていても描画しない。
       const validCommunities = new Set(mapping.communities || []);
       const geometries = allGeometries.filter(g => {
-        const community = mapping.towns?.[rawName(g)]?.community;
-        return validCommunities.has(community);
+        const name = rawName(g);
+        const community = mapping.towns?.[name]?.community;
+        // 全域チャレンジでは岡田山も通常の1町として扱う。
+        return name === '岡田山' || validCommunities.has(community);
       });
 
       const names = [...new Set(geometries.map(g => groupedName(rawName(g))))];
