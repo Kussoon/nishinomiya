@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f3efff">
+<title>丁目入り全域図｜西宮市町名記憶ゲーム</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#f3efff;color:#25304a;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+body{display:flex;justify-content:center}
+.app{width:min(100%,620px);min-height:100dvh;padding:max(12px,env(safe-area-inset-top)) 10px max(18px,env(safe-area-inset-bottom));background:linear-gradient(#f3efff,#fff)}
+.back{display:inline-block;margin-bottom:8px;padding:8px 12px;border:1px solid #cabfe8;border-radius:10px;background:#fff;color:#55428a;text-decoration:none;font-size:13px;font-weight:900}
+h1{margin:4px 0;text-align:center;color:#49347c;font-size:clamp(27px,7vw,38px)}
+.lead{margin:0 8px 10px;text-align:center;color:#655c7d;font-size:14px;font-weight:800;line-height:1.55}
+.card{padding:8px;background:#fff;border:1px solid #d4cbed;border-radius:18px;box-shadow:0 4px 15px #4e3a7a16}
+.map-title{margin:4px 0 8px;text-align:center;color:#49347c;font-size:20px;font-weight:950}
+#map{
+  --label-font-size:4.3px;
+  --label-pad-y:.25px;
+  --label-pad-x:.8px;
+  --label-radius:1.6px;
+  --label-shadow-y:.3px;
+  --label-shadow-blur:.8px;
+  height:min(75dvh,760px);
+  min-height:560px;
+  border-radius:14px;
+  background:#e4e2e8
+}
+.town-label{
+  border:0!important;
+  background:#ffffffdf!important;
+  color:#252e4d!important;
+  border-radius:var(--label-radius)!important;
+  padding:var(--label-pad-y) var(--label-pad-x)!important;
+  box-shadow:0 var(--label-shadow-y) var(--label-shadow-blur) #25304a38!important;
+  font-size:var(--label-font-size)!important;
+  font-weight:900!important;
+  line-height:1.03!important;
+  white-space:nowrap!important;
+  pointer-events:none!important
+}
+.town-label:before{display:none!important}
+.note{margin:10px 4px 0;color:#6d6680;font-size:12px;font-weight:750;line-height:1.6}
+.credit{margin:14px 2px 0;padding-top:10px;border-top:1px solid #d7d0e5;color:#6a7180;font-size:9px;line-height:1.55}
+.footer{margin-top:14px;text-align:center;color:#73798a;font-size:11px}
+.leaflet-control-zoom a{font-weight:900}
+</style>
+</head>
+<body>
+<main class="app">
+<a class="back" href="./">← マニアックモードへ</a>
+<h1>丁目入り全域図</h1>
+<p class="lead">通常モードではまとめていた一丁目・二丁目…を分けて、西宮市全域の町丁名を表示します。<br>文字が重なる場所は拡大して確認してください。</p>
+
+<section class="card">
+  <h2 class="map-title">西宮市 町丁目完全図</h2>
+  <div id="map" aria-label="西宮市丁目入り全域地図"></div>
+</section>
+
+<p class="note">丁目のある町は「○○一丁目」「○○二丁目」まで表示します。丁目のない町も、全域での位置関係を確認できるよう一緒に表示しています。</p>
+<p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p>
+<footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+const map=L.map('map',{
+  attributionControl:false,
+  zoomControl:true,
+  dragging:true,
+  touchZoom:true,
+  scrollWheelZoom:true,
+  doubleClickZoom:true,
+  boxZoom:false,
+  keyboard:true,
+  minZoom:8,
+  maxZoom:20,
+  zoomSnap:.1
+});
+
+const mapElement=document.getElementById('map');
+let initialLabelZoom;
+
+function rawName(g){
+  const p=g.properties||{};
+  return p.S_NAME||p.s_name||p.MOJI||'';
+}
+
+function updateLabelScale(){
+  if(initialLabelZoom===undefined)return;
+  const scale=Math.min(7,Math.max(.7,Math.pow(1.38,map.getZoom()-initialLabelZoom)));
+  mapElement.style.setProperty('--label-font-size',`${4.3*scale}px`);
+  mapElement.style.setProperty('--label-pad-y',`${.25*scale}px`);
+  mapElement.style.setProperty('--label-pad-x',`${.8*scale}px`);
+  mapElement.style.setProperty('--label-radius',`${1.6*scale}px`);
+  mapElement.style.setProperty('--label-shadow-y',`${.3*scale}px`);
+  mapElement.style.setProperty('--label-shadow-blur',`${.8*scale}px`);
+}
+map.on('zoom zoomend',updateLabelScale);
+
+Promise.all([
+  fetch('../data/nishinomiya-towns.topojson').then(r=>{
+    if(!r.ok)throw new Error('境界データ');
+    return r.json();
+  }),
+  fetch('../data/community-town-map.json').then(r=>{
+    if(!r.ok)throw new Error('コミュニティデータ');
+    return r.json();
+  })
+]).then(([topology,mapping])=>{
+  const obj=topology.objects.town||topology.objects[Object.keys(topology.objects)[0]];
+  const allGeometries=obj.geometries||[];
+  const validCommunities=new Set(mapping.communities||[]);
+
+  // 海域など学習対象外を除外。
+  // 岡田山はコミュニティ分割に関係なく、町名として通常表示する。
+  const geometries=allGeometries.filter(g=>{
+    const name=rawName(g);
+    const community=mapping.towns?.[name]?.community;
+    return name==='岡田山'||validCommunities.has(community);
+  });
+
+  const features=geometries.map(g=>{
+    const f=topojson.feature(topology,g);
+    f.properties={S_NAME:rawName(g)};
+    return f;
+  });
+
+  const layer=L.geoJSON(
+    {type:'FeatureCollection',features},
+    {
+      interactive:false,
+      style:{
+        color:'#fff',
+        weight:.85,
+        fillColor:'#7665b5',
+        fillOpacity:.82
+      },
+      onEachFeature(f,shape){
+        shape.bindTooltip(f.properties.S_NAME,{
+          permanent:true,
+          direction:'center',
+          className:'town-label',
+          interactive:false
+        });
+      }
+    }
+  ).addTo(map);
+
+  map.fitBounds(layer.getBounds(),{padding:[4,4],animate:false});
+  initialLabelZoom=map.getZoom();
+  updateLabelScale();
+  setTimeout(()=>{
+    map.invalidateSize({animate:false});
+    updateLabelScale();
+  },0);
+}).catch(err=>{
+  console.error(err);
+  mapElement.innerHTML='<div style="height:100%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#6b5e91">地図を読み込めませんでした。</div>';
+});
+</script>
+</body>
+</html>
