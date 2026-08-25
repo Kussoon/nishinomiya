@@ -55,7 +55,7 @@
 
   <section class="teacher">
     <img src="images/guide-character.png" alt="案内キャラクター">
-    <div class="speech" id="message">西宮市全域の町名を表示しています。文字が重なる場所は地図を拡大して確認してください。</div>
+    <div class="speech" id="message">西宮市全域の町名を表示しています。各コミュニティ地図で調整した町名位置を引き継いでいます。文字が重なる場所は地図を拡大して確認してください。</div>
   </section>
   </div>
 
@@ -87,6 +87,10 @@
   let allBounds;
   let initialLabelZoom;
   const mapElement = document.getElementById('map');
+  // 各コミュニティ全図で手作業調整した町名位置を全域地図にも継承。
+  const LABEL_OFFSETS = {"鷲林寺字剣谷":[-7,0],"剣谷町":[-3,0],"苦楽園三番町":[-3,0],"上大市":[0,16],"川西町":[0,-12],"六軒町":[-7,0],"神園町":[7,0],"甲陽園山王町":[-7,6],"甲陽園目神山町":[0,7],"毘沙門町":[0,2],"満池谷町":[0,11],"今津山中町":[0,10],"青葉台":[-4,0],"甲子園三保町":[-7,0]};
+  const MULTI_LABELS = {"塩瀬町名塩":[[34.844983,135.29825],[34.8213,135.292587]],"山口町上山口":[[34.8263,135.247],[34.814562,135.241245]]};
+
 
   const normalStyle = { color:'#ffffff', weight:1.1, fillColor:'#75b8dc', fillOpacity:.78 };
   const selectedStyle = { color:'#b56b00', weight:2.4, fillColor:'#ffd34d', fillOpacity:.96 };
@@ -160,12 +164,27 @@
           style: normalStyle,
           onEachFeature(feature, layer) {
             const name = featureName(feature);
-            layer.bindTooltip(name, {
-              permanent:true,
-              direction:'center',
-              className:'town-label',
-              interactive:false
-            });
+            const multi = MULTI_LABELS[name];
+            if (multi) {
+              // この2町はコミュニティ地図と同じ固定座標に2個のラベルを置く。
+              multi.forEach(anchor => {
+                L.tooltip({
+                  permanent:true,
+                  direction:'center',
+                  className:'town-label',
+                  interactive:false
+                }).setLatLng(anchor).setContent(name).addTo(map);
+              });
+            } else {
+              const offset = LABEL_OFFSETS[name] || [0,0];
+              layer.bindTooltip(name, {
+                permanent:true,
+                direction:'center',
+                offset:L.point(offset[0], offset[1]),
+                className:'town-label',
+                interactive:false
+              });
+            }
           }
         }
       ).addTo(map);
