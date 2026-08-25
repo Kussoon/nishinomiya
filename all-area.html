@@ -118,14 +118,23 @@
     });
   }
 
-  fetch('data/nishinomiya-towns.topojson')
-    .then(response => {
+  Promise.all([
+    fetch('data/nishinomiya-towns.topojson').then(response => {
       if (!response.ok) throw new Error('境界データを読み込めませんでした');
       return response.json();
+    }),
+    fetch('data/community-town-map.json').then(response => {
+      if (!response.ok) throw new Error('コミュニティ対応データを読み込めませんでした');
+      return response.json();
     })
-    .then(topology => {
+  ])
+    .then(([topology, mapping]) => {
       const townObject = topology.objects.town || topology.objects[Object.keys(topology.objects)[0]];
-      const geometries = townObject.geometries || [];
+      const allGeometries = townObject.geometries || [];
+
+      // コミュニティ選択画面と同じ基準で、26コミュニティに属する町域だけを使用。
+      // これにより海域など、学習対象外のポリゴンを除外する。
+      const geometries = allGeometries.filter(g => mapping.towns?.[rawName(g)]?.community);
 
       const names = [...new Set(geometries.map(g => groupedName(rawName(g))))];
 
