@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#e8f7ff">
-  <title>全域チャレンジ｜西宮市町名記憶ゲーム</title>
+  <title>白地図で町名を確認｜西宮市町名記憶ゲーム</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     :root{--navy:#16365c;--blue:#2f75b5;--pale:#eaf4ff;--gold:#f4b942;--ink:#203040}
@@ -46,7 +46,7 @@
 <main class="page">
   <a class="back" href="index.html">← ゲームトップへ</a>
   <h1>西宮市町名記憶ゲーム</h1>
-  <div class="stage">🌐 全域チャレンジ　学習モード</div>
+  <div class="stage">🌐 白地図で町名を確認　学習モード</div>
 
   <section class="teacher">
     <img src="images/guide-character.png" alt="案内キャラクター">
@@ -139,7 +139,7 @@
       const geometries = allGeometries.filter(g => {
         const name = rawName(g);
         const community = mapping.towns?.[name]?.community;
-        // 全域チャレンジでは岡田山も通常の1町として扱う。
+        // 白地図で町名を確認では岡田山も通常の1町として扱う。
         return name === '岡田山' || validCommunities.has(community);
       });
 
