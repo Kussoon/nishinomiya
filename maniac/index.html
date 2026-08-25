@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f3efff">
+<title>丁目町を学ぶ｜西宮市町名記憶ゲーム</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#f3efff;color:#25304a;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+body{display:flex;justify-content:center}
+.app{width:min(100%,560px);min-height:100dvh;padding:max(12px,env(safe-area-inset-top)) 12px max(18px,env(safe-area-inset-bottom));background:linear-gradient(#f3efff,#fff)}
+.back{display:inline-block;margin-bottom:8px;padding:8px 12px;border:1px solid #cabfe8;border-radius:10px;background:#fff;color:#55428a;text-decoration:none;font-size:13px;font-weight:900}
+h1{margin:4px 0;text-align:center;color:#49347c;font-size:clamp(28px,8vw,39px)}
+.lead{margin:0 5px 12px;text-align:center;color:#655c7d;font-size:14px;font-weight:800;line-height:1.55}
+.card{background:#fff;border:1px solid #d4cbed;border-radius:18px;padding:10px;box-shadow:0 4px 15px #4e3a7a16}
+.selected{text-align:center;margin-bottom:8px}
+.selected small{display:block;color:#746b88;font-weight:800}
+#selectedName{font-size:clamp(25px,7vw,34px);font-weight:950;color:#49347c}
+#selectedInfo{margin-top:2px;color:#6b5e91;font-size:14px;font-weight:850}
+#map{height:390px;border-radius:14px;background:#e5e3ea}
+.chome-label{border:0!important;background:#ffffffee!important;color:#2d3150!important;border-radius:4px!important;padding:2px 4px!important;box-shadow:0 1px 3px #2d315044!important;font-size:10px!important;font-weight:950!important;white-space:nowrap!important;pointer-events:none!important}
+.chome-label:before{display:none!important}
+.help{margin:8px 2px 2px;color:#6d6680;font-size:12px;font-weight:750;line-height:1.55}
+.section-title{margin:18px 2px 8px;color:#49347c;font-size:20px;font-weight:950}
+.filters{display:flex;gap:6px;overflow:auto;padding-bottom:4px;margin-bottom:8px}
+.filter{flex:0 0 auto;border:1px solid #cabfe8;background:#fff;color:#59488b;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:900}
+.filter.active{background:#6650a3;color:#fff;border-color:#6650a3}
+.list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.town-btn{border:1px solid #d3caeb;background:#fff;border-radius:13px;padding:10px 8px;text-align:left;color:#303752;box-shadow:0 2px 7px #4b397012}
+.town-btn strong{display:block;font-size:15px}
+.town-btn span{display:block;margin-top:2px;color:#72688d;font-size:12px;font-weight:800}
+.town-btn.active{outline:3px solid #8c72ce;background:#f7f3ff}
+.notice{margin-top:12px;padding:10px 12px;border-radius:12px;background:#fff7dd;color:#6d5413;font-size:12px;font-weight:800;line-height:1.55}
+.credit{margin:14px 2px 0;padding-top:10px;border-top:1px solid #d7d0e5;color:#6a7180;font-size:9px;line-height:1.55}
+.footer{margin-top:14px;text-align:center;color:#73798a;font-size:11px}
+.leaflet-control-zoom a{font-weight:900}
+@media(min-width:500px){.list{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<main class="app">
+<a class="back" href="../index.html">← トップページへ</a>
+<h1>丁目町を学ぶ</h1>
+<p class="lead">通常モードで一つにまとめていた町のうち、丁目に分かれている44町だけを集めました。<br>町名を選んで、一丁目・二丁目…の位置関係を確認しましょう。</p>
+
+<section class="card">
+  <div class="selected">
+    <small>選択中</small>
+    <div id="selectedName">西宮浜</div>
+    <div id="selectedInfo">一丁目〜四丁目</div>
+  </div>
+  <div id="map" aria-label="丁目学習地図"></div>
+  <p class="help">地図には選んだ町の丁目だけを表示します。各丁目の文字は地図を拡大して確認できます。</p>
+</section>
+
+<h2 class="section-title">44の「丁目町」</h2>
+<div class="filters">
+  <button class="filter active" data-filter="all">すべて</button>
+  <button class="filter" data-filter="2">2丁目まで</button>
+  <button class="filter" data-filter="3">3丁目まで</button>
+  <button class="filter" data-filter="4">4丁目まで</button>
+  <button class="filter" data-filter="5+">5丁目以上</button>
+</div>
+<div id="townList" class="list"></div>
+
+<div class="notice">※ 山口町名来・山口町下山口・山口町上山口・山口町中野・山口町金仙寺は、丁目に分かれた区域とは別に「丁目なし」の同名区域もあります。ここではまず丁目部分の位置関係を学習します。</div>
+
+<p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450</p>
+<footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+const TOWNS=[{"name":"鷲林寺","max":2,"hasBare":false},{"name":"東町","max":2,"hasBare":false},{"name":"西宮浜","max":4,"hasBare":false},{"name":"小曽根町","max":4,"hasBare":false},{"name":"小松北町","max":2,"hasBare":false},{"name":"小松東町","max":3,"hasBare":false},{"name":"小松町","max":2,"hasBare":false},{"name":"小松西町","max":2,"hasBare":false},{"name":"小松南町","max":3,"hasBare":false},{"name":"若草町","max":2,"hasBare":false},{"name":"学文殿町","max":2,"hasBare":false},{"name":"里中町","max":3,"hasBare":false},{"name":"東鳴尾町","max":2,"hasBare":false},{"name":"高須町","max":2,"hasBare":false},{"name":"鳴尾町","max":5,"hasBare":false},{"name":"南甲子園","max":3,"hasBare":false},{"name":"浜甲子園","max":4,"hasBare":false},{"name":"甲子園浜","max":3,"hasBare":false},{"name":"鳴尾浜","max":3,"hasBare":false},{"name":"甲風園","max":3,"hasBare":false},{"name":"甲子園口","max":6,"hasBare":false},{"name":"上甲子園","max":5,"hasBare":false},{"name":"仁川町","max":6,"hasBare":false},{"name":"上甲東園","max":6,"hasBare":false},{"name":"甲東園","max":3,"hasBare":false},{"name":"段上町","max":8,"hasBare":false},{"name":"上大市","max":5,"hasBare":false},{"name":"樋ノ口町","max":2,"hasBare":false},{"name":"名塩南台","max":4,"hasBare":false},{"name":"東山台","max":5,"hasBare":false},{"name":"国見台","max":6,"hasBare":false},{"name":"名塩","max":3,"hasBare":false},{"name":"名塩さくら台","max":4,"hasBare":false},{"name":"宝生ケ丘","max":2,"hasBare":false},{"name":"青葉台","max":2,"hasBare":false},{"name":"生瀬町","max":2,"hasBare":false},{"name":"山口町名来","max":2,"hasBare":true},{"name":"山口町下山口","max":5,"hasBare":true},{"name":"山口町上山口","max":4,"hasBare":true},{"name":"山口町中野","max":3,"hasBare":true},{"name":"山口町金仙寺","max":3,"hasBare":true},{"name":"山口町阪神流通センター","max":3,"hasBare":false},{"name":"北六甲台","max":5,"hasBare":false},{"name":"すみれ台","max":3,"hasBare":false}];
+const KANJI=['零','一','二','三','四','五','六','七','八','九','十'];
+const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:9,maxZoom:20,zoomSnap:.1});
+let topology, geometries=[], currentLayer=null, selected='西宮浜', activeFilter='all';
+
+function chomeNumber(name,base){
+  const tail=name.slice(base.length);
+  const m=tail.match(/^([一二三四五六七八九十]+)丁目$/);
+  return m?m[1]:null;
+}
+function labelRange(max){
+  return max===1?'一丁目':`一丁目〜${KANJI[max]}丁目`;
+}
+function renderList(){
+  const list=document.getElementById('townList');
+  list.replaceChildren(...TOWNS.filter(t=>{
+    if(activeFilter==='all')return true;
+    if(activeFilter==='5+')return t.max>=5;
+    return t.max===Number(activeFilter);
+  }).map(t=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='town-btn'+(t.name===selected?' active':'');
+    b.innerHTML=`<strong>${t.name}</strong><span>${labelRange(t.max)}</span>`;
+    b.addEventListener('click',()=>selectTown(t.name));
+    return b;
+  }));
+}
+function selectTown(name){
+  selected=name;
+  const info=TOWNS.find(t=>t.name===name);
+  document.getElementById('selectedName').textContent=name;
+  document.getElementById('selectedInfo').textContent=labelRange(info.max)+(info.hasBare?' ＋ 丁目なし区域あり':'');
+  renderList();
+  drawTown(name);
+}
+function drawTown(base){
+  if(!topology)return;
+  if(currentLayer)currentLayer.remove();
+  const members=geometries.filter(g=>chomeNumber(g.properties.S_NAME||'',base));
+  const features=members.map(g=>{
+    const f=topojson.feature(topology,g);
+    f.properties={S_NAME:g.properties.S_NAME};
+    return f;
+  });
+  currentLayer=L.geoJSON({type:'FeatureCollection',features}, {
+    interactive:false,
+    style:{color:'#fff',weight:1.5,fillColor:'#7d6bc0',fillOpacity:.88},
+    onEachFeature(f,layer){
+      layer.bindTooltip(f.properties.S_NAME,{
+        permanent:true,direction:'center',className:'chome-label',interactive:false
+      });
+    }
+  }).addTo(map);
+  if(features.length){
+    map.fitBounds(currentLayer.getBounds(),{padding:[24,24],animate:false});
+  }
+}
+document.querySelectorAll('.filter').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter=btn.dataset.filter;
+  renderList();
+}));
+
+fetch('../data/nishinomiya-towns.topojson')
+  .then(r=>{if(!r.ok)throw new Error('data');return r.json()})
+  .then(t=>{
+    topology=t;
+    const obj=t.objects.town||t.objects[Object.keys(t.objects)[0]];
+    geometries=obj.geometries||[];
+    renderList();
+    selectTown(selected);
+  })
+  .catch(()=>{
+    document.getElementById('selectedInfo').textContent='地図データを読み込めませんでした。';
+    renderList();
+  });
+
+renderList();
+</script>
+</body>
+</html>
