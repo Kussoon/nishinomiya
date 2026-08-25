@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#e8f7ff">
   <title>全域チャレンジ｜西宮市町名記憶ゲーム</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
@@ -28,11 +29,17 @@
     .tools button{border:0;border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:9px 11px;box-shadow:0 2px 8px #16365c33;cursor:pointer}
     .note{margin:10px 4px 0;font-size:13px;line-height:1.6;color:#526373}
     .credit{margin-top:14px;padding-top:10px;border-top:1px solid #cad8e3;font-size:10px;line-height:1.5;color:#657786}
+    .footer{margin-top:14px;text-align:center;color:#66808e;font-size:11px}
     .leaflet-container{font:inherit;touch-action:pan-x pan-y}
-    .leaflet-control-attribution{font-size:9px}
     .town-tooltip{background:#16365c;color:white;border:0;border-radius:8px;font-weight:800;box-shadow:0 2px 8px #0003}
     .town-tooltip:before{border-top-color:#16365c}
-    @media(max-width:480px){body{padding-left:8px;padding-right:8px}.teacher{grid-template-columns:62px 1fr}.teacher img{width:62px;height:62px}.speech{font-size:14px;padding:9px 11px}#map{height:55vh;min-height:390px}}
+    @media(max-width:480px){
+      body{padding-left:8px;padding-right:8px}
+      .teacher{grid-template-columns:62px 1fr}
+      .teacher img{width:62px;height:62px}
+      .speech{font-size:14px;padding:9px 11px}
+      #map{height:55vh;min-height:390px}
+    }
   </style>
 </head>
 <body>
@@ -43,7 +50,7 @@
 
   <section class="teacher">
     <img src="images/guide-character.png" alt="案内キャラクター">
-    <div class="speech" id="message">地図を拡大して、気になる町をタップしてください。町名と正確な区域を確認できます！</div>
+    <div class="speech" id="message">地図を拡大して、気になる町をタップしてください。丁目はまとめて一つの町として表示します。</div>
   </section>
 
   <div class="answer" aria-live="polite">
@@ -56,8 +63,9 @@
     <div class="tools"><button type="button" id="resetView">全体表示</button></div>
   </div>
 
-  <p class="note">指1本で地図を移動、2本指で拡大・縮小できます。同じ町名の区域が複数ある場合は、該当する区域をまとめて色付けします。</p>
+  <p class="note">指1本で地図を移動、2本指で拡大・縮小できます。一丁目・二丁目などは区別せず、同じ町名としてまとめています。丁目まで覚えるモードは、別途「マニアックモード」として用意します。</p>
   <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p>
+  <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -66,13 +74,31 @@
 (() => {
   const townName = document.getElementById('townName');
   const message = document.getElementById('message');
-  const map = L.map('map', { zoomControl: true, attributionControl: false, minZoom: 10, maxZoom: 18 });
+  const map = L.map('map', {
+    zoomControl: true,
+    attributionControl: false,
+    minZoom: 9,
+    maxZoom: 19,
+    zoomSnap: .1
+  });
+
   let townLayer;
   let allBounds;
   let selectedName = '';
 
   const normalStyle = { color:'#ffffff', weight:1.1, fillColor:'#75b8dc', fillOpacity:.78 };
   const selectedStyle = { color:'#b56b00', weight:2.4, fillColor:'#ffd34d', fillOpacity:.96 };
+
+  // 「一丁目」「二丁目」など、末尾が丁目のものだけをまとめる。
+  // 「甲子園一番町」「苦楽園一番町」など正式町名中の数字は変更しない。
+  function groupedName(name) {
+    return String(name || '').replace(/[一二三四五六七八九十百]+丁目$/, '');
+  }
+
+  function rawName(geometry) {
+    const p = geometry.properties || {};
+    return p.S_NAME || p.s_name || p.MOJI || '町名不明';
+  }
 
   function featureName(feature) {
     const p = feature.properties || {};
@@ -83,40 +109,61 @@
     selectedName = name;
     townName.textContent = name;
     message.textContent = `ここは「${name}」です。黄色で示した区域を地図で確認しましょう。`;
-    townLayer.eachLayer(layer => layer.setStyle(featureName(layer.feature) === name ? selectedStyle : normalStyle));
+    townLayer.eachLayer(layer => {
+      layer.setStyle(featureName(layer.feature) === name ? selectedStyle : normalStyle);
+    });
   }
 
-  fetch('nishinomiya-towns.topojson')
+  fetch('data/nishinomiya-towns.topojson')
     .then(response => {
       if (!response.ok) throw new Error('境界データを読み込めませんでした');
       return response.json();
     })
     .then(topology => {
       const townObject = topology.objects.town || topology.objects[Object.keys(topology.objects)[0]];
-      const geojson = topojson.feature(topology, townObject);
-      townLayer = L.geoJSON(geojson, {
-        style: normalStyle,
-        onEachFeature(feature, layer) {
-          const name = featureName(feature);
-          layer.bindTooltip(name, { sticky:true, direction:'top', className:'town-tooltip' });
-          layer.on({
-            click: () => chooseTown(name),
-            mouseover: e => { if (name !== selectedName) e.target.setStyle({fillOpacity:.95,weight:2}); },
-            mouseout: e => { if (name !== selectedName) e.target.setStyle(normalStyle); }
-          });
+      const geometries = townObject.geometries || [];
+
+      const names = [...new Set(geometries.map(g => groupedName(rawName(g))))];
+
+      const mergedFeatures = names.map(name => {
+        const members = geometries.filter(g => groupedName(rawName(g)) === name);
+        const merged = topojson.merge(topology, members);
+        merged.properties = { S_NAME: name };
+        return merged;
+      });
+
+      townLayer = L.geoJSON(
+        { type:'FeatureCollection', features: mergedFeatures },
+        {
+          style: normalStyle,
+          onEachFeature(feature, layer) {
+            const name = featureName(feature);
+            layer.bindTooltip(name, { sticky:true, direction:'top', className:'town-tooltip' });
+            layer.on({
+              click: () => chooseTown(name),
+              mouseover: e => {
+                if (name !== selectedName) e.target.setStyle({ fillOpacity:.95, weight:2 });
+              },
+              mouseout: e => {
+                if (name !== selectedName) e.target.setStyle(normalStyle);
+              }
+            });
+          }
         }
-      }).addTo(map);
+      ).addTo(map);
+
       allBounds = townLayer.getBounds();
-      map.fitBounds(allBounds, { padding:[8,8] });
+      map.fitBounds(allBounds, { padding:[8,8], animate:false });
+      setTimeout(() => map.invalidateSize({animate:false}), 0);
     })
     .catch(error => {
       townName.textContent = '地図を読み込めませんでした';
-      message.textContent = '通信状態を確認して、ページをもう一度開いてください。';
+      message.textContent = '地図データの読み込みに失敗しました。ページをもう一度開いてください。';
       console.error(error);
     });
 
   document.getElementById('resetView').addEventListener('click', () => {
-    if (allBounds) map.fitBounds(allBounds, { padding:[8,8] });
+    if (allBounds) map.fitBounds(allBounds, { padding:[8,8], animate:false });
   });
 })();
 </script>
