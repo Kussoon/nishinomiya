@@ -218,8 +218,8 @@ const overviewMap=L.map("north1Overview",{
   zoomSnap:0.1
 });
 Promise.all([
-  fetch("nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
-  fetch("community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
+  fetch("data/nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
+  fetch("data/community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
 ]).then(([topology,mapping])=>{
   mapTopology=topology;
   mapMapping=mapping;
