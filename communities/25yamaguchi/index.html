@@ -6,7 +6,7 @@ const map=L.map('map',{zoomControl:true,attributionControl:false,dragging:true,s
 const mapElement=document.getElementById('map');let initialLabelZoom;
 function updateLabelScale(){if(initialLabelZoom===undefined)return;const scale=Math.min(5,Math.max(.72,Math.pow(1.35,map.getZoom()-initialLabelZoom)));mapElement.style.setProperty('--label-font-size',`${7*scale}px`);mapElement.style.setProperty('--label-pad-y',`${.7*scale}px`);mapElement.style.setProperty('--label-pad-x',`${2.1*scale}px`);mapElement.style.setProperty('--label-radius',`${2.8*scale}px`);mapElement.style.setProperty('--label-shadow-y',`${.7*scale}px`);mapElement.style.setProperty('--label-shadow-blur',`${2.1*scale}px`)}
 const MULTI_LABELS={'山口町上山口':[[34.8263,135.247],[34.814562,135.241245]]};
-const MULTI_LABEL_OFFSETS={'山口町上山口':[[-7,7],[0,0]]};
+const MULTI_LABEL_OFFSETS={'山口町上山口':[[-17,17],[0,0]]};
 const EXTRA_LABELS={'山口町下山口':[[34.830141,135.262235]]};
 map.on('layeradd',event=>{const shape=event.layer;if(typeof shape.getTooltip!=='function')return;const tooltip=shape.getTooltip();if(!tooltip)return;const name=tooltip.getContent();const anchors=MULTI_LABELS[name];if(anchors){shape.unbindTooltip();const offsets=MULTI_LABEL_OFFSETS[name]||[];anchors.forEach((anchor,i)=>L.tooltip({permanent:true,direction:'center',offset:L.point(...(offsets[i]||[0,0])),className:'town-label',interactive:false}).setLatLng(anchor).setContent(name).addTo(map));return}const extras=EXTRA_LABELS[name];if(extras)extras.forEach(anchor=>L.tooltip({permanent:true,direction:'center',className:'town-label',interactive:false}).setLatLng(anchor).setContent(name).addTo(map))});
 map.on('zoom zoomend',updateLabelScale);
