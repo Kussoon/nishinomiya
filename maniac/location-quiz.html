@@ -86,6 +86,7 @@ const CHOME_BASES = new Set([
 
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
 const byId=id=>document.getElementById(id);
+const cityStyle={color:'#9aa7b5',weight:.65,fillColor:'#eef2f5',fillOpacity:.72};
 const baseStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.96};
 const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.96};
@@ -184,6 +185,27 @@ Promise.all([
   const allGeometries=obj.geometries||[];
   const validCommunities=new Set(mapping.communities||[]);
 
+  // 背景には西宮市全域の町域を薄く表示する。
+  // 海域等は除外し、岡田山だけは通常の町として含める。
+  const cityGeometries=allGeometries.filter(g=>{
+    const name=g.properties?.S_NAME||'';
+    const community=mapping.towns?.[name]?.community;
+    return name==='岡田山'||validCommunities.has(community);
+  });
+  const cityFeatures=cityGeometries.map(g=>{
+    const f=topojson.feature(topology,g);
+    f.properties={S_NAME:g.properties.S_NAME};
+    return f;
+  });
+  const cityLayer=L.geoJSON(
+    {type:'FeatureCollection',features:cityFeatures},
+    {
+      interactive:false,
+      style:cityStyle
+    }
+  ).addTo(map);
+
+  // 回答対象は44の「丁目町」に含まれる丁目部分だけ。
   const geometries=allGeometries.filter(g=>{
     const name=g.properties?.S_NAME||'';
     if(!isTargetChome(name))return false;
@@ -209,7 +231,7 @@ Promise.all([
     }
   ).addTo(map);
 
-  allBounds=group.getBounds();
+  allBounds=cityLayer.getBounds();
   start();
 }).catch(err=>{
   console.error(err);
