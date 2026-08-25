@@ -1,53 +1,94 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>西宮市町名記憶ゲーム Ver.6.2</title>
-  <style>
-    :root{--navy:#17385e;--blue:#2f75b5;--pale:#edf7ff;--ink:#243445}
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:linear-gradient(#eaf6ff,#fff);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Yu Gothic",Meiryo,sans-serif}
-    body{padding:env(safe-area-inset-top) 12px calc(18px + env(safe-area-inset-bottom))}
-    .page{width:min(680px,100%);margin:auto}
-    h1{margin:11px 0 2px;text-align:center;color:var(--navy);font-size:clamp(26px,7vw,38px);line-height:1.2}
-    .sub{text-align:center;color:var(--blue);font-weight:800}
-    .hero{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;margin:14px 0;padding:12px;background:#fff;border-radius:20px;box-shadow:0 3px 13px #17385e24}
-    .hero img{width:92px;height:92px;object-fit:cover;object-position:top;border-radius:50%;border:3px solid #d7edff;background:#fff}
-    .speech{position:relative;border:2px solid #9bc9ef;border-radius:17px;padding:12px 14px;font-weight:700;line-height:1.55;background:#fff}
-    .speech:before{content:"";position:absolute;left:-12px;top:31px;border-width:9px 12px 9px 0;border-style:solid;border-color:transparent #9bc9ef transparent transparent}
-    .speech:after{content:"";position:absolute;left:-9px;top:33px;border-width:7px 10px 7px 0;border-style:solid;border-color:transparent white transparent transparent}
-    .menu{display:grid;gap:11px}
-    .mode{width:100%;min-height:76px;border:0;border-radius:17px;padding:12px 16px;background:#fff;color:var(--navy);text-align:left;font:inherit;font-size:clamp(17px,4.7vw,22px);font-weight:900;box-shadow:0 3px 12px #17385e25;cursor:pointer;transition:transform .12s,box-shadow .12s}
-    .mode:hover{transform:translateY(-1px);box-shadow:0 5px 15px #17385e30}.mode:active{transform:translateY(1px)}
-    .mode small{display:block;margin:4px 0 0 32px;color:#60758a;font-size:13px;font-weight:700}
-    .mode.primary{background:linear-gradient(135deg,#276eaf,#48a0d7);color:#fff}.mode.primary small{color:#eaf7ff}
-    .mode.upcoming{cursor:default}
-    .mode.upcoming:hover,.mode.upcoming:active{transform:none;box-shadow:0 3px 12px #17385e25}
-    .note{margin:14px 3px;text-align:center;color:#647586;font-size:11px;line-height:1.5}
-    .footer{margin-top:14px;padding-top:10px;border-top:1px solid #cfdae3;text-align:center;color:#71808d;font-size:10px}
-    @media(max-width:480px){body{padding-left:8px;padding-right:8px}.hero{grid-template-columns:70px 1fr;gap:9px;padding:9px}.hero img{width:70px;height:70px}.speech{font-size:13px;padding:9px 11px}.mode{min-height:68px}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f4f1ff">
+<title>西宮市町名記憶ゲーム</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#f4f1ff;color:#27324a;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+body{display:flex;justify-content:center}
+a{-webkit-tap-highlight-color:transparent}
+.wrap{width:min(100%,640px);min-height:100dvh;padding:max(16px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#f4f1ff 0%,#ffffff 100%)}
+header{text-align:center}
+h1{margin:5px 0 7px;color:#49347c;font-size:clamp(27px,7.5vw,38px);line-height:1.15}
+.tagline{margin:0;color:#59637a;font-size:15px;font-weight:800}
+.character{display:block;width:112px;max-width:28vw;height:auto;margin:12px auto 4px;border-radius:18px}
+.intro{margin:8px auto 15px;max-width:520px;color:#667087;font-size:14px;font-weight:750;line-height:1.55;text-align:center}
+.menu{display:grid;gap:10px}
+.card{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;min-height:76px;padding:10px 12px;border:1px solid #d9d0ef;border-radius:17px;background:#fff;color:#33405c;text-decoration:none;box-shadow:0 4px 14px #49347c12}
+.card:active{transform:translateY(1px)}
+.icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#eee9ff;font-size:27px}
+.text strong{display:block;color:#4d397e;font-size:18px;line-height:1.3}
+.text small{display:block;margin-top:3px;color:#6f7788;font-size:12px;font-weight:750;line-height:1.4}
+.arrow{color:#8c80aa;font-size:22px;font-weight:900}
+.card.maniac{border-color:#c8b8ef;background:linear-gradient(135deg,#fff,#f0eaff)}
+.card.maniac .icon{background:#ded2ff}
+.note{margin:15px 4px 0;padding:11px;border-radius:13px;background:#f8f6ff;color:#747b8c;font-size:11px;line-height:1.55;text-align:center}
+.version{margin:13px 0 2px;text-align:center;color:#8b90a0;font-size:11px}
+footer{text-align:center;color:#73798a;font-size:11px}
+</style>
 </head>
 <body>
-<main class="page">
+<main class="wrap">
+<header>
   <h1>西宮市町名記憶ゲーム</h1>
-  <div class="sub">西宮市の町を楽しく覚えよう！</div>
+  <p class="tagline">西宮市の町を楽しく覚えよう！</p>
+  <img class="character" src="images/guide-character.png" alt="案内キャラクター">
+  <p class="intro">まず全域を眺めて、地区やコミュニティごとに覚え、最後は丁目まで挑戦できます。</p>
+</header>
 
-  <section class="hero">
-    <img src="images/guide-character.png" alt="案内キャラクター">
-    <div class="speech">コミュニティの場所から町別の詳しい地図まで、順番に挑戦しましょう！</div>
-  </section>
+<nav class="menu" aria-label="学習メニュー">
+  <a class="card" href="all-area-labeled.html">
+    <span class="icon">🗺️</span>
+    <span class="text">
+      <strong>町名入り全域図</strong>
+      <small>西宮市全域の町名を一度に確認</small>
+    </span>
+    <span class="arrow">›</span>
+  </a>
 
-  <nav class="menu" aria-label="ゲームモード">
-    <button class="mode primary" type="button" onclick="location.href='community-map-quiz.html'">📍 コミュニティの場所当て<small>色分け地図で26コミュニティを当てよう</small></button>
-    <button class="mode" type="button" onclick="location.href='area-select.html'">🗺️ 6つの地区で町名チャレンジ<small>6地区から選んで町名に挑戦</small></button>
-    <button class="mode" type="button" onclick="location.href='community-select.html'">🏠 コミュニティごとに町名チャレンジ<small>26コミュニティから選んで町名に挑戦</small></button>
-    <button class="mode" type="button" onclick="location.href='all-area.html'">🌐 全域チャレンジ<small>町別地図で学習</small></button>
-  </nav>
+  <a class="card" href="all-area.html">
+    <span class="icon">⬜</span>
+    <span class="text">
+      <strong>白地図で町名を確認</strong>
+      <small>気になる場所をタップして町名と区域を確認</small>
+    </span>
+    <span class="arrow">›</span>
+  </a>
 
-  <p class="note">各ゲームはスマートフォンで地図を拡大・縮小して操作できます。</p>
-  <footer class="footer"><strong>Version 6.2</strong><br>© KUSSOON 2026 All Rights Reserved.</footer>
+  <a class="card" href="area-select.html">
+    <span class="icon">⑥</span>
+    <span class="text">
+      <strong>6つの地区で学習</strong>
+      <small>北部・中部・南部を6地区に分けて学習</small>
+    </span>
+    <span class="arrow">›</span>
+  </a>
+
+  <a class="card" href="community-select.html">
+    <span class="icon">🏠</span>
+    <span class="text">
+      <strong>コミュニティごとに学習</strong>
+      <small>26コミュニティから選んで町名を学習</small>
+    </span>
+    <span class="arrow">›</span>
+  </a>
+
+  <a class="card maniac" href="maniac/">
+    <span class="icon">🔥</span>
+    <span class="text">
+      <strong>マニアックモード</strong>
+      <small>丁目まで区別して学習・クイズに挑戦</small>
+    </span>
+    <span class="arrow">›</span>
+  </a>
+</nav>
+
+<p class="note">スマートフォンでは、地図を拡大・縮小しながら操作できます。通常モードでは一丁目・二丁目などを同じ町名としてまとめています。</p>
+<p class="version">Version 6.5.77</p>
+<footer>© KUSSOON 2026 All Rights Reserved.</footer>
 </main>
 </body>
 </html>
