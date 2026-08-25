@@ -132,9 +132,14 @@
       const townObject = topology.objects.town || topology.objects[Object.keys(topology.objects)[0]];
       const allGeometries = townObject.geometries || [];
 
-      // コミュニティ選択画面と同じ基準で、26コミュニティに属する町域だけを使用。
-      // これにより海域など、学習対象外のポリゴンを除外する。
-      const geometries = allGeometries.filter(g => mapping.towns?.[rawName(g)]?.community);
+      // コミュニティ選択画面と完全に同じ基準で、
+      // mapping.communities に列挙された26コミュニティだけを使用する。
+      // 「海域」など別分類が community 欄に入っていても描画しない。
+      const validCommunities = new Set(mapping.communities || []);
+      const geometries = allGeometries.filter(g => {
+        const community = mapping.towns?.[rawName(g)]?.community;
+        return validCommunities.has(community);
+      });
 
       const names = [...new Set(geometries.map(g => groupedName(rawName(g))))];
 
