@@ -39,18 +39,77 @@ const highlightStyle={color:'#d18a00',weight:2.4,fillColor:'#ffd34f',fillOpacity
 const highlightStyleDim={color:'#d8a536',weight:2.1,fillColor:'#fff0a3',fillOpacity:.72};
 const correctStyle={color:'#08743f',weight:2.4,fillColor:'#35c979',fillOpacity:.98};
 let items=[],order=[],index=0,score=0,wrong=0,locked=false,missed=new Set(),allBounds;
+let adjacency=new Map();
 let blinkTimer=null,blinkOn=true;
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function flattenArcIndexes(arcs,out=[]){
+  if(Array.isArray(arcs)){
+    arcs.forEach(a=>{
+      if(Array.isArray(a)) flattenArcIndexes(a,out);
+      else if(Number.isInteger(a)) out.push(a<0?~a:a);
+    });
+  }
+  return out;
+}
+function buildAdjacency(geometries){
+  const arcOwners=new Map();
+  geometries.forEach(g=>{
+    const name=g.properties?.S_NAME||'';
+    if(!name)return;
+    if(!adjacency.has(name))adjacency.set(name,new Set());
+    [...new Set(flattenArcIndexes(g.arcs))].forEach(a=>{
+      if(!arcOwners.has(a))arcOwners.set(a,[]);
+      arcOwners.get(a).push(name);
+    });
+  });
+  arcOwners.forEach(names=>{
+    const unique=[...new Set(names)];
+    if(unique.length<2)return;
+    unique.forEach(a=>unique.forEach(b=>{
+      if(a!==b)adjacency.get(a)?.add(b);
+    }));
+  });
+}
 function show(id){byId('quiz').classList.toggle('hidden',id!=='quiz');byId('result').classList.toggle('hidden',id!=='result')}
 function resetStyles(){items.forEach(x=>x.layer.setStyle(baseStyle))}
 function stopBlink(){if(blinkTimer!==null){clearInterval(blinkTimer);blinkTimer=null}}
 function startBlink(item){stopBlink();blinkOn=true;item.layer.setStyle(highlightStyle);blinkTimer=setInterval(()=>{if(locked)return;blinkOn=!blinkOn;item.layer.setStyle(blinkOn?highlightStyle:highlightStyleDim)},500)}
 function makeChoices(target){
   const targetItem=items.find(x=>x.name===target);
-  const sameCommunity=items
-    .filter(x=>x.name!==target && x.community===targetItem.community)
-    .map(x=>x.name);
-  return shuffle([target,...shuffle(sameCommunity).slice(0,3)]);
+  const community=targetItem.community;
+
+  // 1) 同じコミュニティ内で、正解区域に直接隣接する地名
+  const direct=[...(adjacency.get(target)||new Set())]
+    .filter(n=>n!==target)
+    .filter(n=>items.find(x=>x.name===n)?.community===community);
+
+  let candidates=shuffle([...new Set(direct)]);
+
+  // 2) 3つ足りなければ「隣接地のさらに隣」を近接候補として追加
+  if(candidates.length<3){
+    const near=new Set();
+    direct.forEach(n=>{
+      (adjacency.get(n)||new Set()).forEach(m=>{
+        if(
+          m!==target &&
+          items.find(x=>x.name===m)?.community===community &&
+          !candidates.includes(m)
+        ) near.add(m);
+      });
+    });
+    candidates=candidates.concat(shuffle([...near]));
+  }
+
+  // 3) それでも足りなければ、同じコミュニティ内の残りから補う
+  if(candidates.length<3){
+    const rest=items
+      .filter(x=>x.name!==target && x.community===community)
+      .map(x=>x.name)
+      .filter(n=>!candidates.includes(n));
+    candidates=candidates.concat(shuffle(rest));
+  }
+
+  return shuffle([target,...candidates.slice(0,3)]);
 }
 function loadQuestion(){locked=false;stopBlink();resetStyles();const target=order[index];const item=items.find(x=>x.name===target);startBlink(item);byId('progress').textContent=`${index+1} / ${order.length}`;byId('scoreNow').textContent=score;byId('feedback').className='feedback';byId('feedback').textContent='答えを選んでください。';byId('choices').replaceChildren(...makeChoices(target).map(name=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=name;b.addEventListener('click',()=>answer(b,name,item));return b}))}
 function answer(button,name,item){if(locked||button.disabled)return;const target=order[index];if(name===target){locked=true;stopBlink();button.classList.add('correct');[...byId('choices').children].forEach(b=>b.disabled=true);item.layer.setStyle(correctStyle);byId('feedback').className='feedback good';byId('feedback').textContent=`正解！ ここは「${target}」です。`;setTimeout(()=>{index++;if(index>=order.length)finish();else loadQuestion()},850)}else{wrong++;missed.add(target);score=Math.max(0,score-1);byId('scoreNow').textContent=score;button.disabled=true;button.classList.add('wrong');byId('feedback').className='feedback bad';byId('feedback').textContent=`「${name}」ではありません。もう一度選んでください。`}}
@@ -64,6 +123,7 @@ const obj=topology.objects.town||topology.objects[Object.keys(topology.objects)[
 const allGeometries=obj.geometries||[];
 const validCommunities=new Set(mapping.communities||[]);
 const geometries=allGeometries.filter(g=>{const name=g.properties?.S_NAME||'';const community=mapping.towns?.[name]?.community;return name==='岡田山'||validCommunities.has(community)});
+buildAdjacency(geometries);
 const features=geometries.map(g=>{const f=topojson.feature(topology,g);f.properties={S_NAME:g.properties.S_NAME};return f});
 const group=L.geoJSON({type:'FeatureCollection',features},{interactive:false,style:baseStyle,onEachFeature(f,layer){
   const name=f.properties.S_NAME;
