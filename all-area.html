@@ -22,7 +22,7 @@
     .speech:after{content:"";position:absolute;left:-8px;top:29px;border-width:6px 9px 6px 0;border-style:solid;border-color:transparent white transparent transparent}
     .answer{min-height:64px;margin:8px 0;padding:8px 12px;border-radius:14px;background:var(--navy);color:#fff;text-align:center;display:flex;flex-direction:column;justify-content:center;box-shadow:0 3px 10px #16365c33}
     .answer small{font-size:12px;opacity:.85}
-    #townName{font-size:clamp(22px,6vw,34px);font-weight:900;line-height:1.2}
+    #townName{font-size:clamp(22px,6vw,34px);font-weight:900;line-height:1.2}.town-reading{font-size:inherit;font-weight:900;line-height:1.2}
     .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
     #map{height:min(58vh,620px);min-height:420px;background:#dfeaf1}
     .tools{position:absolute;z-index:500;right:8px;top:8px;display:flex;gap:6px}
@@ -55,7 +55,7 @@
 
   <div class="answer" aria-live="polite">
     <small>選んだ町</small>
-    <div id="townName">地図の町域をタップ</div>
+    <div id="townName"><div id="townMain">地図の町域をタップ</div><div id="townReading" class="town-reading"></div></div>
   </div>
 
   <div class="map-wrap">
@@ -73,6 +73,9 @@
 <script>
 (() => {
   const townName = document.getElementById('townName');
+  const townMain = document.getElementById('townMain');
+  const townReading = document.getElementById('townReading');
+  const READINGS = {"愛宕山":"あたごやま"};
   const message = document.getElementById('message');
   const map = L.map('map', {
     zoomControl: true,
@@ -107,8 +110,9 @@
 
   function chooseTown(name) {
     selectedName = name;
-    townName.textContent = name;
-    message.textContent = `ここは「${name}」です。黄色で示した区域を地図で確認しましょう。`;
+    townMain.textContent = name;
+    townReading.textContent = READINGS[name] ? `（${READINGS[name]}）` : '';
+    message.textContent = `ここは「${name}」です。`;
     townLayer.eachLayer(layer => {
       layer.setStyle(featureName(layer.feature) === name ? selectedStyle : normalStyle);
     });
@@ -157,7 +161,8 @@
       setTimeout(() => map.invalidateSize({animate:false}), 0);
     })
     .catch(error => {
-      townName.textContent = '地図を読み込めませんでした';
+      townMain.textContent = '地図を読み込めませんでした';
+      townReading.textContent = '';
       message.textContent = '地図データの読み込みに失敗しました。ページをもう一度開いてください。';
       console.error(error);
     });
