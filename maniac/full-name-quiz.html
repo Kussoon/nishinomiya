@@ -14,7 +14,7 @@
 <main class="app">
 <section id="quiz" class="screen">
 <div class="topbar"><button id="quitBtn" class="smallbtn" type="button">ここでやめる</button><div class="stage">全域マニアック・4択</div><div class="stats"><span id="progress">1 / 1</span><br>得点 <span id="scoreNow">0</span></div></div>
-<div class="question"><div class="prompt">光っている町丁・字等は？</div></div>
+<div class="question"><div class="prompt">光っている場所の名前は？</div></div>
 <div class="mapwrap"><div id="map" aria-label="全域マニアック4択地図"></div></div>
 <div id="choices" class="choices"></div>
 <div id="feedback" class="feedback">答えを選んでください。</div>
@@ -45,7 +45,13 @@ function show(id){byId('quiz').classList.toggle('hidden',id!=='quiz');byId('resu
 function resetStyles(){items.forEach(x=>x.layer.setStyle(baseStyle))}
 function stopBlink(){if(blinkTimer!==null){clearInterval(blinkTimer);blinkTimer=null}}
 function startBlink(item){stopBlink();blinkOn=true;item.layer.setStyle(highlightStyle);blinkTimer=setInterval(()=>{if(locked)return;blinkOn=!blinkOn;item.layer.setStyle(blinkOn?highlightStyle:highlightStyleDim)},500)}
-function makeChoices(target){const names=items.map(x=>x.name).filter(n=>n!==target);return shuffle([target,...shuffle(names).slice(0,3)])}
+function makeChoices(target){
+  const targetItem=items.find(x=>x.name===target);
+  const sameCommunity=items
+    .filter(x=>x.name!==target && x.community===targetItem.community)
+    .map(x=>x.name);
+  return shuffle([target,...shuffle(sameCommunity).slice(0,3)]);
+}
 function loadQuestion(){locked=false;stopBlink();resetStyles();const target=order[index];const item=items.find(x=>x.name===target);startBlink(item);byId('progress').textContent=`${index+1} / ${order.length}`;byId('scoreNow').textContent=score;byId('feedback').className='feedback';byId('feedback').textContent='答えを選んでください。';byId('choices').replaceChildren(...makeChoices(target).map(name=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=name;b.addEventListener('click',()=>answer(b,name,item));return b}))}
 function answer(button,name,item){if(locked||button.disabled)return;const target=order[index];if(name===target){locked=true;stopBlink();button.classList.add('correct');[...byId('choices').children].forEach(b=>b.disabled=true);item.layer.setStyle(correctStyle);byId('feedback').className='feedback good';byId('feedback').textContent=`正解！ ここは「${target}」です。`;setTimeout(()=>{index++;if(index>=order.length)finish();else loadQuestion()},850)}else{wrong++;missed.add(target);score=Math.max(0,score-1);byId('scoreNow').textContent=score;button.disabled=true;button.classList.add('wrong');byId('feedback').className='feedback bad';byId('feedback').textContent=`「${name}」ではありません。もう一度選んでください。`}}
 function start(names){stopBlink();order=shuffle(names&&names.length?names:items.map(x=>x.name));index=0;score=order.length;wrong=0;missed=new Set();show('quiz');setTimeout(()=>{map.invalidateSize();if(allBounds)map.fitBounds(allBounds,{padding:[6,6],animate:false});loadQuestion()},0)}
@@ -59,7 +65,11 @@ const allGeometries=obj.geometries||[];
 const validCommunities=new Set(mapping.communities||[]);
 const geometries=allGeometries.filter(g=>{const name=g.properties?.S_NAME||'';const community=mapping.towns?.[name]?.community;return name==='岡田山'||validCommunities.has(community)});
 const features=geometries.map(g=>{const f=topojson.feature(topology,g);f.properties={S_NAME:g.properties.S_NAME};return f});
-const group=L.geoJSON({type:'FeatureCollection',features},{interactive:false,style:baseStyle,onEachFeature(f,layer){items.push({name:f.properties.S_NAME,layer})}}).addTo(map);
+const group=L.geoJSON({type:'FeatureCollection',features},{interactive:false,style:baseStyle,onEachFeature(f,layer){
+  const name=f.properties.S_NAME;
+  const community=mapping.towns?.[name]?.community || (name==='岡田山'?'広田':'');
+  items.push({name,community,layer});
+}}).addTo(map);
 allBounds=group.getBounds();start();
 }).catch(err=>{console.error(err);byId('feedback').textContent='地図を読み込めませんでした。'});
 byId('retryBtn').addEventListener('click',()=>start());
