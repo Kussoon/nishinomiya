@@ -48,8 +48,8 @@ h1{margin:4px 0;text-align:center;color:#49347c;font-size:clamp(28px,8vw,39px)}
 <section class="card">
   <div class="selected">
     <small>選択中</small>
-    <div id="selectedName">西宮浜</div>
-    <div id="selectedInfo">一丁目〜四丁目</div>
+    <div id="selectedName">町を選んでください</div>
+    <div id="selectedInfo">下の一覧から学習する町を選択します。</div>
   </div>
   <div id="map" aria-label="丁目学習地図"></div>
   <p class="help">地図には選んだ町の丁目だけを表示します。各丁目の文字は地図を拡大して確認できます。</p>
@@ -77,9 +77,10 @@ h1{margin:4px 0;text-align:center;color:#49347c;font-size:clamp(28px,8vw,39px)}
 const TOWNS=[{"name":"鷲林寺","max":2,"hasBare":false},{"name":"東町","max":2,"hasBare":false},{"name":"西宮浜","max":4,"hasBare":false},{"name":"小曽根町","max":4,"hasBare":false},{"name":"小松北町","max":2,"hasBare":false},{"name":"小松東町","max":3,"hasBare":false},{"name":"小松町","max":2,"hasBare":false},{"name":"小松西町","max":2,"hasBare":false},{"name":"小松南町","max":3,"hasBare":false},{"name":"若草町","max":2,"hasBare":false},{"name":"学文殿町","max":2,"hasBare":false},{"name":"里中町","max":3,"hasBare":false},{"name":"東鳴尾町","max":2,"hasBare":false},{"name":"高須町","max":2,"hasBare":false},{"name":"鳴尾町","max":5,"hasBare":false},{"name":"南甲子園","max":3,"hasBare":false},{"name":"浜甲子園","max":4,"hasBare":false},{"name":"甲子園浜","max":3,"hasBare":false},{"name":"鳴尾浜","max":3,"hasBare":false},{"name":"甲風園","max":3,"hasBare":false},{"name":"甲子園口","max":6,"hasBare":false},{"name":"上甲子園","max":5,"hasBare":false},{"name":"仁川町","max":6,"hasBare":false},{"name":"上甲東園","max":6,"hasBare":false},{"name":"甲東園","max":3,"hasBare":false},{"name":"段上町","max":8,"hasBare":false},{"name":"上大市","max":5,"hasBare":false},{"name":"樋ノ口町","max":2,"hasBare":false},{"name":"名塩南台","max":4,"hasBare":false},{"name":"東山台","max":5,"hasBare":false},{"name":"国見台","max":6,"hasBare":false},{"name":"名塩","max":3,"hasBare":false},{"name":"名塩さくら台","max":4,"hasBare":false},{"name":"宝生ケ丘","max":2,"hasBare":false},{"name":"青葉台","max":2,"hasBare":false},{"name":"生瀬町","max":2,"hasBare":false},{"name":"山口町名来","max":2,"hasBare":true},{"name":"山口町下山口","max":5,"hasBare":true},{"name":"山口町上山口","max":4,"hasBare":true},{"name":"山口町中野","max":3,"hasBare":true},{"name":"山口町金仙寺","max":3,"hasBare":true},{"name":"山口町阪神流通センター","max":3,"hasBare":false},{"name":"北六甲台","max":5,"hasBare":false},{"name":"すみれ台","max":3,"hasBare":false}];
 const KANJI=['零','一','二','三','四','五','六','七','八','九','十'];
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:9,maxZoom:20,zoomSnap:.1});
-let topology, geometries=[], currentLayer=null, selected='西宮浜', activeFilter='all';
+let topology, geometries=[], currentLayer=null, selected='', activeFilter='all';
 
 function chomeNumber(name,base){
+  if(!name.startsWith(base)) return null;
   const tail=name.slice(base.length);
   const m=tail.match(/^([一二三四五六七八九十]+)丁目$/);
   return m?m[1]:null;
@@ -146,7 +147,6 @@ fetch('../data/nishinomiya-towns.topojson')
     const obj=t.objects.town||t.objects[Object.keys(t.objects)[0]];
     geometries=obj.geometries||[];
     renderList();
-    selectTown(selected);
   })
   .catch(()=>{
     document.getElementById('selectedInfo').textContent='地図データを読み込めませんでした。';
