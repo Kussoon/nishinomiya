@@ -201,7 +201,72 @@ const answerMap=L.map("answerMap",{zoomControl:false,attributionControl:false,dr
 Promise.all([
   fetch("data/nishinomiya-towns.topojson").then(r=>{if(!r.ok)throw Error("境界データ");return r.json()}),
   fetch("data/community-town-map.json").then(r=>{if(!r.ok)throw Error("割り当てデータ");return r.json()})
-]).then(([topology,mapping])=>{mapTopology=topology;mapMapping=mapping}).catch(console.error);
+]).then(([topology,mapping])=>{
+  mapTopology=topology;
+  mapMapping=mapping;
+
+  // 地区トップのコミュニティ概要地図
+  const overviewEl=document.querySelector("[data-community-overview]");
+  if(overviewEl){
+    const overviewMap=L.map(overviewEl,{
+      attributionControl:false,
+      zoomControl:false,
+      dragging:false,
+      scrollWheelZoom:false,
+      doubleClickZoom:false,
+      boxZoom:false,
+      keyboard:false,
+      touchZoom:false
+    });
+
+    const wanted=(overviewEl.dataset.communityOverview||"")
+      .split(",")
+      .map(s=>s.trim())
+      .filter(Boolean);
+
+    const geometries=topology.objects.town.geometries;
+    const features=wanted.map(community=>{
+      const members=geometries.filter(item=>{
+        const town=item.properties.S_NAME;
+        const assigned=mapping.towns[town]?.community;
+        if(assigned===community)return true;
+
+        // 岡田山は町内分割のため、上ヶ原・広田の両方の概要図で欠落させない
+        if(town==="岡田山" && (community==="上ヶ原"||community==="広田"))return true;
+        return false;
+      });
+      if(!members.length)return null;
+      const merged=topojson.merge(topology,members);
+      merged.properties={community};
+      return merged;
+    }).filter(Boolean);
+
+    overviewEl.querySelector(".map-status")?.remove();
+
+    const layer=L.geoJSON(
+      {type:"FeatureCollection",features},
+      {
+        interactive:false,
+        style:{color:"#fff",weight:3,fillColor:"#5f87d8",fillOpacity:.92},
+        onEachFeature(feature,shape){
+          shape.bindTooltip(
+            feature.properties.community,
+            {permanent:true,direction:"center",className:"community-label",interactive:false}
+          );
+        }
+      }
+    ).addTo(overviewMap);
+
+    if(layer.getBounds().isValid()){
+      overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
+    }
+    setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
+  }
+}).catch(error=>{
+  const status=document.querySelector("[data-community-overview] .map-status");
+  if(status)status.textContent="地図を読み込めませんでした。データファイルを確認してください。";
+  console.error(error);
+});
 
 const byId=id=>document.getElementById(id);
 function shuffle(a){
