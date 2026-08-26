@@ -18,7 +18,7 @@
 
 通常モードでは、一丁目・二丁目など丁目だけが異なる町は同じ町名としてまとめています。
 
-「丁目まで詳しく学びたい！」ではマニアックモードに進み、丁目を分けた全域図、丁目の場所当て、4択クイズ、全域マニアックチャレンジを収録しています。
+「丁目まで詳しく学びたい！」ではマニアックモードに進み、丁目を分けた全域図、丁目の場所当てクイズ、4択クイズ、全域の総合クイズを収録しています。
 
 ## ファイル・フォルダ構成
 
@@ -26,9 +26,9 @@
 - `all-area-labeled.html`：町名入り全域図
 - `all-area.html`：白地図で町名を確認するページ
 - `area-select.html`：6地区の選択ページ
-- `north1.html` / `north2.html` / `middle1.html` / `middle2.html` / `south1.html` / `south2.html`：6地区の町名チャレンジ
+- `north1.html` / `north2.html` / `middle1.html` / `middle2.html` / `south1.html` / `south2.html`：6地区の町名クイズ
 - `community-select.html`：26コミュニティの選択ページ
-- `community-map-quiz.html`：コミュニティの場所当て
+- `community-map-quiz.html`：コミュニティの場所当てクイズ
 - `communities/`：26コミュニティ別のトップページと2種類のクイズ
 - `maniac/`：丁目を区別して学ぶマニアックモード
 - `data/`：町域境界とコミュニティ対応データ
