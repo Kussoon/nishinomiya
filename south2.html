@@ -116,7 +116,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     <p>誤答1回につき1点減点します。</p>
   </div>
   <button id="startBtn" class="start" type="button">クイズスタート！</button>
-  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+  <div class="footer">© KUSSOON 2026 All Rights Reserved.</div>
 </section>
 
 <section id="quiz" class="screen hidden">
@@ -151,12 +151,12 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度クイズスタート！</button>
-    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題だけもう一度</button>
     <a class="action secondary" href="south2.html">南部2トップ</a>
     <a class="action secondary" href="area-select.html">6地区トップ</a>
-    <a class="action secondary" href="index.html">トップページ</a>
+    <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
-  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+  <div class="footer">© KUSSOON 2026 All Rights Reserved.</div>
 </section>
 
 <div id="quitOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quitTitle">
@@ -182,7 +182,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
     <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
     <nav class="page-links" aria-label="ページ移動">
-      <a href="south2.html">南部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">トップページ</a>
+      <a href="south2.html">南部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">ゲームトップへ</a>
     </nav>
   </div>
 </section>
@@ -190,7 +190,6 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
-<script src="district-overview.js"></script>
 <script>
 const ALL_QUESTIONS=[{"name":"津門飯田町","reading":"つといいでんちょう","community":"津門"},{"name":"津門大塚町","reading":"つとおおつかちょう","community":"津門"},{"name":"津門大箇町","reading":"つとおおごちょう","community":"津門"},{"name":"津門綾羽町","reading":"つとあやはちょう","community":"津門"},{"name":"津門呉羽町","reading":"つとくれはちょう","community":"津門"},{"name":"津門稲荷町","reading":"つといなりちょう","community":"津門"},{"name":"津門仁辺町","reading":"つとにべちょう","community":"津門"},{"name":"津門西口町","reading":"つとにしぐちちょう","community":"津門"},{"name":"津門宝津町","reading":"つとほうずちょう","community":"津門"},{"name":"今津山中町","reading":"いまづやまなかちょう","community":"津門"},{"name":"今津曙町","reading":"いまづあけぼのちょう","community":"津門"},{"name":"津門川町","reading":"つとがわちょう","community":"今津"},{"name":"津門住江町","reading":"つとすみえちょう","community":"今津"},{"name":"今津水波町","reading":"いまづみずなみちょう","community":"今津"},{"name":"甲子園高潮町","reading":"こうしえんたかしおちょう","community":"今津"},{"name":"甲子園洲鳥町","reading":"こうしえんすどりちょう","community":"今津"},{"name":"甲子園網引町","reading":"こうしえんあびきちょう","community":"今津"},{"name":"今津久寿川町","reading":"いまづくすがわちょう","community":"今津"},{"name":"今津社前町","reading":"いまづしゃぜんちょう","community":"今津"},{"name":"今津大東町","reading":"いまづおおひがしちょう","community":"今津"},{"name":"今津二葉町","reading":"いまづふたばちょう","community":"今津"},{"name":"今津出在家町","reading":"いまづでざいけちょう","community":"今津"},{"name":"今津港町","reading":"いまづみなとちょう","community":"今津"},{"name":"今津巽町","reading":"いまづたつみちょう","community":"今津"},{"name":"今津西浜町","reading":"いまづにしはまちょう","community":"今津"},{"name":"今津真砂町","reading":"いまづまさごちょう","community":"今津"},{"name":"甲子園春風町","reading":"こうしえんはるかぜちょう","community":"春風"},{"name":"今津野田町","reading":"いまづのだちょう","community":"春風"},{"name":"今津上野町","reading":"いまづうえのちょう","community":"春風"},{"name":"甲子園浜田町","reading":"こうしえんはまだちょう","community":"春風"},{"name":"甲子園砂田町","reading":"こうしえんすなだちょう","community":"春風"},{"name":"甲子園六石町","reading":"こうしえんろっこくちょう","community":"春風"},{"name":"甲子園浦風町","reading":"こうしえんうらかぜちょう","community":"春風"},{"name":"甲子園三保町","reading":"こうしえんみほちょう","community":"春風"},{"name":"上甲子園","reading":"かみこうしえん","community":"春風"},{"name":"甲子園口","reading":"こうしえんぐち","community":"甲子園口"},{"name":"戸崎町","reading":"とざきちょう","community":"甲子園口"},{"name":"小曽根町","reading":"こそねちょう","community":"鳴尾"},{"name":"小松北町","reading":"こまつきたまち","community":"鳴尾"},{"name":"小松東町","reading":"こまつひがしまち","community":"鳴尾"},{"name":"小松町","reading":"こまつちょう","community":"鳴尾"},{"name":"小松西町","reading":"こまつにしまち","community":"鳴尾"},{"name":"小松南町","reading":"こまつみなみまち","community":"鳴尾"},{"name":"若草町","reading":"わかくさちょう","community":"鳴尾"},{"name":"花園町","reading":"はなぞのちょう","community":"鳴尾"},{"name":"学文殿町","reading":"がくぶんでんちょう","community":"鳴尾"},{"name":"里中町","reading":"さとなかちょう","community":"鳴尾"},{"name":"上鳴尾町","reading":"あげなるおちょう","community":"鳴尾"},{"name":"甲子園一番町","reading":"こうしえん1ばんちょう","community":"鳴尾"},{"name":"甲子園二番町","reading":"こうしえん2ばんちょう","community":"鳴尾"},{"name":"甲子園三番町","reading":"こうしえん3ばんちょう","community":"鳴尾"},{"name":"甲子園四番町","reading":"こうしえん4ばんちょう","community":"鳴尾"},{"name":"甲子園五番町","reading":"こうしえん5ばんちょう","community":"鳴尾"},{"name":"甲子園六番町","reading":"こうしえん6ばんちょう","community":"鳴尾"},{"name":"甲子園七番町","reading":"こうしえん7ばんちょう","community":"鳴尾"},{"name":"甲子園八番町","reading":"こうしえん8ばんちょう","community":"鳴尾"},{"name":"甲子園九番町","reading":"こうしえん9ばんちょう","community":"鳴尾"},{"name":"武庫川町","reading":"むこがわちょう","community":"鳴尾"},{"name":"池開町","reading":"いけびらきちょう","community":"鳴尾"},{"name":"東鳴尾町","reading":"ひがしなるおちょう","community":"鳴尾"},{"name":"笠屋町","reading":"かさやちょう","community":"鳴尾"},{"name":"上田東町","reading":"うえだひがしまち","community":"鳴尾"},{"name":"上田中町","reading":"うえだなかまち","community":"鳴尾"},{"name":"上田西町","reading":"うえだにしまち","community":"鳴尾"},{"name":"鳴尾町","reading":"なるおちょう","community":"鳴尾"},{"name":"古川町","reading":"ふるかわちょう","community":"鳴尾"},{"name":"枝川町","reading":"えだがわちょう","community":"鳴尾"},{"name":"甲子園町","reading":"こうしえんちょう","community":"鳴尾"},{"name":"南甲子園","reading":"みなみこうしえん","community":"鳴尾"},{"name":"浜甲子園","reading":"はまこうしえん","community":"鳴尾"},{"name":"甲子園浜","reading":"こうしえんはま","community":"鳴尾"},{"name":"高須町","reading":"たかすちょう","community":"鳴尾"},{"name":"鳴尾浜","reading":"なるおはま","community":"鳴尾"}];
 const COMMUNITIES=["津門","今津","鳴尾","春風","甲子園口"];

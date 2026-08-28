@@ -146,7 +146,7 @@
       const geometries = allGeometries.filter(g => {
         const name = rawName(g);
         const community = mapping.towns?.[name]?.community;
-        // 全域チャレンジでは岡田山も通常の1町として扱う。
+        // 全域図では岡田山も通常の1町として扱う。
         return name === '岡田山' || validCommunities.has(community);
       });
 

@@ -116,7 +116,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     <p>誤答1回につき1点減点します。</p>
   </div>
   <button id="startBtn" class="start" type="button">クイズスタート！</button>
-  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+  <div class="footer">© KUSSOON 2026 All Rights Reserved.</div>
 </section>
 
 <section id="quiz" class="screen hidden">
@@ -151,12 +151,12 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度クイズスタート！</button>
-    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題だけもう一度</button>
     <a class="action secondary" href="south1.html">南部1トップ</a>
     <a class="action secondary" href="area-select.html">6地区トップ</a>
-    <a class="action secondary" href="index.html">トップページ</a>
+    <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
-  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+  <div class="footer">© KUSSOON 2026 All Rights Reserved.</div>
 </section>
 
 <div id="quitOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quitTitle">
@@ -182,7 +182,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
     <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
     <nav class="page-links" aria-label="ページ移動">
-      <a href="south1.html">南部1トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">トップページ</a>
+      <a href="south1.html">南部1トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">ゲームトップへ</a>
     </nav>
   </div>
 </section>
@@ -190,7 +190,6 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
-<script src="district-overview.js"></script>
 <script>
 const ALL_QUESTIONS=[{"name":"松下町","reading":"まつしたちょう","community":"香櫨園"},{"name":"屋敷町","reading":"やしきちょう","community":"香櫨園"},{"name":"弓場町","reading":"ゆばちょう","community":"香櫨園"},{"name":"川西町","reading":"かわにしちょう","community":"香櫨園"},{"name":"中浜町","reading":"なかはまちょう","community":"香櫨園"},{"name":"堀切町","reading":"ほりきりちょう","community":"香櫨園"},{"name":"上葭原町","reading":"かみよしはらちょう","community":"香櫨園"},{"name":"中葭原町","reading":"なかよしはらちょう","community":"香櫨園"},{"name":"下葭原町","reading":"しもよしはらちょう","community":"香櫨園"},{"name":"大浜町","reading":"おおはまちょう","community":"香櫨園"},{"name":"川東町","reading":"かわひがしちょう","community":"香櫨園"},{"name":"川添町","reading":"かわぞえちょう","community":"香櫨園"},{"name":"神楽町","reading":"かぐらちょう","community":"浜脇"},{"name":"産所町","reading":"さんしょちょう","community":"浜脇"},{"name":"宮西町","reading":"みやにしちょう","community":"浜脇"},{"name":"市庭町","reading":"いちにわちょう","community":"浜脇"},{"name":"社家町","reading":"しゃけちょう","community":"浜脇"},{"name":"宮前町","reading":"みやまえちょう","community":"浜脇"},{"name":"荒戎町","reading":"あらえびすちょう","community":"浜脇"},{"name":"建石町","reading":"たていしちょう","community":"浜脇"},{"name":"前浜町","reading":"まえはまちょう","community":"浜脇"},{"name":"泉町","reading":"いずみちょう","community":"浜脇"},{"name":"西波止町","reading":"にしはとちょう","community":"浜脇"},{"name":"和上町","reading":"わじょうちょう","community":"浜脇"},{"name":"六湛寺町","reading":"ろくたんじちょう","community":"浜脇"},{"name":"今在家町","reading":"いまざいけちょう","community":"浜脇"},{"name":"田中町","reading":"たなかちょう","community":"浜脇"},{"name":"馬場町","reading":"ばばちょう","community":"浜脇"},{"name":"戸田町","reading":"とだちょう","community":"浜脇"},{"name":"本町","reading":"ほんまち","community":"浜脇"},{"name":"久保町","reading":"くぼちょう","community":"浜脇"},{"name":"鞍掛町","reading":"くらかけちょう","community":"浜脇"},{"name":"浜脇町","reading":"はまわきちょう","community":"浜脇"},{"name":"浜町","reading":"はまちょう","community":"浜脇"},{"name":"与古道町","reading":"よこみちちょう","community":"用海"},{"name":"用海町","reading":"ようがいちょう","community":"用海"},{"name":"浜松原町","reading":"はままつばらちょう","community":"用海"},{"name":"東浜町","reading":"ひがしはまちょう","community":"用海"},{"name":"東町","reading":"ひがしまち","community":"用海"},{"name":"石在町","reading":"いしざいちょう","community":"用海"},{"name":"朝凪町","reading":"あさなぎちょう","community":"用海"},{"name":"池田町","reading":"いけだちょう","community":"用海"},{"name":"松原町","reading":"まつばらちょう","community":"用海"},{"name":"染殿町","reading":"そめどのちょう","community":"用海"},{"name":"西宮浜","reading":"にしのみやはま","community":"西宮浜"}];
 const COMMUNITIES=["香櫨園","浜脇","用海","西宮浜"];

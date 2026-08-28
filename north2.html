@@ -116,7 +116,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     <p>誤答1回につき1点減点します。</p>
   </div>
   <button id="startBtn" class="start" type="button">クイズスタート！</button>
-  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+  <div class="footer">© KUSSOON 2026 All Rights Reserved.</div>
 </section>
 
 <section id="quiz" class="screen hidden">
@@ -151,12 +151,12 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度クイズスタート！</button>
-    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題に再挑戦</button>
+    <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題だけもう一度</button>
     <a class="action secondary" href="north2.html">北部2トップ</a>
     <a class="action secondary" href="area-select.html">区域選択へ</a>
     <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
-  <div class="footer"><strong>Kussoon Games　Version 1.0</strong>© KUSSOON 2026 All Rights Reserved.</div>
+  <div class="footer">© KUSSOON 2026 All Rights Reserved.</div>
 </section>
 
 <div id="quitOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="quitTitle">
@@ -182,7 +182,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
     <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
     <nav class="page-links" aria-label="ページ移動">
-      <a href="north2.html">北部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">トップページ</a>
+      <a href="north2.html">北部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">ゲームトップへ</a>
     </nav>
   </div>
 </section>
@@ -190,7 +190,6 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
-<script src="district-overview.js"></script>
 <script>
 const ALL_QUESTIONS=[{"name":"越水字社家郷山","reading":"こしみずあざしゃけごうやま","community":"苦楽園"},{"name":"湯元町","reading":"ゆのもとちょう","community":"苦楽園"},{"name":"鷲林寺","reading":"じゅうりんじ","community":"苦楽園"},{"name":"鷲林寺町","reading":"じゅうりんじちょう","community":"苦楽園"},{"name":"柏堂町","reading":"かやんどうちょう","community":"苦楽園"},{"name":"北山町","reading":"きたやまちょう","community":"苦楽園"},{"name":"苦楽園一番町","reading":"くらくえん1ばんちょう","community":"苦楽園"},{"name":"苦楽園二番町","reading":"くらくえん2ばんちょう","community":"苦楽園"},{"name":"苦楽園三番町","reading":"くらくえん3ばんちょう","community":"苦楽園"},{"name":"苦楽園四番町","reading":"くらくえん4ばんちょう","community":"苦楽園"},{"name":"苦楽園五番町","reading":"くらくえん5ばんちょう","community":"苦楽園"},{"name":"苦楽園六番町","reading":"くらくえん6ばんちょう","community":"苦楽園"},{"name":"鷲林寺字剣谷","reading":"じゅうりんじあざけんたに","community":"苦楽園"},{"name":"鷲林寺南町","reading":"じゅうりんじみなみまち","community":"苦楽園"},{"name":"柏堂西町","reading":"かやんどうにしまち","community":"苦楽園"},{"name":"剣谷町","reading":"けんだにちょう","community":"苦楽園"},{"name":"甲陽園目神山町","reading":"こうようえんめがみやまちょう","community":"甲陽"},{"name":"甲陽園東山町","reading":"こうようえんひがしやまちょう","community":"甲陽"},{"name":"甲陽園山王町","reading":"こうようえんさんのうちょう","community":"甲陽"},{"name":"甲陽園西山町","reading":"こうようえんにしやまちょう","community":"甲陽"},{"name":"甲陽園若江町","reading":"こうようえんわかえちょう","community":"甲陽"},{"name":"甲陽園本庄町","reading":"こうようえんほんじょうちょう","community":"甲陽"},{"name":"甲陽園日之出町","reading":"こうようえんひのでちょう","community":"甲陽"},{"name":"新甲陽町","reading":"しんこうようちょう","community":"甲陽"},{"name":"神園町","reading":"かみぞのちょう","community":"甲陽"},{"name":"五月ケ丘","reading":"さつきがおか","community":"甲陽"},{"name":"六軒町","reading":"ろっけんちょう","community":"甲陽"},{"name":"甲山町","reading":"かぶとやまちょう","community":"甲陽"},{"name":"一ケ谷町","reading":"いちがやちょう","community":"上ヶ原"},{"name":"仁川町","reading":"にがわちょう","community":"上ヶ原"},{"name":"仁川百合野町","reading":"にがわゆりのちょう","community":"上ヶ原"},{"name":"仁川五ケ山町","reading":"にがわごかやまちょう","community":"上ヶ原"},{"name":"上ケ原一番町","reading":"うえがはら1ばんちょう","community":"上ヶ原"},{"name":"上ケ原二番町","reading":"うえがはら2ばんちょう","community":"上ヶ原"},{"name":"上ケ原三番町","reading":"うえがはら3ばんちょう","community":"上ヶ原"},{"name":"上ケ原四番町","reading":"うえがはら4ばんちょう","community":"上ヶ原"},{"name":"上ケ原五番町","reading":"うえがはら5ばんちょう","community":"上ヶ原"},{"name":"上ケ原六番町","reading":"うえがはら6ばんちょう","community":"上ヶ原"},{"name":"上ケ原七番町","reading":"うえがはら7ばんちょう","community":"上ヶ原"},{"name":"上ケ原八番町","reading":"うえがはら8ばんちょう","community":"上ヶ原"},{"name":"上ケ原九番町","reading":"うえがはら9ばんちょう","community":"上ヶ原"},{"name":"上ケ原十番町","reading":"うえがはら10ばんちょう","community":"上ヶ原"},{"name":"上ケ原山田町","reading":"うえがはらやまだちょう","community":"上ヶ原"},{"name":"上ケ原山手町","reading":"うえがはらやまてちょう","community":"上ヶ原"},{"name":"岡田山4番以降","reading":"おかだやま","community":"上ヶ原"},{"name":"甲東園","reading":"こうとうえん","community":"甲東"},{"name":"松籟荘","reading":"しょうらいそう","community":"甲東"},{"name":"神呪町","reading":"かんのうちょう","community":"甲東"},{"name":"門戸東町","reading":"もんどひがしまち","community":"甲東"},{"name":"門戸西町","reading":"もんどにしまち","community":"甲東"},{"name":"門戸岡田町","reading":"もんどおかだちょう","community":"甲東"},{"name":"門戸荘","reading":"もんどそう","community":"甲東"},{"name":"上大市","reading":"かみおおいち","community":"甲東"},{"name":"下大市東町","reading":"しもおおいちひがしまち","community":"甲東"},{"name":"下大市西町","reading":"しもおおいちにしまち","community":"甲東"},{"name":"神呪字中谷","reading":"かんのうあざなかたに","community":"甲東"},{"name":"一里山町","reading":"いちりやまちょう","community":"甲東"},{"name":"段上町","reading":"だんじょうちょう","community":"甲東"},{"name":"樋ノ口町","reading":"ひのくちちょう","community":"甲東"},{"name":"大島町","reading":"おおしまちょう","community":"甲東"},{"name":"若山町","reading":"わかやまちょう","community":"甲東"},{"name":"門前町","reading":"もんぜんちょう","community":"甲東"},{"name":"田近野町","reading":"たじかのちょう","community":"甲東"},{"name":"上甲東園1〜3丁目","reading":"かみこうとうえん","community":"上ヶ原"},{"name":"上甲東園4丁目","reading":"かみこうとうえん","community":"甲東"},{"name":"上甲東園5丁目","reading":"かみこうとうえん","community":"上ヶ原"}];
 const COMMUNITIES=["苦楽園","甲陽","上ヶ原","甲東"];
