@@ -97,6 +97,8 @@
   });
   map.createPane('transportRoads');
   map.getPane('transportRoads').style.zIndex = 410;
+  map.createPane('transportExpressways');
+  map.getPane('transportExpressways').style.zIndex = 405;
   map.createPane('transportRails');
   map.getPane('transportRails').style.zIndex = 420;
 
@@ -110,20 +112,24 @@
   const EXTRA_LABELS = {"山口町下山口":[[34.830141,135.262235]]};
 
   const TRANSPORT_LABELS = [
-    {name:'中国自動車道', kind:'expressway', at:[34.8242,135.2490]},
-    {name:'国道176号', kind:'road', at:[34.8330,135.2890]},
-    {name:'JR福知山線', kind:'rail', at:[34.8450,135.3020]},
-    {name:'国道171号', kind:'road', at:[34.7580,135.3650]},
-    {name:'中津浜線', kind:'road', at:[34.7750,135.3670]},
-    {name:'阪急今津線', kind:'rail', at:[34.7730,135.3570]},
-    {name:'阪急甲陽線', kind:'rail', at:[34.7660,135.3295]},
-    {name:'阪急神戸線', kind:'rail', at:[34.7483,135.3410]},
-    {name:'山手幹線', kind:'road', at:[34.7430,135.3230]},
-    {name:'JR神戸線', kind:'rail', at:[34.7386,135.3390]},
-    {name:'国道2号', kind:'road', at:[34.7360,135.3670]},
-    {name:'阪神本線', kind:'rail', at:[34.7233,135.3430]},
-    {name:'国道43号', kind:'road', at:[34.7160,135.3720]},
-    {name:'臨港線', kind:'road', at:[34.7047,135.3460]}
+    {name:'中国自動車道', kind:'expressway', at:[34.8240,135.1980]},
+    {name:'阪神高速7号北神戸線', kind:'expressway', at:[34.8070,135.2050]},
+    {name:'JR福知山線', kind:'rail', at:[34.8440,135.3200]},
+    {name:'国道176号', kind:'road', at:[34.8330,135.3250]},
+    {name:'阪急今津線', kind:'rail', at:[34.7920,135.3500]},
+    {name:'国道171号', kind:'road', at:[34.7860,135.3790]},
+    {name:'中津浜線', kind:'road', at:[34.7770,135.3780]},
+    {name:'阪急甲陽線', kind:'rail', at:[34.7710,135.3190]},
+    {name:'阪急神戸線', kind:'rail', at:[34.7500,135.2960]},
+    {name:'JR神戸線', kind:'rail', at:[34.7380,135.2960]},
+    {name:'阪神本線', kind:'rail', at:[34.7280,135.2960]},
+    {name:'山手幹線', kind:'road', at:[34.7520,135.3830]},
+    {name:'名神高速道路', kind:'expressway', at:[34.7460,135.3830]},
+    {name:'国道2号', kind:'road', at:[34.7320,135.3830]},
+    {name:'阪神高速3号神戸線', kind:'expressway', at:[34.7260,135.3830]},
+    {name:'国道43号', kind:'road', at:[34.7180,135.3830]},
+    {name:'臨港線', kind:'road', at:[34.7130,135.3830]},
+    {name:'阪神高速5号湾岸線', kind:'expressway', at:[34.6990,135.3780]}
   ];
 
 
@@ -250,13 +256,17 @@
       L.geoJSON(transportData, {
         pane:'transportRoads',
         interactive:false,
-        filter(feature) { return feature.properties?.kind !== 'rail'; },
+        filter(feature) { return feature.properties?.kind === 'road'; },
         style(feature) {
-          const properties = feature.properties || {};
-          if (properties.kind === 'expressway') {
-            return {color:'#7650a6', weight:2.7, opacity:.95, dashArray:'7 4'};
-          }
           return {color:'#d58c16', weight:1.8, opacity:.92};
+        }
+      }).addTo(map);
+      L.geoJSON(transportData, {
+        pane:'transportExpressways',
+        interactive:false,
+        filter(feature) { return feature.properties?.kind === 'expressway'; },
+        style() {
+          return {color:'#7650a6', weight:3.5, opacity:.95, dashArray:'7 4'};
         }
       }).addTo(map);
       L.geoJSON(transportData, {
@@ -272,13 +282,15 @@
       TRANSPORT_LABELS.forEach(label => {
         L.tooltip({
           permanent:true,
-          direction:'center',
+          direction:'top',
+          offset:L.point(0,-2),
           className:`transport-label ${label.kind === 'rail' ? 'rail-label' : label.kind === 'expressway' ? 'expressway-label' : ''}`,
           interactive:false
         }).setLatLng(label.at).setContent(label.name).addTo(map);
       });
 
       allBounds = townLayer.getBounds();
+      TRANSPORT_LABELS.forEach(label => allBounds.extend(label.at));
       map.fitBounds(allBounds, { padding:[8,8], animate:false });
       initialLabelZoom = map.getZoom();
       updateLabelScale();
