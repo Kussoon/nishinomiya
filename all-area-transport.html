@@ -43,6 +43,7 @@
     .legend-line{display:inline-block;width:18px;height:0;border-top:3px solid #7b1e3a}
     .legend-road{border-top-width:2px;border-top-color:#d58c16}
     .legend-expressway{border-top:3px dashed #7650a6}
+    .legend-water{display:inline-block;width:13px;height:9px;border:1px solid #9eb8c8;background:#fff}
     .transport-label{border:0!important;border-radius:var(--transport-label-radius)!important;padding:var(--transport-label-pad-y) var(--transport-label-pad-x)!important;background:#fffef0e8!important;color:#6f4310!important;font-size:var(--transport-label-font-size)!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 .5px 1.5px #26384966!important;pointer-events:none!important}
     .transport-label:before{display:none!important}
     .transport-label.rail-label{background:#fff5f6e8!important;color:#6c1833!important}
@@ -64,21 +65,22 @@
 
   <section class="teacher">
     <img src="images/guide-character.png" alt="案内キャラクター">
-    <div class="speech" id="message">西宮市全域の町名と主な鉄道・道路を表示しています。</div>
+    <div class="speech" id="message">西宮市全域の町名と主な鉄道・道路、湖・池を表示しています。</div>
   </section>
 
   <div class="map-wrap">
-    <div id="map" aria-label="西宮市の町名と主な鉄道・道路の地図"></div>
+    <div id="map" aria-label="西宮市の町名と主な鉄道・道路、湖・池の地図"></div>
     <div class="tools"><button type="button" id="resetView">全体表示</button></div>
     <div class="map-legend" aria-hidden="true">
       <span><i class="legend-line"></i>鉄道</span>
+      <span><i class="legend-water"></i>湖・池</span>
       <span><i class="legend-line legend-road"></i>国道・幹線道路</span>
       <span><i class="legend-line legend-expressway"></i>高速道路</span>
     </div>
   </div>
 
   <p class="note">一丁目・二丁目などは同じ町名としてまとめています。</p>
-  <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。<br>鉄道・道路データ：<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>（ODbL 1.0）を抽出・加工。</p>
+  <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。<br>鉄道・道路・湖沼データ：<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>（ODbL 1.0）を抽出・加工。</p>
   <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </main>
 
@@ -97,6 +99,8 @@
   });
   map.createPane('transportRoads');
   map.getPane('transportRoads').style.zIndex = 410;
+  map.createPane('waterAreas');
+  map.getPane('waterAreas').style.zIndex = 402;
   map.createPane('transportExpressways');
   map.getPane('transportExpressways').style.zIndex = 405;
   map.createPane('transportRails');
@@ -227,9 +231,13 @@
     fetch('data/nishinomiya-transport.geojson').then(response => {
       if (!response.ok) throw new Error('交通データを読み込めませんでした');
       return response.json();
+    }),
+    fetch('data/nishinomiya-water.geojson').then(response => {
+      if (!response.ok) throw new Error('湖沼データを読み込めませんでした');
+      return response.json();
     })
   ])
-    .then(([topology, mapping, transportData]) => {
+    .then(([topology, mapping, transportData, waterData]) => {
       const townObject = topology.objects.town || topology.objects[Object.keys(topology.objects)[0]];
       const allGeometries = townObject.geometries || [];
 
@@ -294,6 +302,13 @@
           }
         }
       ).addTo(map);
+
+      // 湖・池は町域の上、交通線と町名ラベルの下に描画する。
+      L.geoJSON(waterData, {
+        pane:'waterAreas',
+        interactive:false,
+        style:{color:'#ffffff', weight:.8, opacity:1, fillColor:'#ffffff', fillOpacity:1}
+      }).addTo(map);
 
       const railColors = {
         '阪急神戸線':'#7b1e3a',
