@@ -122,6 +122,12 @@
     {name:'阪急今津線', kind:'rail', anchor:'north', direction:'top'},
     {name:'国道171号', kind:'road', anchor:'east', direction:'right'},
     {name:'中津浜線', kind:'road', anchor:'north', direction:'top'},
+    {name:'建石筋', kind:'road', anchor:'south', direction:'bottom'},
+    {name:'今津西線', kind:'road', anchor:'north', direction:'top'},
+    {name:'小曽根線', kind:'road', anchor:'east', direction:'right'},
+    {name:'甲山大師道', kind:'road', anchor:'east', direction:'right'},
+    {name:'県道82号（大沢西宮線）', kind:'road', anchor:'west', direction:'left'},
+    {name:'県道98号（有馬山口線）', kind:'road', anchor:'north', direction:'top'},
     {name:'阪急甲陽線', kind:'rail', anchor:'north', direction:'top'},
     {name:'阪急神戸線', kind:'rail', anchor:'west', direction:'left'},
     {name:'阪急神戸線', kind:'rail', anchor:'east', direction:'right'},
@@ -324,6 +330,7 @@
       activeTransportLabels.forEach(label => {
         const defaultOffset = label.direction === 'right' ? [3,0]
           : label.direction === 'left' ? [-3,0]
+          : label.direction === 'bottom' ? [0,3]
           : [0,-3];
         const offset = label.offset || defaultOffset;
         L.tooltip({
