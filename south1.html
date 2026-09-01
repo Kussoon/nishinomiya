@@ -134,7 +134,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div id="choices" class="choices"></div>
   <div class="feedbackrow">
-    <img src="images/kisaragi-thinking.png" alt="考えている如月ちゃん">
+    <img id="quizCharacter" src="images/kisaragi-thinking.png" alt="考えている如月ちゃん">
     <div id="feedback" class="feedback card">答えを選んでください。</div>
   </div>
 </section>
@@ -298,6 +298,8 @@ function renderQuestion(){
   byId("reading").textContent=q.reading;
   byId("feedback").className="feedback card";
   byId("feedback").textContent="答えを選んでください。";
+  byId("quizCharacter").src="images/kisaragi-thinking.png";
+  byId("quizCharacter").alt="考えている如月ちゃん";
   const box=byId("choices");
   box.innerHTML="";
   shuffle(COMMUNITIES).forEach(name=>{
@@ -359,6 +361,8 @@ function answer(selected){
     byId("scoreNow").textContent=score;
     byId("feedback").className="feedback card bad";
     byId("feedback").textContent=`× ちがいます。もう一度、同じ問題に答えてください。`;
+    byId("quizCharacter").src="images/kisaragi-disappointed.png";
+    byId("quizCharacter").alt="残念そうな如月ちゃん";
     locked=true;
     setButtonsDisabled(true);
     setTimeout(()=>{
