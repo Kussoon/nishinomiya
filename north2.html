@@ -22,10 +22,10 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .hero img{width:100%;height:128px;object-fit:contain;background:#f7fbfd}
 .speech{padding:10px;font-size:14px;line-height:1.5;font-weight:750}
 .intro-map{padding:9px}.intro-map h2{margin:0 0 7px;text-align:center;color:#155189;font-size:18px}
-.district-overview{height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
+.district-overview{position:relative;height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
 .map-status{height:100%;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center;color:#60758a;font-size:13px;font-weight:800}
 .community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;padding:2px 5px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}.community-label:before{display:none!important}
-.community-marker-label{display:flex!important;align-items:center;justify-content:center;width:54px!important;height:22px!important;border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}
+.uegahara-fixed-label{position:absolute;z-index:1000;left:69%;top:60%;transform:translate(-50%,-50%);padding:2px 5px;background:#ffffffdf;color:#17385e;border-radius:6px;box-shadow:0 1px 3px #17385e55;font-size:13px;font-weight:950;line-height:1.15;white-space:nowrap}
 .rules{padding:11px 14px;font-size:12.5px;line-height:1.55}
 .rules p{margin:3px 0}
 .start{border:0;border-radius:14px;padding:15px;background:#287dd7;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 10px #287dd744}
@@ -107,7 +107,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   </div>
   <div class="intro-map card">
     <h2>北部2の4コミュニティ</h2>
-    <div class="district-overview" data-community-overview="苦楽園,甲陽,上ヶ原,甲東" aria-label="北部2のコミュニティ地図"><div class="map-status">地図を読み込んでいます…</div></div>
+    <div class="district-overview" data-community-overview="苦楽園,甲陽,上ヶ原,甲東" aria-label="北部2のコミュニティ地図"><div class="map-status">地図を読み込んでいます…</div><div class="uegahara-fixed-label">上ヶ原</div></div>
   </div>
   <p style="margin:2px 3px 8px;color:#657786;font-size:8px;line-height:1.45">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p>
   <div class="rules card">
@@ -153,7 +153,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度クイズスタート！</button>
     <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題だけもう一度</button>
-    <a class="action secondary" href="north2.html?v=6.5.123">北部2トップ</a>
+    <a class="action secondary" href="north2.html?v=6.5.124">北部2トップ</a>
     <a class="action secondary" href="area-select.html">区域選択へ</a>
     <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
@@ -183,7 +183,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
     <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
     <nav class="page-links" aria-label="ページ移動">
-      <a href="north2.html?v=6.5.123">北部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">ゲームトップへ</a>
+      <a href="north2.html?v=6.5.124">北部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">ゲームトップへ</a>
     </nav>
   </div>
 </section>
@@ -249,10 +249,12 @@ Promise.all([
         interactive:false,
         style:{color:"#fff",weight:3,fillColor:"#5f87d8",fillOpacity:.92},
         onEachFeature(feature,shape){
-          shape.bindTooltip(
-            feature.properties.community,
-            {permanent:true,direction:"center",className:"community-label",interactive:false}
-          );
+          if(feature.properties.community!=="上ヶ原"){
+            shape.bindTooltip(
+              feature.properties.community,
+              {permanent:true,direction:"center",className:"community-label",interactive:false}
+            );
+          }
         }
       }
     ).addTo(overviewMap);
@@ -260,33 +262,9 @@ Promise.all([
     if(layer.getBounds().isValid()){
       overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
     }
-    let koyoShape=null,kotoShape=null,uegaharaShape=null;
-    layer.eachLayer(shape=>{
-      if(shape.feature.properties.community==="甲陽")koyoShape=shape;
-      if(shape.feature.properties.community==="甲東")kotoShape=shape;
-      if(shape.feature.properties.community==="上ヶ原")uegaharaShape=shape;
-    });
-    let uegaharaMarker=null;
-    function positionUegaharaLabel(){
-      if(!koyoShape||!kotoShape||!uegaharaShape)return;
-      const koyoLabelPoint=koyoShape.getTooltip()?.getLatLng()||koyoShape.getCenter();
-      const kotoLabelPoint=kotoShape.getTooltip()?.getLatLng()||kotoShape.getCenter();
-      const midpoint=L.latLng(
-        (koyoLabelPoint.lat+kotoLabelPoint.lat)/2,
-        (koyoLabelPoint.lng+kotoLabelPoint.lng)/2
-      );
-      uegaharaShape.unbindTooltip();
-      if(uegaharaMarker)uegaharaMarker.remove();
-      uegaharaMarker=L.marker(midpoint,{
-        interactive:false,
-        keyboard:false,
-        icon:L.divIcon({className:"community-marker-label",html:"上ヶ原",iconSize:[54,22],iconAnchor:[5,-4]})
-      }).addTo(overviewMap);
-    }
     setTimeout(()=>{
       overviewMap.invalidateSize({animate:false});
       if(layer.getBounds().isValid())overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
-      positionUegaharaLabel();
     },0);
   }
 }).catch(error=>{
