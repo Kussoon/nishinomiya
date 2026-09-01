@@ -25,6 +25,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .district-overview{height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
 .map-status{height:100%;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center;color:#60758a;font-size:13px;font-weight:800}
 .community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;padding:2px 5px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}.community-label:before{display:none!important}
+.community-label-uegahara{margin-left:22px!important;margin-top:-18px!important}
 .rules{padding:11px 14px;font-size:12.5px;line-height:1.55}
 .rules p{margin:3px 0}
 .start{border:0;border-radius:14px;padding:15px;background:#287dd7;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 10px #287dd744}
@@ -250,7 +251,7 @@ Promise.all([
         onEachFeature(feature,shape){
           shape.bindTooltip(
             feature.properties.community,
-            {permanent:true,direction:"center",className:"community-label",interactive:false}
+            {permanent:true,direction:"center",className:`community-label${feature.properties.community==="上ヶ原"?" community-label-uegahara":""}`,interactive:false}
           );
         }
       }
