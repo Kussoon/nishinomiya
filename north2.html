@@ -25,6 +25,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .district-overview{height:280px;border-radius:13px;background:#dfeaf1;pointer-events:none}
 .map-status{height:100%;display:flex;align-items:center;justify-content:center;padding:15px;text-align:center;color:#60758a;font-size:13px;font-weight:800}
 .community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;padding:2px 5px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}.community-label:before{display:none!important}
+.community-marker-label{display:flex!important;align-items:center;justify-content:center;width:54px!important;height:22px!important;border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:6px!important;box-shadow:0 1px 3px #17385e55!important;font-size:13px!important;font-weight:950!important;line-height:1.15!important;white-space:nowrap!important}
 .rules{padding:11px 14px;font-size:12.5px;line-height:1.55}
 .rules p{margin:3px 0}
 .start{border:0;border-radius:14px;padding:15px;background:#287dd7;color:#fff;font-size:19px;font-weight:950;box-shadow:0 4px 10px #287dd744}
@@ -265,18 +266,22 @@ Promise.all([
       if(shape.feature.properties.community==="甲東")kotoShape=shape;
       if(shape.feature.properties.community==="上ヶ原")uegaharaShape=shape;
     });
+    let uegaharaMarker=null;
     function positionUegaharaLabel(){
       if(!koyoShape||!kotoShape||!uegaharaShape)return;
-      const koyoPoint=overviewMap.latLngToLayerPoint(koyoShape.getCenter());
-      const kotoPoint=overviewMap.latLngToLayerPoint(kotoShape.getCenter());
-      const uegaharaPoint=overviewMap.latLngToLayerPoint(uegaharaShape.getCenter());
-      const midpoint=L.point((koyoPoint.x+kotoPoint.x)/2,(koyoPoint.y+kotoPoint.y)/2);
-      const offset=midpoint.subtract(uegaharaPoint);
+      const koyoLabelPoint=koyoShape.getTooltip()?.getLatLng()||koyoShape.getCenter();
+      const kotoLabelPoint=kotoShape.getTooltip()?.getLatLng()||kotoShape.getCenter();
+      const midpoint=L.latLng(
+        (koyoLabelPoint.lat+kotoLabelPoint.lat)/2,
+        (koyoLabelPoint.lng+kotoLabelPoint.lng)/2
+      );
       uegaharaShape.unbindTooltip();
-      uegaharaShape.bindTooltip(
-        "上ヶ原",
-        {permanent:true,direction:"center",className:"community-label",interactive:false,offset}
-      ).openTooltip();
+      if(uegaharaMarker)uegaharaMarker.remove();
+      uegaharaMarker=L.marker(midpoint,{
+        interactive:false,
+        keyboard:false,
+        icon:L.divIcon({className:"community-marker-label",html:"上ヶ原",iconSize:[54,22],iconAnchor:[27,11]})
+      }).addTo(overviewMap);
     }
     setTimeout(()=>{
       overviewMap.invalidateSize({animate:false});
