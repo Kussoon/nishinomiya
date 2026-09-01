@@ -364,7 +364,7 @@ function answer(selected){
     score=Math.max(0,score-1);
     byId("scoreNow").textContent=score;
     byId("feedback").className="feedback card bad";
-    byId("feedback").textContent=`× ちがいます。もう一度、同じ問題にクイズスタート！`;
+    byId("feedback").textContent=`× ちがいます。もう一度、同じ問題に答えてください。`;
     locked=true;
     setButtonsDisabled(true);
     setTimeout(()=>{
