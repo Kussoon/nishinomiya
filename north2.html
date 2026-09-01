@@ -56,6 +56,9 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 .answer-overlay{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:12px;background:#17324ad9}
 .answer-panel{width:min(100%,410px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:13px;background:#fff;border-radius:19px;box-shadow:0 14px 40px #0005}
 .answer-panel h2{margin:0;text-align:center;color:#15713f;font-size:25px}
+.answer-success{display:grid;grid-template-columns:104px 1fr;gap:9px;align-items:center;margin:-5px 0 3px}
+.answer-success img{width:104px;height:94px;object-fit:contain}
+.answer-success h2{font-size:31px;text-align:left}
 .answer-text{margin:6px 0 9px;text-align:center;font-size:18px;line-height:1.4;font-weight:900;color:#173f6c}
 .answer-map-wrap{padding:7px;border-radius:15px;background:#dfeaf1}
 #answerMap{height:330px;border-radius:11px;background:#dfeaf1;pointer-events:none}
@@ -173,7 +176,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 
 <section id="answerOverlay" class="answer-overlay hidden" aria-live="polite">
   <div class="answer-panel">
-    <h2>正解！</h2>
+    <div class="answer-success"><img src="images/kisaragi-correct.png" alt="笑顔で喜ぶ如月ちゃん"><h2>正解！</h2></div>
     <p id="answerText" class="answer-text"></p>
     <div class="answer-map-wrap"><div id="answerMap" aria-label="正解した町域を強調したコミュニティ地図"></div></div>
     <div class="answer-legend">
