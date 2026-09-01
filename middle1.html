@@ -142,7 +142,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
 <section id="result" class="screen hidden">
   <div class="resulthead">中部1町名クイズ　結果</div>
   <div class="resultbody">
-    <img src="images/guide-character.png" alt="案内キャラクター">
+    <img id="resultCharacter" src="images/guide-character.png" alt="案内キャラクター">
     <div class="scorebox card">
       <div id="resultTotal" class="outof">59問中</div>
       <div id="finalScore" class="score">59</div>
@@ -372,6 +372,18 @@ function answer(selected){
   }
 }
 function finishGame(){
+  const resultRate=questions.length?score/questions.length:0;
+  const resultCharacter=byId("resultCharacter");
+  if(resultRate>=.9){
+    resultCharacter.src="images/kisaragi-correct.png";
+    resultCharacter.alt="大きな笑顔で喜ぶ如月ちゃん";
+  }else if(resultRate>=.7){
+    resultCharacter.src="images/kisaragi-happy.png";
+    resultCharacter.alt="明るい笑顔の如月ちゃん";
+  }else{
+    resultCharacter.src="images/guide-character.png";
+    resultCharacter.alt="案内キャラクター";
+  }
   byId("resultTotal").textContent=`${questions.length}問中`;
   byId("finalScore").textContent=score;
   byId("mistakes").textContent=`誤答 ${wrong}回`;
