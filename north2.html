@@ -248,12 +248,10 @@ Promise.all([
         interactive:false,
         style:{color:"#fff",weight:3,fillColor:"#5f87d8",fillOpacity:.92},
         onEachFeature(feature,shape){
-          if(feature.properties.community!=="上ヶ原"){
-            shape.bindTooltip(
-              feature.properties.community,
-              {permanent:true,direction:"center",className:"community-label",interactive:false}
-            );
-          }
+          shape.bindTooltip(
+            feature.properties.community,
+            {permanent:true,direction:"center",className:"community-label",interactive:false}
+          );
         }
       }
     ).addTo(overviewMap);
@@ -261,16 +259,23 @@ Promise.all([
     if(layer.getBounds().isValid()){
       overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
     }
-    let koyoCenter=null,kotoCenter=null;
+    let koyoShape=null,kotoShape=null,uegaharaShape=null;
     layer.eachLayer(shape=>{
-      if(shape.feature.properties.community==="甲陽")koyoCenter=shape.getBounds().getCenter();
-      if(shape.feature.properties.community==="甲東")kotoCenter=shape.getBounds().getCenter();
+      if(shape.feature.properties.community==="甲陽")koyoShape=shape;
+      if(shape.feature.properties.community==="甲東")kotoShape=shape;
+      if(shape.feature.properties.community==="上ヶ原")uegaharaShape=shape;
     });
-    if(koyoCenter&&kotoCenter){
-      L.tooltip({permanent:true,direction:"center",className:"community-label",interactive:false})
-        .setLatLng([(koyoCenter.lat+kotoCenter.lat)/2,(koyoCenter.lng+kotoCenter.lng)/2])
-        .setContent("上ヶ原")
-        .addTo(overviewMap);
+    if(koyoShape&&kotoShape&&uegaharaShape){
+      const koyoPoint=overviewMap.latLngToLayerPoint(koyoShape.getCenter());
+      const kotoPoint=overviewMap.latLngToLayerPoint(kotoShape.getCenter());
+      const uegaharaPoint=overviewMap.latLngToLayerPoint(uegaharaShape.getCenter());
+      const midpoint=L.point((koyoPoint.x+kotoPoint.x)/2,(koyoPoint.y+kotoPoint.y)/2);
+      const offset=midpoint.subtract(uegaharaPoint);
+      uegaharaShape.unbindTooltip();
+      uegaharaShape.bindTooltip(
+        "上ヶ原",
+        {permanent:true,direction:"center",className:"community-label",interactive:false,offset}
+      ).openTooltip();
     }
     setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
   }
