@@ -265,7 +265,8 @@ Promise.all([
       if(shape.feature.properties.community==="甲東")kotoShape=shape;
       if(shape.feature.properties.community==="上ヶ原")uegaharaShape=shape;
     });
-    if(koyoShape&&kotoShape&&uegaharaShape){
+    function positionUegaharaLabel(){
+      if(!koyoShape||!kotoShape||!uegaharaShape)return;
       const koyoPoint=overviewMap.latLngToLayerPoint(koyoShape.getCenter());
       const kotoPoint=overviewMap.latLngToLayerPoint(kotoShape.getCenter());
       const uegaharaPoint=overviewMap.latLngToLayerPoint(uegaharaShape.getCenter());
@@ -277,7 +278,11 @@ Promise.all([
         {permanent:true,direction:"center",className:"community-label",interactive:false,offset}
       ).openTooltip();
     }
-    setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
+    setTimeout(()=>{
+      overviewMap.invalidateSize({animate:false});
+      if(layer.getBounds().isValid())overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
+      positionUegaharaLabel();
+    },0);
   }
 }).catch(error=>{
   const status=document.querySelector("[data-community-overview] .map-status");
