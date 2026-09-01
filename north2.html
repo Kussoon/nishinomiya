@@ -258,6 +258,9 @@ Promise.all([
       }
     ).addTo(overviewMap);
 
+    if(layer.getBounds().isValid()){
+      overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
+    }
     let koyoCenter=null,kotoCenter=null;
     layer.eachLayer(shape=>{
       if(shape.feature.properties.community==="甲陽")koyoCenter=shape.getBounds().getCenter();
@@ -268,10 +271,6 @@ Promise.all([
         .setLatLng([(koyoCenter.lat+kotoCenter.lat)/2,(koyoCenter.lng+kotoCenter.lng)/2])
         .setContent("上ヶ原")
         .addTo(overviewMap);
-    }
-
-    if(layer.getBounds().isValid()){
-      overviewMap.fitBounds(layer.getBounds(),{padding:[2,2],animate:false});
     }
     setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
   }
