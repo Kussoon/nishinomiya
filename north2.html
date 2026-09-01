@@ -153,7 +153,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
   <div class="resultbuttons">
     <button id="retryBtn" class="action primary" type="button">もう一度クイズスタート！</button>
     <button id="retryMistakesBtn" class="action secondary" type="button">間違えた問題だけもう一度</button>
-    <a class="action secondary" href="north2.html">北部2トップ</a>
+    <a class="action secondary" href="north2.html?v=6.5.123">北部2トップ</a>
     <a class="action secondary" href="area-select.html">区域選択へ</a>
     <a class="action secondary" href="index.html">ゲームトップへ</a>
   </div>
@@ -183,7 +183,7 @@ h1{margin:0;text-align:center;font-size:clamp(25px,7.5vw,32px);line-height:1.08;
     </div>
     <button id="nextQuestionBtn" class="next-question" type="button">次の問題へ</button>
     <nav class="page-links" aria-label="ページ移動">
-      <a href="north2.html">北部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">ゲームトップへ</a>
+      <a href="north2.html?v=6.5.123">北部2トップ</a><a href="area-select.html">6地区トップ</a><a href="index.html">ゲームトップへ</a>
     </nav>
   </div>
 </section>
@@ -280,7 +280,7 @@ Promise.all([
       uegaharaMarker=L.marker(midpoint,{
         interactive:false,
         keyboard:false,
-        icon:L.divIcon({className:"community-marker-label",html:"上ヶ原",iconSize:[54,22],iconAnchor:[27,11]})
+        icon:L.divIcon({className:"community-marker-label",html:"上ヶ原",iconSize:[54,22],iconAnchor:[5,-4]})
       }).addTo(overviewMap);
     }
     setTimeout(()=>{
