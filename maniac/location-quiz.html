@@ -25,6 +25,8 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 #map{width:100%;height:100%;min-height:414px;border-radius:12px;background:#e4e2e8}
 .feedback{min-height:54px;padding:10px 12px;border:1px solid #d4cbed;border-radius:13px;background:#fff;font-size:17px;font-weight:900;line-height:1.4}
 .good{color:#16713f}.bad{color:#aa3028}
+.reveal{width:100%;padding:10px;border:1px solid #8d7abd;border-radius:12px;background:#f5f1ff;color:#55428a;font-size:14px;font-weight:950}
+.reveal:disabled{opacity:.5}
 .links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 .links a{display:flex;align-items:center;justify-content:center;min-height:38px;padding:5px 2px;border:1px solid #d4cbed;border-radius:10px;background:#fff;color:#55428a;text-decoration:none;text-align:center;font-size:11px;font-weight:900}
 .credit{margin:2px 1px 0;color:#6a7180;font-size:8px;line-height:1.45}
@@ -50,6 +52,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
   </div>
   <div class="mapwrap"><div id="map" aria-label="丁目場所当て地図"></div></div>
   <div id="feedback" class="feedback">地図をタップしてください。</div>
+  <button id="revealBtn" class="reveal" type="button">答えを見て次へ</button>
   <nav class="links">
     <a href="./">マニアック</a>
     <a href="all-area-labeled.html">丁目入り全域図</a>
@@ -91,7 +94,7 @@ const baseStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.96};
 const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.96};
 
-let items=[], order=[], index=0, score=0, wrong=0, locked=false, missed=new Set(), allBounds;
+let items=[], cityItems=[], order=[], index=0, score=0, wrong=0, revealed=0, locked=false, missed=new Set(), allBounds;
 
 function shuffle(a){
   const b=[...a];
@@ -111,29 +114,36 @@ function show(id){
 }
 function resetStyles(){
   items.forEach(x=>x.layer.setStyle(baseStyle));
+  cityItems.forEach(x=>x.layer.setStyle(cityStyle));
 }
 function loadQuestion(){
   locked=false;
   resetStyles();
+  byId('revealBtn').disabled=false;
   byId('progress').textContent=`${index+1} / ${order.length}`;
   byId('scoreNow').textContent=score;
   byId('town').textContent=order[index];
   byId('feedback').className='feedback';
   byId('feedback').textContent='地図をタップしてください。';
+  if(allBounds)map.fitBounds(allBounds,{padding:[6,6],animate:false});
 }
-function answer(item){
+function nextQuestion(delay){
+  setTimeout(()=>{
+    index++;
+    if(index>=order.length)finish();
+    else loadQuestion();
+  },delay);
+}
+function answer(item,normalStyle=baseStyle){
   if(locked)return;
   const target=order[index];
   if(item.name===target){
     locked=true;
+    byId('revealBtn').disabled=true;
     item.layer.setStyle(correctStyle);
     byId('feedback').className='feedback good';
     byId('feedback').textContent=`正解！ ここが「${target}」です。`;
-    setTimeout(()=>{
-      index++;
-      if(index>=order.length)finish();
-      else loadQuestion();
-    },800);
+    nextQuestion(800);
   }else{
     wrong++;
     missed.add(target);
@@ -142,26 +152,46 @@ function answer(item){
     item.layer.setStyle(wrongStyle);
     byId('feedback').className='feedback bad';
     byId('feedback').textContent=`そこは「${item.name}」です。もう一度探してください。`;
-    setTimeout(()=>{if(!locked)item.layer.setStyle(baseStyle)},600);
+    setTimeout(()=>{if(!locked)item.layer.setStyle(normalStyle)},600);
   }
+}
+function revealAnswer(){
+  if(locked)return;
+  locked=true;
+  byId('revealBtn').disabled=true;
+  const target=order[index];
+  const item=items.find(x=>x.name===target);
+  revealed++;
+  missed.add(target);
+  score=Math.max(0,score-1);
+  byId('scoreNow').textContent=score;
+  if(item){
+    item.layer.setStyle(correctStyle);
+    map.fitBounds(item.layer.getBounds(),{padding:[45,45],maxZoom:16,animate:true});
+  }
+  byId('feedback').className='feedback good';
+  byId('feedback').textContent=`答えは「${target}」です。`;
+  nextQuestion(1800);
 }
 function start(names){
   order=shuffle(names&&names.length?names:items.map(x=>x.name));
   index=0;
   score=order.length;
   wrong=0;
+  revealed=0;
   missed=new Set();
   show('quiz');
   setTimeout(()=>{
     map.invalidateSize();
-    if(allBounds)map.fitBounds(allBounds,{padding:[6,6],animate:false});
     loadQuestion();
   },0);
 }
 function finish(){
   byId('resultTotal').textContent=`${order.length}問中`;
   byId('finalScore').textContent=`${score}点`;
-  byId('mistakes').textContent=`誤タップ ${wrong}回`;
+  byId('mistakes').textContent=revealed
+    ? `誤タップ ${wrong}回・答え表示 ${revealed}回`
+    : `誤タップ ${wrong}回`;
   byId('comment').textContent=score===order.length
     ? '全問一発正解です！'
     : score>=Math.ceil(order.length*.8)
@@ -200,8 +230,12 @@ Promise.all([
   const cityLayer=L.geoJSON(
     {type:'FeatureCollection',features:cityFeatures},
     {
-      interactive:false,
-      style:cityStyle
+      style:cityStyle,
+      onEachFeature(f,layer){
+        const item={name:f.properties.S_NAME,layer};
+        cityItems.push(item);
+        layer.on('click',()=>answer(item,cityStyle));
+      }
     }
   ).addTo(map);
 
@@ -241,6 +275,7 @@ Promise.all([
 
 byId('retryBtn').addEventListener('click',()=>start());
 byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
+byId('revealBtn').addEventListener('click',revealAnswer);
 byId('quitBtn').addEventListener('click',()=>location.href='./');
 </script>
 </body>
