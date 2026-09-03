@@ -25,7 +25,8 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 #map{width:100%;height:100%;min-height:414px;border-radius:12px;background:#e4e2e8}
 .feedback{min-height:54px;padding:10px 12px;border:1px solid #d4cbed;border-radius:13px;background:#fff;font-size:17px;font-weight:900;line-height:1.4}
 .good{color:#16713f}.bad{color:#aa3028}
-.reveal{width:100%;padding:10px;border:1px solid #8d7abd;border-radius:12px;background:#f5f1ff;color:#55428a;font-size:14px;font-weight:950}
+.reveal,.next{width:100%;padding:10px;border:1px solid #8d7abd;border-radius:12px;background:#f5f1ff;color:#55428a;font-size:14px;font-weight:950}
+.next{background:#6650a3;color:#fff}
 .reveal:disabled{opacity:.5}
 .links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 .links a{display:flex;align-items:center;justify-content:center;min-height:38px;padding:5px 2px;border:1px solid #d4cbed;border-radius:10px;background:#fff;color:#55428a;text-decoration:none;text-align:center;font-size:11px;font-weight:900}
@@ -52,7 +53,8 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
   </div>
   <div class="mapwrap"><div id="map" aria-label="丁目場所当て地図"></div></div>
   <div id="feedback" class="feedback">地図をタップしてください。</div>
-  <button id="revealBtn" class="reveal" type="button">答えを見て次へ</button>
+  <button id="revealBtn" class="reveal" type="button">答えを見る</button>
+  <button id="nextBtn" class="next hidden" type="button">次の問題へ</button>
   <nav class="links">
     <a href="./">マニアック</a>
     <a href="all-area-labeled.html">丁目入り全域図</a>
@@ -89,7 +91,7 @@ const CHOME_BASES = new Set([
 
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
 const byId=id=>document.getElementById(id);
-const cityStyle={color:'#9aa7b5',weight:.65,fillColor:'#eef2f5',fillOpacity:.72};
+const cityStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const baseStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.96};
 const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.96};
@@ -120,6 +122,9 @@ function loadQuestion(){
   locked=false;
   resetStyles();
   byId('revealBtn').disabled=false;
+  byId('revealBtn').classList.remove('hidden');
+  byId('nextBtn').disabled=false;
+  byId('nextBtn').classList.add('hidden');
   byId('progress').textContent=`${index+1} / ${order.length}`;
   byId('scoreNow').textContent=score;
   byId('town').textContent=order[index];
@@ -171,7 +176,9 @@ function revealAnswer(){
   }
   byId('feedback').className='feedback good';
   byId('feedback').textContent=`答えは「${target}」です。`;
-  nextQuestion(1800);
+  byId('revealBtn').classList.add('hidden');
+  byId('nextBtn').textContent=index===order.length-1?'採点結果へ':'次の問題へ';
+  byId('nextBtn').classList.remove('hidden');
 }
 function start(names){
   order=shuffle(names&&names.length?names:items.map(x=>x.name));
@@ -276,6 +283,7 @@ Promise.all([
 byId('retryBtn').addEventListener('click',()=>start());
 byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
 byId('revealBtn').addEventListener('click',revealAnswer);
+byId('nextBtn').addEventListener('click',()=>{if(byId('nextBtn').disabled)return;byId('nextBtn').disabled=true;nextQuestion(0)});
 byId('quitBtn').addEventListener('click',()=>location.href='./');
 </script>
 </body>
