@@ -252,6 +252,7 @@ function loadQuestion(){
   locked=false;
   stopBlink();
   resetStyles();
+  if(allBounds)map.fitBounds(allBounds,{padding:[6,6],animate:false});
   byId('nextBtn').disabled=false;
   byId('nextBtn').classList.add('hidden');
   const target=order[index];
