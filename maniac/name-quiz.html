@@ -233,6 +233,26 @@ function rankedCandidates(target){
 }
 function makeChoices(target){
   const ranked=rankedCandidates(target);
+  const sameTownNames=items.map(x=>x.name).filter(name=>baseTown(name)===baseTown(target));
+  if(sameTownNames.length>=3){
+    const sameTownPool=ranked.filter(name=>baseTown(name)===baseTown(target)).slice(0,4);
+    const sameTownChoice=shuffle(sameTownPool)[0];
+    const countsByBase=new Map();
+    items.forEach(x=>countsByBase.set(baseTown(x.name),(countsByBase.get(baseTown(x.name))||0)+1));
+    const nearbyBases=[];
+    ranked.forEach(name=>{
+      const base=baseTown(name);
+      if(base!==baseTown(target)&&(countsByBase.get(base)||0)>=2&&!nearbyBases.includes(base)){
+        nearbyBases.push(base);
+      }
+    });
+    const nearbyBase=shuffle(nearbyBases.slice(0,3))[0];
+    const nearbyTownPool=ranked.filter(name=>baseTown(name)===nearbyBase).slice(0,4);
+    const nearbyTownChoices=shuffle(nearbyTownPool).slice(0,2);
+    if(sameTownChoice&&nearbyTownChoices.length===2){
+      return shuffle([target,sameTownChoice,...nearbyTownChoices]);
+    }
+  }
   if(FIRST_THREE.has(chomeOrdinal(target))){
     const sameFirstThree=items
       .map(x=>x.name)
