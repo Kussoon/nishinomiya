@@ -86,6 +86,21 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 const CHOME_BASES = new Set([
 '鷲林寺','東町','西宮浜','小曽根町','小松北町','小松東町','小松町','小松西町','小松南町','若草町','学文殿町','里中町','東鳴尾町','高須町','鳴尾町','南甲子園','浜甲子園','甲子園浜','鳴尾浜','甲風園','甲子園口','上甲子園','仁川町','上甲東園','甲東園','段上町','上大市','樋ノ口町','名塩南台','東山台','国見台','名塩','名塩さくら台','宝生ケ丘','青葉台','生瀬町','山口町名来','山口町下山口','山口町上山口','山口町中野','山口町金仙寺','山口町阪神流通センター','北六甲台','すみれ台'
 ]);
+const READINGS={
+  '鷲林寺':'じゅうりんじ','東町':'ひがしまち','西宮浜':'にしのみやはま','小曽根町':'こそねちょう',
+  '小松北町':'こまつきたまち','小松東町':'こまつひがしまち','小松町':'こまつちょう','小松西町':'こまつにしまち',
+  '小松南町':'こまつみなみまち','若草町':'わかくさちょう','学文殿町':'がくぶんでんちょう','里中町':'さとなかちょう',
+  '東鳴尾町':'ひがしなるおちょう','高須町':'たかすちょう','鳴尾町':'なるおちょう','南甲子園':'みなみこうしえん',
+  '浜甲子園':'はまこうしえん','甲子園浜':'こうしえんはま','鳴尾浜':'なるおはま','甲風園':'こうふうえん',
+  '甲子園口':'こうしえんぐち','上甲子園':'かみこうしえん','仁川町':'にがわちょう','上甲東園':'かみこうとうえん',
+  '甲東園':'こうとうえん','段上町':'だんじょうちょう','上大市':'かみおおいち','樋ノ口町':'ひのくちちょう',
+  '名塩南台':'なじおみなみだい','東山台':'ひがしやまだい','国見台':'くにみだい','名塩':'なじお',
+  '名塩さくら台':'なじおさくらだい','宝生ケ丘':'ほうしょうがおか','青葉台':'あおばだい','生瀬町':'なまぜちょう',
+  '山口町名来':'やまぐちちょうならい','山口町下山口':'やまぐちちょうしもやまぐち',
+  '山口町上山口':'やまぐちちょうかみやまぐち','山口町中野':'やまぐちちょうなかの',
+  '山口町金仙寺':'やまぐちちょうきんせんじ','山口町阪神流通センター':'やまぐちちょうはんしんりゅうつうせんたー',
+  '北六甲台':'きたろっこうだい','すみれ台':'すみれだい'
+};
 
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
 const byId=id=>document.getElementById(id);
@@ -94,7 +109,8 @@ const highlightStyle={color:'#d18a00',weight:2.4,fillColor:'#ffd34f',fillOpacity
 const highlightStyleDim={color:'#d8a536',weight:2.1,fillColor:'#fff0a3',fillOpacity:.72};
 const correctStyle={color:'#08743f',weight:2.4,fillColor:'#35c979',fillOpacity:.98};
 
-let items=[], order=[], index=0, score=0, wrong=0, locked=false, missed=new Set(), allBounds;
+let items=[], itemByName=new Map(), adjacency=new Map();
+let order=[], index=0, score=0, wrong=0, locked=false, missed=new Set(), allBounds;
 let blinkTimer=null, blinkOn=true;
 
 function shuffle(a){
@@ -112,6 +128,34 @@ function isTargetChome(name){
 function baseTown(name){
   const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
   return m?m[1]:'';
+}
+function flattenArcIndexes(arcs,out=[]){
+  if(Array.isArray(arcs)){
+    arcs.forEach(a=>{
+      if(Array.isArray(a))flattenArcIndexes(a,out);
+      else if(Number.isInteger(a))out.push(a<0?~a:a);
+    });
+  }
+  return out;
+}
+function buildAdjacency(geometries){
+  const arcOwners=new Map();
+  adjacency=new Map();
+  geometries.forEach(g=>{
+    const name=g.properties?.S_NAME||'';
+    if(!name)return;
+    if(!adjacency.has(name))adjacency.set(name,new Set());
+    [...new Set(flattenArcIndexes(g.arcs))].forEach(arc=>{
+      if(!arcOwners.has(arc))arcOwners.set(arc,[]);
+      arcOwners.get(arc).push(name);
+    });
+  });
+  arcOwners.forEach(owners=>{
+    const names=[...new Set(owners)];
+    names.forEach(a=>names.forEach(b=>{
+      if(a!==b)adjacency.get(a)?.add(b);
+    }));
+  });
 }
 function show(id){
   byId('quiz').classList.toggle('hidden',id!=='quiz');
@@ -137,12 +181,49 @@ function startBlink(item){
   },500);
 }
 function makeChoices(target){
-  const sameBase=items.map(x=>x.name).filter(n=>n!==target && baseTown(n)===baseTown(target));
-  const other=items.map(x=>x.name).filter(n=>n!==target && baseTown(n)!==baseTown(target));
-  let distractors=shuffle(sameBase).slice(0,3);
-  if(distractors.length<3){
-    distractors=distractors.concat(shuffle(other).slice(0,3-distractors.length));
+  const targetItem=itemByName.get(target);
+  const targetCommunity=targetItem?.community;
+  const distractors=[];
+  const added=new Set([target]);
+  const distanceToTarget=name=>{
+    const item=itemByName.get(name);
+    if(!targetItem||!item)return Infinity;
+    return map.distance(targetItem.center,item.center);
+  };
+  const addCandidates=names=>{
+    names.forEach(name=>{
+      if(distractors.length<3&&itemByName.has(name)&&!added.has(name)){
+        added.add(name);
+        distractors.push(name);
+      }
+    });
+  };
+  const byDistance=names=>[...new Set(names)].sort((a,b)=>distanceToTarget(a)-distanceToTarget(b));
+
+  const direct=[...(adjacency.get(target)||[])].filter(name=>itemByName.has(name));
+  addCandidates(byDistance(direct.filter(name=>itemByName.get(name).community===targetCommunity)));
+  addCandidates(byDistance(direct.filter(name=>itemByName.get(name).community!==targetCommunity)));
+
+  let frontier=new Set(adjacency.get(target)||[]);
+  const visited=new Set([target,...frontier]);
+  for(let depth=0;depth<3&&distractors.length<3;depth++){
+    const next=new Set();
+    frontier.forEach(name=>{
+      (adjacency.get(name)||new Set()).forEach(neighbor=>{
+        if(!visited.has(neighbor)){
+          visited.add(neighbor);
+          next.add(neighbor);
+        }
+      });
+    });
+    addCandidates(byDistance([...frontier].filter(name=>
+      itemByName.has(name)&&itemByName.get(name).community===targetCommunity
+    )));
+    frontier=next;
   }
+
+  addCandidates(byDistance(items.filter(x=>x.community===targetCommunity).map(x=>x.name)));
+  addCandidates(byDistance(items.map(x=>x.name)));
   return shuffle([target,...distractors]);
 }
 function loadQuestion(){
@@ -183,7 +264,8 @@ function answer(button,name,item){
     [...byId('choices').children].forEach(b=>b.disabled=true);
     item.layer.setStyle(correctStyle);
     byId('feedback').className='feedback good';
-    byId('feedback').textContent=`正解！ ここは「${target}」です。`;
+    const reading=READINGS[baseTown(target)];
+    byId('feedback').textContent=`正解！ ここは「${target}」です。${reading?`（${reading}）`:''}`;
     showNextButton();
   }else{
     wrong++;
@@ -243,9 +325,11 @@ Promise.all([
     const community=mapping.towns?.[name]?.community;
     return name==='岡田山'||validCommunities.has(community);
   });
+  buildAdjacency(cityGeometries);
   const cityFeatures=cityGeometries.map(g=>{
     const f=topojson.feature(topology,g);
-    f.properties={S_NAME:g.properties.S_NAME};
+    const name=g.properties.S_NAME;
+    f.properties={S_NAME:name,community:mapping.towns?.[name]?.community||''};
     return f;
   });
   const cityLayer=L.geoJSON(
@@ -255,7 +339,11 @@ Promise.all([
       style:cityStyle,
       onEachFeature(f,layer){
         const name=f.properties.S_NAME;
-        if(isTargetChome(name))items.push({name,layer});
+        if(isTargetChome(name)){
+          const item={name,layer,community:f.properties.community,center:layer.getBounds().getCenter()};
+          items.push(item);
+          itemByName.set(name,item);
+        }
       }
     }
   ).addTo(map);
