@@ -87,8 +87,7 @@ const CHOME_BASES = new Set([
 
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
 const byId=id=>document.getElementById(id);
-const cityStyle={color:'#9aa7b5',weight:.65,fillColor:'#eef2f5',fillOpacity:.72};
-const baseStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
+const cityStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const highlightStyle={color:'#d18a00',weight:2.4,fillColor:'#ffd34f',fillOpacity:.98};
 const highlightStyleDim={color:'#d8a536',weight:2.1,fillColor:'#fff0a3',fillOpacity:.72};
 const correctStyle={color:'#08743f',weight:2.4,fillColor:'#35c979',fillOpacity:.98};
@@ -117,7 +116,7 @@ function show(id){
   byId('result').classList.toggle('hidden',id!=='result');
 }
 function resetStyles(){
-  items.forEach(x=>x.layer.setStyle(baseStyle));
+  items.forEach(x=>x.layer.setStyle(cityStyle));
 }
 function stopBlink(){
   if(blinkTimer!==null){
@@ -247,29 +246,12 @@ Promise.all([
   });
   const cityLayer=L.geoJSON(
     {type:'FeatureCollection',features:cityFeatures},
-    {interactive:false,style:cityStyle}
-  ).addTo(map);
-
-  const geometries=allGeometries.filter(g=>{
-    const name=g.properties?.S_NAME||'';
-    if(!isTargetChome(name))return false;
-    const community=mapping.towns?.[name]?.community;
-    return validCommunities.has(community);
-  });
-
-  const features=geometries.map(g=>{
-    const f=topojson.feature(topology,g);
-    f.properties={S_NAME:g.properties.S_NAME};
-    return f;
-  });
-
-  L.geoJSON(
-    {type:'FeatureCollection',features},
     {
       interactive:false,
-      style:baseStyle,
+      style:cityStyle,
       onEachFeature(f,layer){
-        items.push({name:f.properties.S_NAME,layer});
+        const name=f.properties.S_NAME;
+        if(isTargetChome(name))items.push({name,layer});
       }
     }
   ).addTo(map);
