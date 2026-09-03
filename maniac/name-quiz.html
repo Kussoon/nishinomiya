@@ -122,6 +122,56 @@ function shuffle(a){
   }
   return b;
 }
+function makeQuestionOrder(names){
+  const groups=new Map();
+  names.forEach(name=>{
+    const community=itemByName.get(name)?.community||'';
+    if(!groups.has(community))groups.set(community,[]);
+    groups.get(community).push(name);
+  });
+  groups.forEach((values,key)=>groups.set(key,shuffle(values)));
+
+  const tryCommunityOrder=()=>{
+    const remaining=new Map([...groups].map(([community,values])=>[community,values.length]));
+    const communities=[];
+    const recent=[];
+    while(communities.length<names.length){
+      const eligible=[...remaining].filter(([community,count])=>count>0&&!recent.includes(community));
+      if(!eligible.length)return null;
+      const weights=eligible.map(([,count])=>count*count);
+      let draw=Math.random()*weights.reduce((sum,weight)=>sum+weight,0);
+      let selected=eligible[eligible.length-1][0];
+      for(let i=0;i<eligible.length;i++){
+        draw-=weights[i];
+        if(draw<=0){selected=eligible[i][0];break;}
+      }
+      communities.push(selected);
+      remaining.set(selected,remaining.get(selected)-1);
+      recent.push(selected);
+      if(recent.length>2)recent.shift();
+    }
+    return communities;
+  };
+
+  let communityOrder=null;
+  for(let attempt=0;attempt<200&&!communityOrder;attempt++)communityOrder=tryCommunityOrder();
+  if(!communityOrder){
+    const remaining=new Map([...groups].map(([community,values])=>[community,values.length]));
+    const recent=[];
+    communityOrder=[];
+    while(communityOrder.length<names.length){
+      const eligible=[...remaining]
+        .filter(([community,count])=>count>0&&!recent.includes(community))
+        .sort((a,b)=>b[1]-a[1]);
+      const selected=(eligible[0]||[...remaining].filter(([,count])=>count>0).sort((a,b)=>b[1]-a[1])[0])[0];
+      communityOrder.push(selected);
+      remaining.set(selected,remaining.get(selected)-1);
+      recent.push(selected);
+      if(recent.length>2)recent.shift();
+    }
+  }
+  return communityOrder.map(community=>groups.get(community).pop());
+}
 function isTargetChome(name){
   const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
   return !!(m && CHOME_BASES.has(m[1]));
@@ -323,7 +373,7 @@ function answer(button,name,item){
 }
 function start(names){
   stopBlink();
-  order=shuffle(names&&names.length?names:items.map(x=>x.name));
+  order=makeQuestionOrder(names&&names.length?names:items.map(x=>x.name));
   index=0;
   score=order.length;
   wrong=0;
