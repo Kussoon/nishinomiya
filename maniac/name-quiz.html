@@ -86,6 +86,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 const CHOME_BASES = new Set([
 '鷲林寺','東町','西宮浜','小曽根町','小松北町','小松東町','小松町','小松西町','小松南町','若草町','学文殿町','里中町','東鳴尾町','高須町','鳴尾町','南甲子園','浜甲子園','甲子園浜','鳴尾浜','甲風園','甲子園口','上甲子園','仁川町','上甲東園','甲東園','段上町','上大市','樋ノ口町','名塩南台','東山台','国見台','名塩','名塩さくら台','宝生ケ丘','青葉台','生瀬町','山口町名来','山口町下山口','山口町上山口','山口町中野','山口町金仙寺','山口町阪神流通センター','北六甲台','すみれ台'
 ]);
+const FIRST_THREE=new Set(['一','二','三']);
 const READINGS={
   '鷲林寺':'じゅうりんじ','東町':'ひがしまち','西宮浜':'にしのみやはま','小曽根町':'こそねちょう',
   '小松北町':'こまつきたまち','小松東町':'こまつひがしまち','小松町':'こまつちょう','小松西町':'こまつにしまち',
@@ -128,6 +129,10 @@ function isTargetChome(name){
 function baseTown(name){
   const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
   return m?m[1]:'';
+}
+function chomeOrdinal(name){
+  const m=name.match(/^(.*?)([一二三四五六七八九十]+)丁目$/);
+  return m?m[2]:'';
 }
 function flattenArcIndexes(arcs,out=[]){
   if(Array.isArray(arcs)){
@@ -180,10 +185,10 @@ function startBlink(item){
     item.layer.setStyle(blinkOn?highlightStyle:highlightStyleDim);
   },500);
 }
-function makeChoices(target){
+function rankedCandidates(target){
   const targetItem=itemByName.get(target);
   const targetCommunity=targetItem?.community;
-  const distractors=[];
+  const ranked=[];
   const added=new Set([target]);
   const distanceToTarget=name=>{
     const item=itemByName.get(name);
@@ -192,9 +197,9 @@ function makeChoices(target){
   };
   const addCandidates=names=>{
     names.forEach(name=>{
-      if(distractors.length<3&&itemByName.has(name)&&!added.has(name)){
+      if(itemByName.has(name)&&!added.has(name)){
         added.add(name);
-        distractors.push(name);
+        ranked.push(name);
       }
     });
   };
@@ -206,7 +211,7 @@ function makeChoices(target){
 
   let frontier=new Set(adjacency.get(target)||[]);
   const visited=new Set([target,...frontier]);
-  for(let depth=0;depth<3&&distractors.length<3;depth++){
+  for(let depth=0;depth<3;depth++){
     const next=new Set();
     frontier.forEach(name=>{
       (adjacency.get(name)||new Set()).forEach(neighbor=>{
@@ -224,7 +229,24 @@ function makeChoices(target){
 
   addCandidates(byDistance(items.filter(x=>x.community===targetCommunity).map(x=>x.name)));
   addCandidates(byDistance(items.map(x=>x.name)));
-  return shuffle([target,...distractors]);
+  return ranked;
+}
+function makeChoices(target){
+  const ranked=rankedCandidates(target);
+  if(FIRST_THREE.has(chomeOrdinal(target))){
+    const sameFirstThree=items
+      .map(x=>x.name)
+      .filter(name=>name!==target&&baseTown(name)===baseTown(target)&&FIRST_THREE.has(chomeOrdinal(name)));
+    const sameTownChoice=shuffle(sameFirstThree)[0];
+    const nearbyOtherTowns=ranked.filter(name=>baseTown(name)!==baseTown(target));
+    const closePool=nearbyOtherTowns.slice(0,Math.min(6,nearbyOtherTowns.length));
+    const distractors=[sameTownChoice,...shuffle(closePool).slice(0,2)].filter(Boolean);
+    ranked.forEach(name=>{
+      if(distractors.length<3&&!distractors.includes(name))distractors.push(name);
+    });
+    return shuffle([target,...distractors.slice(0,3)]);
+  }
+  return shuffle([target,...ranked.slice(0,3)]);
 }
 function loadQuestion(){
   locked=false;
