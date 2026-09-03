@@ -91,6 +91,7 @@ const CHOME_BASES = new Set([
 
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
 const byId=id=>document.getElementById(id);
+const ANSWER_ZOOM=13;
 const cityStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.96};
 const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.96};
@@ -170,7 +171,7 @@ function revealAnswer(){
   byId('scoreNow').textContent=score;
   if(item){
     item.layer.setStyle(correctStyle);
-    map.fitBounds(item.layer.getBounds(),{padding:[45,45],maxZoom:16,animate:true});
+    map.setView(item.layer.getBounds().getCenter(),ANSWER_ZOOM,{animate:true});
   }
   byId('feedback').className='feedback good';
   byId('feedback').textContent=`答えは「${target}」です。`;
