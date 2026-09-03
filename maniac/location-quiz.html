@@ -92,7 +92,6 @@ const CHOME_BASES = new Set([
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
 const byId=id=>document.getElementById(id);
 const cityStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
-const baseStyle={color:'#fff',weight:.9,fillColor:'#7768b2',fillOpacity:.78};
 const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.96};
 const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.96};
 
@@ -115,7 +114,6 @@ function show(id){
   byId('result').classList.toggle('hidden',id!=='result');
 }
 function resetStyles(){
-  items.forEach(x=>x.layer.setStyle(baseStyle));
   cityItems.forEach(x=>x.layer.setStyle(cityStyle));
 }
 function loadQuestion(){
@@ -139,7 +137,7 @@ function nextQuestion(delay){
     else loadQuestion();
   },delay);
 }
-function answer(item,normalStyle=baseStyle){
+function answer(item){
   if(locked)return;
   const target=order[index];
   if(item.name===target){
@@ -157,7 +155,7 @@ function answer(item,normalStyle=baseStyle){
     item.layer.setStyle(wrongStyle);
     byId('feedback').className='feedback bad';
     byId('feedback').textContent=`そこは「${item.name}」です。もう一度探してください。`;
-    setTimeout(()=>{if(!locked)item.layer.setStyle(normalStyle)},600);
+    setTimeout(()=>{if(!locked)item.layer.setStyle(cityStyle)},600);
   }
 }
 function revealAnswer(){
@@ -222,7 +220,7 @@ Promise.all([
   const allGeometries=obj.geometries||[];
   const validCommunities=new Set(mapping.communities||[]);
 
-  // 背景には西宮市全域の町域を薄く表示する。
+  // 西宮市全域を一枚の回答レイヤーとして描画する。
   // 海域等は除外し、岡田山だけは通常の町として含める。
   const cityGeometries=allGeometries.filter(g=>{
     const name=g.properties?.S_NAME||'';
@@ -241,36 +239,14 @@ Promise.all([
       onEachFeature(f,layer){
         const item={name:f.properties.S_NAME,layer};
         cityItems.push(item);
-        layer.on('click',()=>answer(item,cityStyle));
-      }
-    }
-  ).addTo(map);
-
-  // 回答対象は44の「丁目町」に含まれる丁目部分だけ。
-  const geometries=allGeometries.filter(g=>{
-    const name=g.properties?.S_NAME||'';
-    if(!isTargetChome(name))return false;
-    const community=mapping.towns?.[name]?.community;
-    return validCommunities.has(community);
-  });
-
-  const features=geometries.map(g=>{
-    const f=topojson.feature(topology,g);
-    f.properties={S_NAME:g.properties.S_NAME};
-    return f;
-  });
-
-  const group=L.geoJSON(
-    {type:'FeatureCollection',features},
-    {
-      style:baseStyle,
-      onEachFeature(f,layer){
-        const item={name:f.properties.S_NAME,layer};
-        items.push(item);
         layer.on('click',()=>answer(item));
       }
     }
   ).addTo(map);
+
+  // 出題は44の「丁目町」に含まれる153区域に限定する。
+  // 描画・タップ判定は上の一枚だけを使い、二重塗りを防ぐ。
+  items=cityItems.filter(item=>isTargetChome(item.name));
 
   allBounds=cityLayer.getBounds();
   start();
