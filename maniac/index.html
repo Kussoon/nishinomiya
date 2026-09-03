@@ -13,6 +13,7 @@ body{display:flex;justify-content:center}
 .app{width:min(100%,560px);min-height:100dvh;padding:max(12px,env(safe-area-inset-top)) 12px max(18px,env(safe-area-inset-bottom));background:linear-gradient(#f3efff,#fff)}
 .back{display:inline-block;margin-bottom:8px;padding:8px 12px;border:1px solid #cabfe8;border-radius:10px;background:#fff;color:#55428a;text-decoration:none;font-size:13px;font-weight:900}
 h1{margin:4px 0;text-align:center;color:#49347c;font-size:clamp(28px,8vw,39px)}
+.mode-tag{width:max-content;margin:3px auto 1px;padding:3px 10px;border-radius:999px;background:#e4d9ff;color:#553a91;font-size:11px;font-weight:950}
 .intro{display:grid;grid-template-columns:104px 1fr;gap:10px;align-items:center;margin:4px 0 12px}
 .intro img{width:104px;height:108px;object-fit:contain}
 .lead{margin:0;padding:12px 13px;border:1px solid #d4cbed;border-radius:16px;background:#fff;text-align:left;color:#655c7d;font-size:14px;font-weight:800;line-height:1.55;box-shadow:0 3px 11px #4e3a7a16}
@@ -44,6 +45,7 @@ h1{margin:4px 0;text-align:center;color:#49347c;font-size:clamp(28px,8vw,39px)}
 <body>
 <main class="app">
 <a class="back" href="../index.html">← ゲームトップへ</a>
+<div class="mode-tag">マニアックモード</div>
 <h1>丁目のある町を学ぶ</h1>
 <div class="intro"><img src="../images/kisaragi-happy.png" alt="笑顔の如月ちゃん"><p class="lead">通常モードで一つにまとめていた町のうち、丁目に分かれている44町だけを集めました。<br>町名を選んで、一丁目・二丁目…の位置関係を確認しましょう。</p></div>
 <a class="fullmap-link" href="all-area-labeled.html">🗺️ 丁目入り全域図を見る<small>西宮市全域を、丁目を分けた町丁名で確認</small></a>

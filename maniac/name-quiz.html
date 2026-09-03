@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#f3efff">
-<title>光った丁目を当てる｜西宮市 町名記憶ゲーム</title>
+<title>光った町名・丁目を当てる｜西宮市 町名記憶ゲーム</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
@@ -48,13 +48,13 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
     <div class="stage">マニアック・4択</div>
     <div class="stats"><span id="progress">1 / 1</span><br>得点 <span id="scoreNow">0</span></div>
   </div>
-  <div class="question"><div class="prompt">光っている丁目は？</div></div>
-  <div class="mapwrap"><div id="map" aria-label="丁目4択地図"></div></div>
-  <div id="choices" class="choices" aria-label="丁目の選択肢"></div>
+  <div class="question"><div class="prompt">光っている町名・丁目は？</div></div>
+  <div class="mapwrap"><div id="map" aria-label="町名・丁目4択地図"></div></div>
+  <div id="choices" class="choices" aria-label="町名・丁目の選択肢"></div>
   <div id="feedback" class="feedback">答えを選んでください。</div>
   <button id="nextBtn" class="next hidden" type="button">次の問題</button>
   <nav class="links">
-    <a href="./">マニアック</a>
+    <a href="./">マニアックモード</a>
     <a href="all-area-labeled.html">丁目入り全域図</a>
     <a href="../index.html">トップページ</a>
   </nav>
@@ -72,7 +72,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
   </div>
   <div class="actions">
     <button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button>
-    <button id="retryBtn" class="action" type="button">全丁目をもう一度</button>
+    <button id="retryBtn" class="action" type="button">全町名・丁目をもう一度</button>
     <a class="action secondary" href="./">マニアックモード</a>
     <a class="action secondary" href="../index.html">トップページ</a>
   </div>
@@ -83,25 +83,8 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
-const CHOME_BASES = new Set([
-'鷲林寺','東町','西宮浜','小曽根町','小松北町','小松東町','小松町','小松西町','小松南町','若草町','学文殿町','里中町','東鳴尾町','高須町','鳴尾町','南甲子園','浜甲子園','甲子園浜','鳴尾浜','甲風園','甲子園口','上甲子園','仁川町','上甲東園','甲東園','段上町','上大市','樋ノ口町','名塩南台','東山台','国見台','名塩','名塩さくら台','宝生ケ丘','青葉台','生瀬町','山口町名来','山口町下山口','山口町上山口','山口町中野','山口町金仙寺','山口町阪神流通センター','北六甲台','すみれ台'
-]);
 const FIRST_THREE=new Set(['一','二','三']);
-const READINGS={
-  '鷲林寺':'じゅうりんじ','東町':'ひがしまち','西宮浜':'にしのみやはま','小曽根町':'こそねちょう',
-  '小松北町':'こまつきたまち','小松東町':'こまつひがしまち','小松町':'こまつちょう','小松西町':'こまつにしまち',
-  '小松南町':'こまつみなみまち','若草町':'わかくさちょう','学文殿町':'がくぶんでんちょう','里中町':'さとなかちょう',
-  '東鳴尾町':'ひがしなるおちょう','高須町':'たかすちょう','鳴尾町':'なるおちょう','南甲子園':'みなみこうしえん',
-  '浜甲子園':'はまこうしえん','甲子園浜':'こうしえんはま','鳴尾浜':'なるおはま','甲風園':'こうふうえん',
-  '甲子園口':'こうしえんぐち','上甲子園':'かみこうしえん','仁川町':'にがわちょう','上甲東園':'かみこうとうえん',
-  '甲東園':'こうとうえん','段上町':'だんじょうちょう','上大市':'かみおおいち','樋ノ口町':'ひのくちちょう',
-  '名塩南台':'なじおみなみだい','東山台':'ひがしやまだい','国見台':'くにみだい','名塩':'なじお',
-  '名塩さくら台':'なじおさくらだい','宝生ケ丘':'ほうしょうがおか','青葉台':'あおばだい','生瀬町':'なまぜちょう',
-  '山口町名来':'やまぐちちょうならい','山口町下山口':'やまぐちちょうしもやまぐち',
-  '山口町上山口':'やまぐちちょうかみやまぐち','山口町中野':'やまぐちちょうなかの',
-  '山口町金仙寺':'やまぐちちょうきんせんじ','山口町阪神流通センター':'やまぐちちょうはんしんりゅうつうせんたー',
-  '北六甲台':'きたろっこうだい','すみれ台':'すみれだい'
-};
+let readings={};
 
 const map=L.map('map',{attributionControl:false,zoomControl:true,minZoom:8,maxZoom:20,zoomSnap:.1});
 const byId=id=>document.getElementById(id);
@@ -172,13 +155,9 @@ function makeQuestionOrder(names){
   }
   return communityOrder.map(community=>groups.get(community).pop());
 }
-function isTargetChome(name){
-  const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
-  return !!(m && CHOME_BASES.has(m[1]));
-}
 function baseTown(name){
   const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
-  return m?m[1]:'';
+  return m?m[1]:name;
 }
 function chomeOrdinal(name){
   const m=name.match(/^(.*?)([一二三四五六七八九十]+)丁目$/);
@@ -216,8 +195,11 @@ function show(id){
   byId('quiz').classList.toggle('hidden',id!=='quiz');
   byId('result').classList.toggle('hidden',id!=='result');
 }
+function setItemStyle(item,style){
+  item.layers.forEach(layer=>layer.setStyle(style));
+}
 function resetStyles(){
-  items.forEach(x=>x.layer.setStyle(cityStyle));
+  items.forEach(item=>setItemStyle(item,cityStyle));
 }
 function stopBlink(){
   if(blinkTimer!==null){
@@ -228,11 +210,11 @@ function stopBlink(){
 function startBlink(item){
   stopBlink();
   blinkOn=true;
-  item.layer.setStyle(highlightStyle);
+  setItemStyle(item,highlightStyle);
   blinkTimer=setInterval(()=>{
     if(locked)return;
     blinkOn=!blinkOn;
-    item.layer.setStyle(blinkOn?highlightStyle:highlightStyleDim);
+    setItemStyle(item,blinkOn?highlightStyle:highlightStyleDim);
   },500);
 }
 function rankedCandidates(target){
@@ -355,9 +337,9 @@ function answer(button,name,item){
     stopBlink();
     button.classList.add('correct');
     [...byId('choices').children].forEach(b=>b.disabled=true);
-    item.layer.setStyle(correctStyle);
+    setItemStyle(item,correctStyle);
     byId('feedback').className='feedback good';
-    const reading=READINGS[baseTown(target)];
+    const reading=readings[baseTown(target)];
     byId('feedback').textContent=`正解！ ここは「${target}」です。${reading?`（${reading}）`:''}`;
     showNextButton();
   }else{
@@ -394,7 +376,7 @@ function finish(){
     ? '全問一発正解です！'
     : score>=Math.ceil(order.length*.8)
       ? 'かなりよく覚えています！'
-      : '間違えた丁目を地図で確認して、もう一度挑戦しましょう。';
+      : '間違えた町名・丁目を地図で確認して、もう一度挑戦しましょう。';
   byId('mistakeRetryBtn').hidden=missed.size===0;
   show('result');
 }
@@ -407,8 +389,13 @@ Promise.all([
   fetch('../data/community-town-map.json').then(r=>{
     if(!r.ok)throw new Error('コミュニティデータ');
     return r.json();
+  }),
+  fetch('../data/maniac-readings.json').then(r=>{
+    if(!r.ok)throw new Error('読み仮名データ');
+    return r.json();
   })
-]).then(([topology,mapping])=>{
+]).then(([topology,mapping,readingData])=>{
+  readings=readingData;
   const obj=topology.objects.town||topology.objects[Object.keys(topology.objects)[0]];
   const allGeometries=obj.geometries||[];
   const validCommunities=new Set(mapping.communities||[]);
@@ -432,8 +419,18 @@ Promise.all([
       style:cityStyle,
       onEachFeature(f,layer){
         const name=f.properties.S_NAME;
-        if(isTargetChome(name)){
-          const item={name,layer,community:f.properties.community,center:layer.getBounds().getCenter()};
+        const existing=itemByName.get(name);
+        if(existing){
+          existing.layers.push(layer);
+          existing.bounds.extend(layer.getBounds());
+        }else{
+          const item={
+            name,
+            layers:[layer],
+            community:f.properties.community,
+            bounds:L.latLngBounds(layer.getBounds()),
+            center:null
+          };
           items.push(item);
           itemByName.set(name,item);
         }
@@ -441,6 +438,7 @@ Promise.all([
     }
   ).addTo(map);
 
+  items.forEach(item=>item.center=item.bounds.getCenter());
   allBounds=cityLayer.getBounds();
   start();
 }).catch(err=>{
