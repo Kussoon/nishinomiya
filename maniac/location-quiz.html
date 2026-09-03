@@ -54,7 +54,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
   <div class="mapwrap"><div id="map" aria-label="丁目場所当て地図"></div></div>
   <div id="feedback" class="feedback">地図をタップしてください。</div>
   <button id="revealBtn" class="reveal" type="button">答えを見る</button>
-  <button id="nextBtn" class="next hidden" type="button">次の問題へ</button>
+  <button id="nextBtn" class="next hidden" type="button">次の問題</button>
   <nav class="links">
     <a href="./">マニアック</a>
     <a href="all-area-labeled.html">丁目入り全域図</a>
@@ -138,6 +138,11 @@ function nextQuestion(delay){
     else loadQuestion();
   },delay);
 }
+function showNextButton(){
+  byId('revealBtn').classList.add('hidden');
+  byId('nextBtn').textContent=index===order.length-1?'採点結果へ':'次の問題';
+  byId('nextBtn').classList.remove('hidden');
+}
 function answer(item){
   if(locked)return;
   const target=order[index];
@@ -147,7 +152,7 @@ function answer(item){
     item.layer.setStyle(correctStyle);
     byId('feedback').className='feedback good';
     byId('feedback').textContent=`正解！ ここが「${target}」です。`;
-    nextQuestion(800);
+    showNextButton();
   }else{
     wrong++;
     missed.add(target);
@@ -175,9 +180,7 @@ function revealAnswer(){
   }
   byId('feedback').className='feedback good';
   byId('feedback').textContent=`答えは「${target}」です。`;
-  byId('revealBtn').classList.add('hidden');
-  byId('nextBtn').textContent=index===order.length-1?'採点結果へ':'次の問題へ';
-  byId('nextBtn').classList.remove('hidden');
+  showNextButton();
 }
 function start(names){
   order=shuffle(names&&names.length?names:items.map(x=>x.name));
