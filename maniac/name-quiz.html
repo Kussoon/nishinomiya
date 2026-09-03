@@ -28,6 +28,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 .feedback{min-height:56px;padding:10px 12px;border:1px solid #d4cbed;border-radius:13px;background:#fff;font-size:16px;font-weight:900;line-height:1.4}
 .feedback.good{min-height:68px;color:#16713f;font-size:clamp(20px,5.6vw,27px);font-weight:950}
 .bad{color:#aa3028}
+.next{width:100%;padding:11px;border:1px solid #8d7abd;border-radius:12px;background:#6650a3;color:#fff;font-size:15px;font-weight:950}
 .links{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 .links a{display:flex;align-items:center;justify-content:center;min-height:36px;padding:4px 2px;border:1px solid #d4cbed;border-radius:10px;background:#fff;color:#55428a;text-decoration:none;text-align:center;font-size:11px;font-weight:900}
 .credit{margin:2px 1px 0;color:#6a7180;font-size:8px;line-height:1.45}
@@ -51,6 +52,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
   <div class="mapwrap"><div id="map" aria-label="丁目4択地図"></div></div>
   <div id="choices" class="choices" aria-label="丁目の選択肢"></div>
   <div id="feedback" class="feedback">答えを選んでください。</div>
+  <button id="nextBtn" class="next hidden" type="button">次の問題</button>
   <nav class="links">
     <a href="./">マニアック</a>
     <a href="all-area-labeled.html">丁目入り全域図</a>
@@ -147,6 +149,8 @@ function loadQuestion(){
   locked=false;
   stopBlink();
   resetStyles();
+  byId('nextBtn').disabled=false;
+  byId('nextBtn').classList.add('hidden');
   const target=order[index];
   const item=items.find(x=>x.name===target);
   startBlink(item);
@@ -165,6 +169,10 @@ function loadQuestion(){
   });
   byId('choices').replaceChildren(...buttons);
 }
+function showNextButton(){
+  byId('nextBtn').textContent=index===order.length-1?'採点結果へ':'次の問題';
+  byId('nextBtn').classList.remove('hidden');
+}
 function answer(button,name,item){
   if(locked||button.disabled)return;
   const target=order[index];
@@ -176,11 +184,7 @@ function answer(button,name,item){
     item.layer.setStyle(correctStyle);
     byId('feedback').className='feedback good';
     byId('feedback').textContent=`正解！ ここは「${target}」です。`;
-    setTimeout(()=>{
-      index++;
-      if(index>=order.length)finish();
-      else loadQuestion();
-    },850);
+    showNextButton();
   }else{
     wrong++;
     missed.add(target);
@@ -265,6 +269,13 @@ Promise.all([
 
 byId('retryBtn').addEventListener('click',()=>start());
 byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
+byId('nextBtn').addEventListener('click',()=>{
+  if(byId('nextBtn').disabled)return;
+  byId('nextBtn').disabled=true;
+  index++;
+  if(index>=order.length)finish();
+  else loadQuestion();
+});
 byId('quitBtn').addEventListener('click',()=>{stopBlink();location.href='./'});
 </script>
 </body>
