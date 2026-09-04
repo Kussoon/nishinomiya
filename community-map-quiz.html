@@ -40,11 +40,11 @@
     .question strong{font-size:clamp(22px,6vw,34px);line-height:1.15;color:var(--navy)}
     .stats{min-width:105px;border-radius:14px;background:#fff;text-align:center;padding:8px 10px;font-weight:800;box-shadow:0 3px 10px #16365c22}.stats span{color:var(--red);font-size:18px}
     .feedback{min-height:42px;margin:7px 0;border-radius:12px;background:#fff;padding:9px 12px;text-align:center;font-weight:800;box-shadow:0 2px 8px #16365c1b}
+    .feedback:empty{display:none}
     .feedback.good{background:#dff7e9;color:#08743f}.feedback.bad{background:#ffe5e5;color:#a52121}
     .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
     #map{height:min(68vh,620px);min-height:480px;background:#dfeaf1}
     .tools{position:absolute;z-index:500;right:8px;top:8px}.tools button{border:0;border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:9px 11px;box-shadow:0 2px 8px #16365c33}
-    .hint{margin:7px 3px 0;color:#596a78;font-size:11px;text-align:center}
     .result{padding:17px;margin:11px 0;text-align:center}.score{font-size:clamp(48px,15vw,72px);line-height:1;font-weight:950;color:var(--red);margin:12px}.result h2{color:var(--navy)}
     .result p{line-height:1.65}.credit{margin-top:11px;padding-top:9px;border-top:1px solid #cad8e3;font-size:9px;line-height:1.5;color:#657786}.credit a{color:#356f9f}
     .leaflet-container{font:inherit}
@@ -81,12 +81,11 @@
       <div class="question"><strong id="prompt">山口</strong></div>
       <div class="stats"><span id="counter">1 / 26</span><br>誤タップ <span id="wrongNow">0</span></div>
     </div>
-    <div class="feedback" id="feedback" aria-live="polite">地図をタップしてください。</div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
     <div class="map-wrap">
       <div id="map" aria-label="西宮市コミュニティ場所当て地図"></div>
       <div class="tools"><button type="button" id="resetView">全体表示</button></div>
     </div>
-    <p class="hint">指1本で移動、2本指で拡大・縮小できます。白線がコミュニティの境界です。</p>
   </section>
 
   <section id="resultScreen" class="hidden">
@@ -176,8 +175,8 @@
     prompt.textContent=target;
     counter.textContent=`${index+1} / ${order.length}`;
     wrongNow.textContent=totalWrong;
-    feedback.className='feedback';feedback.textContent='地図をタップしてください。';
-    message.textContent=`「${target}」はどこでしょう？`;
+    feedback.className='feedback';feedback.textContent='';
+    message.textContent='地図をタップしてください。';
   }
 
   function startRound(){
