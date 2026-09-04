@@ -143,9 +143,8 @@
   let index=0;
   let target='';
   let totalWrong=0;
-  let currentWrong=0;
   let locked=false;
-  let marked=new Map();
+  let marked=new Set();
 
   const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.94};
   const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.94};
@@ -164,14 +163,13 @@
   function answerLabel(info){return info.community;}
 
   function clearMarks(){
-    marked.forEach(timer=>clearTimeout(timer));
     marked.clear();
     if(communityLayer)communityLayer.setStyle(baseStyle);
   }
 
   function loadQuestion(){
     clearMarks();
-    target=order[index];currentWrong=0;locked=false;
+    target=order[index];locked=false;
     prompt.textContent=target;
     counter.textContent=`${index+1} / ${order.length}`;
     wrongNow.textContent=totalWrong;
@@ -199,15 +197,14 @@
       locked=true;
       communityLayer.eachLayer(item=>{if(accepted(infoFor(item.feature),target))item.setStyle(correctStyle);});
       feedback.className='feedback good';
-      feedback.textContent=currentWrong===0?'正解！ 一発で当たりました。':'正解！ 次の問題へ進みます。';
+      feedback.textContent='正解です！';
       message.textContent=`正解です！ 緑色の区域が「${target}」です。`;
-      setTimeout(()=>{index++;index>=order.length?finishRound():loadQuestion();},900);
+      setTimeout(()=>{index++;index>=order.length?finishRound():loadQuestion();},1500);
     }else{
-      currentWrong++;totalWrong++;wrongNow.textContent=totalWrong;
+      totalWrong++;wrongNow.textContent=totalWrong;
       layer.setStyle(wrongStyle);
       feedback.className='feedback bad';feedback.textContent=`そこは「${answerLabel(info)}」です。もう一度探してください。`;
-      if(marked.has(layer))clearTimeout(marked.get(layer));
-      marked.set(layer,setTimeout(()=>{if(!locked)layer.setStyle(baseStyle(layer.feature));marked.delete(layer);},650));
+      marked.add(layer);
     }
   }
 
