@@ -135,7 +135,7 @@
     overviewContainer.style.setProperty('--label-shadow-blur',`${3*scale}px`);
   }
   overviewMap.on('zoom zoomend',updateOverviewLabelScale);
-  const map = L.map('map',{zoomControl:true,attributionControl:false,minZoom:10,maxZoom:18});
+  const map = L.map('map',{zoomControl:true,attributionControl:false,minZoom:10,maxZoom:18,zoomSnap:.1});
   let mapping;
   let communityLayer;
   let allBounds;
