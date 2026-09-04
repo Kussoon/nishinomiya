@@ -27,10 +27,10 @@
     .overview{margin:10px 0;padding:11px;background:#fff;border-radius:18px;box-shadow:0 3px 12px #16365c24}
     .overview h2{margin:1px 0 3px;text-align:center;color:var(--navy);font-size:clamp(18px,5vw,25px)}
     .overview-intro{margin:0 0 8px;text-align:center;color:#60758a;font-size:12px;font-weight:700}
-    #communityOverview{height:min(68vh,620px);min-height:480px;border-radius:14px;background:#dfeaf1}
+    #communityOverview{--label-font-size:clamp(7px,1.8vw,10px);--label-pad-y:1px;--label-pad-x:3px;--label-radius:4px;--label-shadow-y:1px;--label-shadow-blur:3px;height:min(68vh,620px);min-height:480px;border-radius:14px;background:#dfeaf1}
     #communityOverview .leaflet-control-zoom a{width:42px;height:42px;line-height:42px;font-size:25px;font-weight:900}
     .map-status{display:flex;min-height:480px;align-items:center;justify-content:center;padding:20px;text-align:center;color:#60758a;font-weight:800}
-    .community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:4px!important;padding:1px 3px!important;box-shadow:0 1px 3px #17385e55!important;font-size:clamp(7px,1.8vw,10px)!important;font-weight:900!important;line-height:1.15!important;white-space:nowrap!important}
+    .community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:var(--label-radius)!important;padding:var(--label-pad-y) var(--label-pad-x)!important;box-shadow:0 var(--label-shadow-y) var(--label-shadow-blur) #17385e55!important;font-size:var(--label-font-size)!important;font-weight:900!important;line-height:1.15!important;white-space:nowrap!important}
     .community-label:before{display:none!important}
     .map-note{margin:7px 2px 1px;text-align:center;color:#60758a;font-size:10px;line-height:1.45}
     .action{border:0;border-radius:13px;padding:12px 20px;background:var(--blue);color:#fff;font-weight:900;box-shadow:0 3px 8px #16365c33}
@@ -124,6 +124,19 @@
     scrollWheelZoom:false,doubleClickZoom:true,boxZoom:false,keyboard:true,
     zoomSnap:.1,minZoom:8,maxZoom:18
   });
+  const baseOverviewLabelFontSize=Math.min(10,Math.max(7,window.innerWidth*.018));
+  let initialOverviewLabelZoom;
+  function updateOverviewLabelScale(){
+    if(initialOverviewLabelZoom===undefined)return;
+    const scale=Math.min(3.5,Math.max(.72,Math.pow(1.35,overviewMap.getZoom()-initialOverviewLabelZoom)));
+    overviewContainer.style.setProperty('--label-font-size',`${baseOverviewLabelFontSize*scale}px`);
+    overviewContainer.style.setProperty('--label-pad-y',`${scale}px`);
+    overviewContainer.style.setProperty('--label-pad-x',`${3*scale}px`);
+    overviewContainer.style.setProperty('--label-radius',`${4*scale}px`);
+    overviewContainer.style.setProperty('--label-shadow-y',`${scale}px`);
+    overviewContainer.style.setProperty('--label-shadow-blur',`${3*scale}px`);
+  }
+  overviewMap.on('zoom zoomend',updateOverviewLabelScale);
   const map = L.map('map',{zoomControl:true,attributionControl:false,minZoom:10,maxZoom:18});
   let mapping;
   let communityLayer;
@@ -257,6 +270,8 @@
       }
     }).addTo(overviewMap);
     overviewMap.fitBounds(overviewLayer.getBounds(),{padding:[5,5],animate:false});
+    initialOverviewLabelZoom=overviewMap.getZoom();
+    updateOverviewLabelScale();
     setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
 
     const features=[...communityFeatures];
