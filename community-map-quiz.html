@@ -146,7 +146,7 @@
   let locked=false;
   let marked=new Set();
 
-  const correctStyle={color:'#08743f',weight:2.2,fillColor:'#35c979',fillOpacity:.94};
+  const correctStyle={color:'#08743f',weight:2.6,fillColor:'#35c979',fillOpacity:1};
   const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.94};
 
   function show(id){screens.forEach(name=>document.getElementById(name).classList.toggle('hidden',name!==id));}
@@ -195,7 +195,16 @@
     }
     if(accepted(info,target)){
       locked=true;
-      communityLayer.eachLayer(item=>{if(accepted(infoFor(item.feature),target))item.setStyle(correctStyle);});
+      const correctLayers=[];
+      communityLayer.eachLayer(item=>{
+        if(accepted(infoFor(item.feature),target)){
+          item.setStyle(correctStyle);
+          correctLayers.push(item);
+        }
+      });
+      correctLayers.forEach(item=>item.bringToFront?.());
+      layer.setStyle(correctStyle);
+      layer.bringToFront?.();
       feedback.className='feedback good';
       feedback.textContent='正解です！';
       message.textContent=`正解です！ 緑色の区域が「${target}」です。`;
