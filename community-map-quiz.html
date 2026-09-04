@@ -27,7 +27,8 @@
     .overview{margin:10px 0;padding:11px;background:#fff;border-radius:18px;box-shadow:0 3px 12px #16365c24}
     .overview h2{margin:1px 0 3px;text-align:center;color:var(--navy);font-size:clamp(18px,5vw,25px)}
     .overview-intro{margin:0 0 8px;text-align:center;color:#60758a;font-size:12px;font-weight:700}
-    #communityOverview{height:min(68vh,620px);min-height:480px;border-radius:14px;background:#dfeaf1;pointer-events:none}
+    #communityOverview{height:min(68vh,620px);min-height:480px;border-radius:14px;background:#dfeaf1}
+    #communityOverview .leaflet-control-zoom a{width:42px;height:42px;line-height:42px;font-size:25px;font-weight:900}
     .map-status{display:flex;min-height:480px;align-items:center;justify-content:center;padding:20px;text-align:center;color:#60758a;font-weight:800}
     .community-label{border:0!important;background:#ffffffdf!important;color:#17385e!important;border-radius:4px!important;padding:1px 3px!important;box-shadow:0 1px 3px #17385e55!important;font-size:clamp(7px,1.8vw,10px)!important;font-weight:900!important;line-height:1.15!important;white-space:nowrap!important}
     .community-label:before{display:none!important}
@@ -65,7 +66,7 @@
   <section id="introScreen">
     <div class="overview" aria-labelledby="overviewTitle">
       <h2 id="overviewTitle">西宮市 26コミュニティ全図</h2>
-      <p class="overview-intro">最初は、名前と大まかな位置を見るだけで大丈夫です。</p>
+      <p class="overview-intro">最初は、名前と大まかな位置を見るだけで大丈夫です。＋／−で拡大・縮小できます。</p>
       <div id="communityOverview" aria-label="西宮市を26コミュニティに色分けした地図">
         <div class="map-status">地図を読み込んでいます…</div>
       </div>
@@ -119,9 +120,9 @@
   const message = document.getElementById('message');
   const overviewContainer=document.getElementById('communityOverview');
   const overviewMap=L.map(overviewContainer,{
-    attributionControl:false,zoomControl:false,dragging:false,touchZoom:false,
-    scrollWheelZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false,
-    tap:false,zoomSnap:.1
+    attributionControl:false,zoomControl:true,dragging:true,touchZoom:true,
+    scrollWheelZoom:false,doubleClickZoom:true,boxZoom:false,keyboard:true,
+    zoomSnap:.1,minZoom:8,maxZoom:18
   });
   const map = L.map('map',{zoomControl:true,attributionControl:false,minZoom:10,maxZoom:18});
   let mapping;
