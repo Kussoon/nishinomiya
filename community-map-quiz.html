@@ -90,11 +90,12 @@
 
   <section id="resultScreen" class="hidden">
     <div class="result card">
-      <h2>全26問終了！</h2>
+      <h2 id="resultTitle">全26問終了！</h2>
       <div class="score" id="score">26点</div>
       <p>誤タップ：<strong id="mistakes">0</strong>回</p>
       <p id="evaluation">全問一発正解です。完璧ですね！</p>
       <div class="actionrow">
+        <button type="button" class="action hidden" id="wrongRetryBtn">間違えた問題をもう一度</button>
         <button type="button" class="action" id="retryBtn">もう一度</button>
         <a class="action secondary" href="community-select.html">次は町名を覚える</a>
         <button type="button" class="action secondary" id="resultHomeBtn">ゲームトップへ</button>
@@ -145,6 +146,7 @@
   let totalWrong=0;
   let locked=false;
   let marked=new Set();
+  let wrongTargets=new Set();
 
   const correctStyle={color:'#08743f',weight:2.6,fillColor:'#35c979',fillOpacity:1};
   const wrongStyle={color:'#a52121',weight:2.2,fillColor:'#ef6565',fillOpacity:.94};
@@ -175,15 +177,16 @@
     wrongNow.textContent=totalWrong;
     feedback.className='feedback';feedback.textContent='';
     message.textContent='地図をタップしてください。';
-  }
-
-  function startRound(){
-    if(!communityLayer){message.textContent='地図を読み込んでいます。少しお待ちください。';return;}
-    order=shuffle(communities);index=0;totalWrong=0;show('gameScreen');
     setTimeout(()=>{
       map.invalidateSize();
-      if(allBounds)map.fitBounds(allBounds,{padding:[5,5]});
+      if(allBounds)map.fitBounds(allBounds,{padding:[5,5],animate:false});
     },0);
+  }
+
+  function startRound(items=communities){
+    if(!communityLayer){message.textContent='地図を読み込んでいます。少しお待ちください。';return;}
+    const roundItems=Array.isArray(items)&&items.length?items:communities;
+    order=shuffle(roundItems);index=0;totalWrong=0;wrongTargets=new Set();show('gameScreen');
     loadQuestion();
   }
 
@@ -211,6 +214,7 @@
       setTimeout(()=>{index++;index>=order.length?finishRound():loadQuestion();},1500);
     }else{
       totalWrong++;wrongNow.textContent=totalWrong;
+      wrongTargets.add(target);
       layer.setStyle(wrongStyle);
       feedback.className='feedback bad';feedback.textContent=`そこは「${answerLabel(info)}」です。もう一度探してください。`;
       marked.add(layer);
@@ -219,15 +223,18 @@
 
   function finishRound(){
     clearMarks();
-    const result=Math.max(0,communities.length-totalWrong);
+    const questionCount=order.length;
+    const result=Math.max(0,questionCount-totalWrong);
+    document.getElementById('resultTitle').textContent=`全${questionCount}問終了！`;
     document.getElementById('score').textContent=`${result}点`;
     document.getElementById('mistakes').textContent=totalWrong;
     let evaluation;
-    if(result===26)evaluation='全問一発正解です。完璧ですね！';
-    else if(result>=21)evaluation='かなりよく覚えています！';
-    else if(result>=11)evaluation='いい調子です。もう一度でさらに定着します。';
+    if(result===questionCount)evaluation='全問一発正解です。完璧ですね！';
+    else if(result/questionCount>=.8)evaluation='かなりよく覚えています！';
+    else if(result/questionCount>=.4)evaluation='いい調子です。もう一度でさらに定着します。';
     else evaluation='最後までやり切りました。繰り返せば必ず覚えられます。';
     document.getElementById('evaluation').textContent=evaluation;
+    document.getElementById('wrongRetryBtn').classList.toggle('hidden',wrongTargets.size===0);
     message.textContent='お疲れさまでした！ また挑戦してくださいね。';
     show('resultScreen');
   }
@@ -294,8 +301,9 @@
     console.error(error);
   });
 
-  document.getElementById('startBtn').addEventListener('click',startRound);
-  document.getElementById('retryBtn').addEventListener('click',startRound);
+  document.getElementById('startBtn').addEventListener('click',()=>startRound(communities));
+  document.getElementById('retryBtn').addEventListener('click',()=>startRound(communities));
+  document.getElementById('wrongRetryBtn').addEventListener('click',()=>startRound([...wrongTargets]));
   document.getElementById('resetView').addEventListener('click',()=>{if(allBounds)map.fitBounds(allBounds,{padding:[5,5]});});
   document.getElementById('resultHomeBtn').addEventListener('click',()=>location.href='index.html');
   document.getElementById('backBtn').addEventListener('click',()=>{
