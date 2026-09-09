@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#e8f7ff">
+  <title>町名から場所を探す｜西宮市 町名記憶ゲーム</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root{--navy:#16365c;--blue:#2f75b5;--pale:#e8f7ff;--line:#add4e8;--ink:#203040;--gold:#ffd34d}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:linear-gradient(#e8f7ff,#fff);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Yu Gothic",Meiryo,sans-serif}
+    body{padding:env(safe-area-inset-top) 12px calc(18px + env(safe-area-inset-bottom))}
+    button,input{font:inherit}
+    .page{width:min(780px,100%);margin:auto}
+    .back{display:inline-flex;align-items:center;min-height:42px;padding:8px 14px;border-radius:999px;background:#fff;color:var(--navy);font-weight:800;text-decoration:none;box-shadow:0 2px 8px #16365c22}
+    h1{margin:10px 0 2px;text-align:center;color:var(--navy);font-size:clamp(24px,6vw,36px)}
+    .stage{text-align:center;color:var(--blue);font-size:18px;font-weight:900}
+    .search-card{margin:14px 0 10px;padding:14px;border:2px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 3px 12px #16365c18}
+    .search-label{display:block;margin-bottom:7px;color:var(--navy);font-size:17px;font-weight:900}
+    .search-row{position:relative}
+    #townSearch{width:100%;min-height:54px;padding:11px 48px 11px 14px;border:2px solid #8fc5e2;border-radius:13px;background:#fff;color:var(--navy);font-size:20px;font-weight:800;outline:none}
+    #townSearch:focus{border-color:#2f75b5;box-shadow:0 0 0 3px #2f75b526}
+    #townSearch::placeholder{color:#7c8e9d;font-weight:600}
+    #clearSearch{position:absolute;right:7px;top:7px;width:40px;height:40px;border:0;border-radius:50%;background:#e8f3f9;color:var(--navy);font-size:24px;font-weight:800;line-height:1;cursor:pointer}
+    #clearSearch[hidden]{display:none}
+    .search-status{min-height:25px;margin-top:8px;color:#526b7d;font-size:14px;font-weight:700}
+    .results{max-height:260px;margin:0;padding:0;overflow:auto;border:1px solid #c8deea;border-radius:13px;background:#fff;list-style:none;-webkit-overflow-scrolling:touch}
+    .results:empty{display:none}
+    .candidate{width:100%;display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:center;padding:11px 13px;border:0;border-bottom:1px solid #dceaf1;background:#fff;color:var(--navy);text-align:left;cursor:pointer}
+    li:last-child .candidate{border-bottom:0}
+    .candidate:active,.candidate:focus-visible{background:#eaf6ff;outline:none}
+    .candidate-name{font-size:18px;font-weight:900}
+    .candidate-community{grid-row:1 / span 2;grid-column:2;color:#356783;font-size:13px;font-weight:800;white-space:nowrap}
+    .candidate-reading{color:#55758a;font-size:14px;font-weight:700}
+    .selection{min-height:73px;margin:10px 0;padding:9px 13px;border-radius:14px;background:var(--navy);color:#fff;text-align:center;display:flex;flex-direction:column;justify-content:center;box-shadow:0 3px 10px #16365c33}
+    .selection small{font-size:12px;opacity:.82}
+    #selectedName{font-size:clamp(23px,6vw,34px);font-weight:900;line-height:1.2}
+    #selectedReading{font-size:16px;font-weight:800;line-height:1.35}
+    #selectedCommunity{font-size:14px;font-weight:700;line-height:1.35}
+    .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
+    #map{height:min(58vh,620px);min-height:420px;background:#dfeaf1}
+    .tools{position:absolute;z-index:500;right:8px;top:8px}
+    .tools button{border:0;border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:9px 11px;box-shadow:0 2px 8px #16365c33;cursor:pointer}
+    .note{margin:10px 4px 0;color:#526373;font-size:13px;line-height:1.6}
+    .credit{margin-top:14px;padding-top:10px;border-top:1px solid #cad8e3;color:#657786;font-size:10px;line-height:1.5}
+    .footer{margin-top:14px;text-align:center;color:#66808e;font-size:11px}
+    .leaflet-container{font:inherit;touch-action:pan-x pan-y}
+    @media(max-width:480px){
+      body{padding-left:8px;padding-right:8px}
+      .search-card{padding:11px}
+      #map{height:54vh;min-height:390px}
+      .candidate{padding:10px}
+      .candidate-name{font-size:17px}
+    }
+  </style>
+</head>
+<body>
+<main class="page">
+  <a class="back" href="index.html">← ゲームトップへ</a>
+  <h1>町名から場所を探す</h1>
+  <div class="stage">🔍 漢字・読み仮名で検索</div>
+
+  <section class="search-card" aria-labelledby="searchLabel">
+    <label class="search-label" id="searchLabel" for="townSearch">町名の一部を入力してください</label>
+    <div class="search-row">
+      <input id="townSearch" type="search" inputmode="search" autocomplete="off" enterkeyhint="search" placeholder="例：高、こま" aria-controls="searchResults" aria-describedby="searchStatus">
+      <button type="button" id="clearSearch" aria-label="検索文字を消す" hidden>×</button>
+    </div>
+    <div class="search-status" id="searchStatus" aria-live="polite">地図を準備しています。</div>
+    <ul class="results" id="searchResults" aria-label="町名の検索候補"></ul>
+  </section>
+
+  <section class="selection" aria-live="polite">
+    <small>選んだ町</small>
+    <div id="selectedName">候補から町名を選択</div>
+    <div id="selectedReading"></div>
+    <div id="selectedCommunity"></div>
+  </section>
+
+  <div class="map-wrap">
+    <div id="map" aria-label="検索した町の位置を示す西宮市の地図"></div>
+    <div class="tools"><button type="button" id="resetView">全体表示</button></div>
+  </div>
+
+  <p class="note">通常モードと同じく、一丁目・二丁目などは同じ町名としてまとめています。</p>
+  <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p>
+  <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+<script>
+(() => {
+  const byId = id => document.getElementById(id);
+  const searchInput = byId('townSearch');
+  const results = byId('searchResults');
+  const status = byId('searchStatus');
+  const clearButton = byId('clearSearch');
+  const map = L.map('map', {
+    zoomControl:true,
+    attributionControl:false,
+    minZoom:9,
+    maxZoom:19,
+    zoomSnap:.1
+  });
+
+  const normalStyle = {color:'#ffffff',weight:1.1,fillColor:'#75b8dc',fillOpacity:.78};
+  const selectedStyle = {color:'#a75f00',weight:2.8,fillColor:'#ffd34d',fillOpacity:1};
+  const flashStyle = {color:'#fff4a8',weight:4,fillColor:'#ff9f1c',fillOpacity:1};
+  let townLayer;
+  let allBounds;
+  let selectedLayer = null;
+  let searchItems = [];
+  let flashTimers = [];
+
+  function groupedName(name) {
+    return String(name || '').replace(/[一二三四五六七八九十百]+丁目$/, '');
+  }
+
+  function rawName(geometry) {
+    const p = geometry.properties || {};
+    return p.S_NAME || p.s_name || p.MOJI || '町名不明';
+  }
+
+  function featureName(feature) {
+    const p = feature.properties || {};
+    return p.S_NAME || p.s_name || p.MOJI || '町名不明';
+  }
+
+  function normalize(value) {
+    return String(value || '')
+      .normalize('NFKC')
+      .trim()
+      .toLowerCase()
+      .replace(/[ァ-ヶ]/g, character => String.fromCharCode(character.charCodeAt(0) - 0x60));
+  }
+
+  function stopFlashing() {
+    flashTimers.forEach(clearTimeout);
+    flashTimers = [];
+  }
+
+  function showTown(item) {
+    stopFlashing();
+    if (selectedLayer && selectedLayer !== item.layer) selectedLayer.setStyle(normalStyle);
+    selectedLayer = item.layer;
+    byId('selectedName').textContent = item.name;
+    byId('selectedReading').textContent = item.reading ? `（${item.reading}）` : '';
+    byId('selectedCommunity').textContent = item.communities.length ? `${item.communities.join('・')}コミュニティ` : '';
+    item.layer.bringToFront();
+    map.fitBounds(item.layer.getBounds(), {padding:[34,34],maxZoom:15,animate:true});
+
+    for (let step = 0; step < 7; step += 1) {
+      flashTimers.push(setTimeout(() => {
+        item.layer.setStyle(step % 2 === 0 ? flashStyle : selectedStyle);
+        item.layer.bringToFront();
+      }, 260 * step));
+    }
+  }
+
+  function renderResults() {
+    const query = normalize(searchInput.value);
+    clearButton.hidden = !searchInput.value;
+    results.replaceChildren();
+
+    if (!query) {
+      status.textContent = '漢字または読み仮名を1文字以上入力してください。';
+      return;
+    }
+
+    const matched = searchItems.filter(item =>
+      normalize(item.name).includes(query) || normalize(item.reading).includes(query)
+    );
+    status.textContent = matched.length ? `${matched.length}件の候補があります。` : '該当する町名はありません。';
+
+    matched.forEach(item => {
+      const listItem = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'candidate';
+      button.innerHTML = `<span class="candidate-name"></span><span class="candidate-community"></span><span class="candidate-reading"></span>`;
+      button.querySelector('.candidate-name').textContent = item.name;
+      button.querySelector('.candidate-reading').textContent = item.reading ? `（${item.reading}）` : '';
+      button.querySelector('.candidate-community').textContent = item.communities.join('・');
+      button.addEventListener('click', () => showTown(item));
+      listItem.append(button);
+      results.append(listItem);
+    });
+  }
+
+  Promise.all([
+    fetch('data/nishinomiya-towns.topojson').then(response => {
+      if (!response.ok) throw new Error('境界データを読み込めませんでした');
+      return response.json();
+    }),
+    fetch('data/community-town-map.json').then(response => {
+      if (!response.ok) throw new Error('コミュニティ対応データを読み込めませんでした');
+      return response.json();
+    }),
+    fetch('data/maniac-readings.json').then(response => {
+      if (!response.ok) throw new Error('読み仮名データを読み込めませんでした');
+      return response.json();
+    })
+  ])
+    .then(([topology, mapping, readings]) => {
+      const townObject = topology.objects.town || topology.objects[Object.keys(topology.objects)[0]];
+      const allGeometries = townObject.geometries || [];
+      const validCommunities = new Set(mapping.communities || []);
+      const geometries = allGeometries.filter(geometry => {
+        const name = rawName(geometry);
+        const community = mapping.towns?.[name]?.community;
+        return name === '岡田山' || validCommunities.has(community);
+      });
+      const names = [...new Set(geometries.map(geometry => groupedName(rawName(geometry))))];
+      const mergedFeatures = names.map(name => {
+        const members = geometries.filter(geometry => groupedName(rawName(geometry)) === name);
+        const merged = topojson.merge(topology, members);
+        const communities = [...new Set(members
+          .map(geometry => mapping.towns?.[rawName(geometry)]?.community)
+          .filter(community => validCommunities.has(community)))];
+        merged.properties = {S_NAME:name,communities};
+        return merged;
+      });
+
+      townLayer = L.geoJSON(
+        {type:'FeatureCollection',features:mergedFeatures},
+        {style:normalStyle}
+      ).addTo(map);
+
+      townLayer.eachLayer(layer => {
+        const name = featureName(layer.feature);
+        searchItems.push({
+          name,
+          reading:readings[name] || '',
+          communities:layer.feature.properties.communities || [],
+          layer
+        });
+      });
+      searchItems.sort((a,b) => a.reading.localeCompare(b.reading,'ja'));
+      allBounds = townLayer.getBounds();
+      map.fitBounds(allBounds,{padding:[8,8],animate:false});
+      status.textContent = '漢字または読み仮名を1文字以上入力してください。';
+      renderResults();
+      setTimeout(() => map.invalidateSize({animate:false}),0);
+    })
+    .catch(error => {
+      status.textContent = '地図データを読み込めませんでした。ページをもう一度開いてください。';
+      console.error(error);
+    });
+
+  searchInput.addEventListener('input',renderResults);
+  clearButton.addEventListener('click',() => {
+    searchInput.value = '';
+    renderResults();
+    searchInput.focus();
+  });
+  byId('resetView').addEventListener('click',() => {
+    stopFlashing();
+    if (allBounds) map.fitBounds(allBounds,{padding:[8,8],animate:false});
+  });
+})();
+</script>
+</body>
+</html>
