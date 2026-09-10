@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","properties":{"name":"西宮名塩","label":"西宮名塩","operator":"JR","line":"JR福知山線"},"geometry":{"type":"Point","coordinates":[135.308885,34.82723]}},
+    {"type":"Feature","properties":{"name":"生瀬","label":"生瀬","operator":"JR","line":"JR福知山線"},"geometry":{"type":"Point","coordinates":[135.325325,34.81934]}},
+    {"type":"Feature","properties":{"name":"甲子園口","label":"甲子園口","operator":"JR","line":"JR神戸線"},"geometry":{"type":"Point","coordinates":[135.37439,34.73906]}},
+    {"type":"Feature","properties":{"name":"西宮","label":"西宮（JR）","operator":"JR","line":"JR神戸線"},"geometry":{"type":"Point","coordinates":[135.34878,34.73901]}},
+    {"type":"Feature","properties":{"name":"さくら夙川","label":"さくら夙川","operator":"JR","line":"JR神戸線"},"geometry":{"type":"Point","coordinates":[135.331267,34.739035]}},
+    {"type":"Feature","properties":{"name":"仁川","label":"仁川","operator":"阪急","line":"阪急今津線"},"geometry":{"type":"Point","coordinates":[135.35687,34.77508]}},
+    {"type":"Feature","properties":{"name":"甲東園","label":"甲東園","operator":"阪急","line":"阪急今津線"},"geometry":{"type":"Point","coordinates":[135.35981,34.766765]}},
+    {"type":"Feature","properties":{"name":"門戸厄神","label":"門戸厄神","operator":"阪急","line":"阪急今津線"},"geometry":{"type":"Point","coordinates":[135.35824,34.757045]}},
+    {"type":"Feature","properties":{"name":"西宮北口","label":"西宮北口","operator":"阪急","line":"阪急神戸線・今津線"},"geometry":{"type":"Point","coordinates":[135.3567,34.745947]}},
+    {"type":"Feature","properties":{"name":"阪神国道","label":"阪神国道","operator":"阪急","line":"阪急今津線"},"geometry":{"type":"Point","coordinates":[135.354855,34.73739]}},
+    {"type":"Feature","properties":{"name":"今津","label":"今津","operator":"阪急・阪神","line":"阪急今津線・阪神本線"},"geometry":{"type":"Point","coordinates":[135.35169,34.73142]}},
+    {"type":"Feature","properties":{"name":"夙川","label":"夙川","operator":"阪急","line":"阪急神戸線・甲陽線"},"geometry":{"type":"Point","coordinates":[135.328067,34.742461]}},
+    {"type":"Feature","properties":{"name":"苦楽園口","label":"苦楽園口","operator":"阪急","line":"阪急甲陽線"},"geometry":{"type":"Point","coordinates":[135.32894,34.75006]}},
+    {"type":"Feature","properties":{"name":"甲陽園","label":"甲陽園","operator":"阪急","line":"阪急甲陽線"},"geometry":{"type":"Point","coordinates":[135.33064,34.760563]}},
+    {"type":"Feature","properties":{"name":"香櫨園","label":"香櫨園","operator":"阪神","line":"阪神本線"},"geometry":{"type":"Point","coordinates":[135.32889,34.734315]}},
+    {"type":"Feature","properties":{"name":"西宮","label":"西宮（阪神）","operator":"阪神","line":"阪神本線"},"geometry":{"type":"Point","coordinates":[135.339505,34.73668]}},
+    {"type":"Feature","properties":{"name":"久寿川","label":"久寿川","operator":"阪神","line":"阪神本線"},"geometry":{"type":"Point","coordinates":[135.35689,34.72702]}},
+    {"type":"Feature","properties":{"name":"甲子園","label":"甲子園","operator":"阪神","line":"阪神本線"},"geometry":{"type":"Point","coordinates":[135.363275,34.72396]}},
+    {"type":"Feature","properties":{"name":"鳴尾・武庫川女子大前","label":"鳴尾・武庫川女子大前","operator":"阪神","line":"阪神本線"},"geometry":{"type":"Point","coordinates":[135.370387,34.719683]}},
+    {"type":"Feature","properties":{"name":"武庫川","label":"武庫川","operator":"阪神","line":"阪神本線・武庫川線"},"geometry":{"type":"Point","coordinates":[135.38205,34.71842]}},
+    {"type":"Feature","properties":{"name":"東鳴尾","label":"東鳴尾","operator":"阪神","line":"阪神武庫川線"},"geometry":{"type":"Point","coordinates":[135.37915,34.71272]}},
+    {"type":"Feature","properties":{"name":"洲先","label":"洲先","operator":"阪神","line":"阪神武庫川線"},"geometry":{"type":"Point","coordinates":[135.37796,34.709]}},
+    {"type":"Feature","properties":{"name":"武庫川団地前","label":"武庫川団地前","operator":"阪神","line":"阪神武庫川線"},"geometry":{"type":"Point","coordinates":[135.374855,34.704935]}}
+  ]
+}
