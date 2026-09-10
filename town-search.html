@@ -186,8 +186,8 @@
   map.getPane('searchHighlight').style.pointerEvents = 'none';
 
   const normalStyle = {color:'#ffffff',weight:1.1,fillColor:'#75b8dc',fillOpacity:.78};
-  const selectedStyle = {color:'#8d4b00',weight:4.5,fillColor:'#ffe14a',fillOpacity:1};
-  const flashStyle = {color:'#ffffff',weight:6,fillColor:'#ff5a3d',fillOpacity:1};
+  const selectedStyle = {...normalStyle};
+  const flashStyle = {color:'#d6bd65',weight:2.4,fillColor:'#fff3ad',fillOpacity:.96};
   let townLayer;
   let allBounds;
   let selectedLayer = null;
@@ -257,7 +257,7 @@
     }
     selectedLayer = item.layer;
     pendingItem = null;
-    map.fitBounds(item.layer.getBounds(), {padding:[34,34],maxZoom:15,animate:true});
+    map.fitBounds(allBounds, {padding:[8,8],animate:false});
     status.textContent = `${item.name}を地図に表示しています。`;
     startFlashing(item.layer);
   }
