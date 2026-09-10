@@ -380,12 +380,14 @@
       const names = [...new Set(geometries.map(geometry => groupedName(rawName(geometry))))];
       const mergedFeatures = names.map(name => {
         const members = geometries.filter(geometry => groupedName(rawName(geometry)) === name);
-        const merged = topojson.merge(topology, members);
         const communities = [...new Set(members
           .map(geometry => mapping.towns?.[rawName(geometry)]?.community)
           .filter(community => validCommunities.has(community)))];
-        merged.properties = {S_NAME:name,communities};
-        return merged;
+        return {
+          type:'Feature',
+          properties:{S_NAME:name,communities},
+          geometry:topojson.merge(topology, members)
+        };
       });
 
       townLayer = L.geoJSON(
@@ -393,8 +395,10 @@
         {style:normalStyle}
       ).addTo(map);
 
-      townLayer.eachLayer(layer => {
-        const name = featureName(layer.feature);
+      const renderedLayers = [];
+      townLayer.eachLayer(layer => renderedLayers.push(layer));
+      renderedLayers.forEach((layer,index) => {
+        const name = mergedFeatures[index]?.properties?.S_NAME || featureName(layer.feature);
         const item = searchItems.find(candidate => candidate.name === name);
         if (item) item.layer = layer;
       });
