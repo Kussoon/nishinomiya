@@ -39,6 +39,9 @@
     #selectedName{font-size:clamp(23px,6vw,34px);font-weight:900;line-height:1.2}
     #selectedReading{font-size:16px;font-weight:800;line-height:1.35}
     #selectedCommunity{font-size:14px;font-weight:700;line-height:1.35}
+    .selection-actions{display:flex;justify-content:center;margin:-3px 0 10px}
+    .transport-toggle{min-height:44px;padding:9px 20px;border:2px solid #8fc5e2;border-radius:999px;background:#fff;color:var(--navy);font-size:16px;font-weight:900;box-shadow:0 3px 10px #16365c24;cursor:pointer}
+    .transport-toggle:disabled{opacity:.58;cursor:wait}
     .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
     #map{height:min(58vh,620px);min-height:420px;background:#dfeaf1}
     .tools{position:absolute;z-index:500;right:8px;top:8px}
@@ -80,6 +83,9 @@
     <div id="selectedReading"></div>
     <div id="selectedCommunity"></div>
   </section>
+  <div class="selection-actions">
+    <button class="transport-toggle" type="button" id="transportToggle" disabled>交通入りで見る</button>
+  </div>
 
   <div class="map-wrap">
     <div id="map" aria-label="検索した町の位置を示す西宮市の地図"></div>
@@ -109,7 +115,7 @@
     {match:'門戸',reading:'もんど',aliases:['もんと','かど']},
     {match:'神呪町',reading:'かんのうちょう',aliases:['しんじゅちょう','かみのろい']},
     {match:'甲山町',reading:'かぶとやまちょう',aliases:['こうやまちょう']},
-    {match:'御茶家所町',reading:'おちゃやしょちょう',aliases:['おちゃやどころちょう','ごちゃや','おんちゃや','みちゃや','ごちゃいえ','みちゃいえ']},
+    {match:'御茶家所町',reading:'おちゃやしょちょう',aliases:['おちゃやどころちょう','ごちゃや','おんちゃや','みちゃや','ごちゃいえ','みちゃいえ','ぎょ']},
     {match:'学文殿町',reading:'がくぶんでんちょう',aliases:['がくもんでんちょう','がくぶんどのちょう']},
     {match:'上大市',reading:'かみおおいち',aliases:['うえおおいち','かみだいいち']},
     {match:'葭原町',reading:'よしはら',aliases:['よしわら','あしはら']},
@@ -159,6 +165,7 @@
   const results = byId('searchResults');
   const status = byId('searchStatus');
   const clearButton = byId('clearSearch');
+  const transportButton = byId('transportToggle');
   const map = L.map('map', {
     zoomControl:true,
     attributionControl:false,
@@ -166,6 +173,14 @@
     maxZoom:19,
     zoomSnap:.1
   });
+  map.createPane('waterAreas');
+  map.getPane('waterAreas').style.zIndex = 402;
+  map.createPane('transportExpressways');
+  map.getPane('transportExpressways').style.zIndex = 405;
+  map.createPane('transportRoads');
+  map.getPane('transportRoads').style.zIndex = 410;
+  map.createPane('transportRails');
+  map.getPane('transportRails').style.zIndex = 420;
 
   const normalStyle = {color:'#ffffff',weight:1.1,fillColor:'#75b8dc',fillOpacity:.78};
   const selectedStyle = {color:'#a75f00',weight:2.8,fillColor:'#ffd34d',fillOpacity:1};
@@ -173,9 +188,12 @@
   let townLayer;
   let allBounds;
   let selectedLayer = null;
+  let pendingItem = null;
   const searchItems = SEARCH_INDEX.map(item => ({...item,aliases:aliasesFor(item),layer:null}));
   let mapFailed = false;
-  let flashTimers = [];
+  let flashTimer = null;
+  let transportGroup = null;
+  let transportVisible = false;
 
   function groupedName(name) {
     return String(name || '').replace(/[一二三四五六七八九十百]+丁目$/, '');
@@ -200,12 +218,24 @@
   }
 
   function stopFlashing() {
-    flashTimers.forEach(clearTimeout);
-    flashTimers = [];
+    if (flashTimer !== null) clearInterval(flashTimer);
+    flashTimer = null;
+  }
+
+  function startFlashing(layer) {
+    let highlighted = true;
+    layer.setStyle(flashStyle);
+    layer.bringToFront();
+    flashTimer = setInterval(() => {
+      highlighted = !highlighted;
+      layer.setStyle(highlighted ? flashStyle : selectedStyle);
+      layer.bringToFront();
+    },520);
   }
 
   function showTown(item) {
     stopFlashing();
+    pendingItem = item;
     byId('selectedName').textContent = item.name;
     byId('selectedReading').textContent = item.reading ? `（${item.reading}）` : '';
     byId('selectedCommunity').textContent = item.communities.length ? `${item.communities.join('・')}コミュニティ` : '';
@@ -215,17 +245,72 @@
         : '地図を読み込んでいます。少しお待ちください。';
       return;
     }
-    if (selectedLayer && selectedLayer !== item.layer) selectedLayer.setStyle(normalStyle);
+    if (selectedLayer) selectedLayer.setStyle(normalStyle);
     selectedLayer = item.layer;
+    pendingItem = null;
     item.layer.bringToFront();
     map.fitBounds(item.layer.getBounds(), {padding:[34,34],maxZoom:15,animate:true});
     status.textContent = `${item.name}を地図に表示しています。`;
+    startFlashing(item.layer);
+  }
 
-    for (let step = 0; step < 7; step += 1) {
-      flashTimers.push(setTimeout(() => {
-        item.layer.setStyle(step % 2 === 0 ? flashStyle : selectedStyle);
-        item.layer.bringToFront();
-      }, 260 * step));
+  async function toggleTransport() {
+    if (transportGroup) {
+      transportVisible = !transportVisible;
+      if (transportVisible) transportGroup.addTo(map);
+      else map.removeLayer(transportGroup);
+      transportButton.textContent = transportVisible ? '白地図に戻す' : '交通入りで見る';
+      if (selectedLayer) selectedLayer.bringToFront();
+      return;
+    }
+
+    transportButton.disabled = true;
+    transportButton.textContent = '交通を読み込んでいます…';
+    try {
+      const [transportResponse,waterResponse] = await Promise.all([
+        fetch('data/nishinomiya-transport.geojson'),
+        fetch('data/nishinomiya-water.geojson')
+      ]);
+      if (!transportResponse.ok || !waterResponse.ok) throw new Error('交通データを読み込めませんでした');
+      const [transportData,waterData] = await Promise.all([transportResponse.json(),waterResponse.json()]);
+      const railColors = {
+        '阪急神戸線':'#7b1e3a',
+        '阪急今津線':'#7b1e3a',
+        '阪急甲陽線':'#7b1e3a',
+        'JR神戸線':'#178447',
+        'JR福知山線':'#178447',
+        '阪神本線':'#e26b22'
+      };
+      transportGroup = L.layerGroup([
+        L.geoJSON(waterData,{
+          pane:'waterAreas',interactive:false,
+          style:{color:'#ffffff',weight:.8,opacity:1,fillColor:'#ffffff',fillOpacity:1}
+        }),
+        L.geoJSON(transportData,{
+          pane:'transportRoads',interactive:false,
+          filter:feature => feature.properties?.kind === 'road',
+          style:{color:'#d58c16',weight:1.8,opacity:.92}
+        }),
+        L.geoJSON(transportData,{
+          pane:'transportExpressways',interactive:false,
+          filter:feature => feature.properties?.kind === 'expressway',
+          style:{color:'#7650a6',weight:3.5,opacity:.95,dashArray:'7 4'}
+        }),
+        L.geoJSON(transportData,{
+          pane:'transportRails',interactive:false,
+          filter:feature => feature.properties?.kind === 'rail',
+          style:feature => ({color:railColors[feature.properties?.name] || '#7b1e3a',weight:2.4,opacity:.96})
+        })
+      ]).addTo(map);
+      transportVisible = true;
+      transportButton.textContent = '白地図に戻す';
+      if (selectedLayer) selectedLayer.bringToFront();
+    } catch (error) {
+      transportButton.textContent = '交通入りで見る';
+      status.textContent = '交通データを読み込めませんでした。もう一度お試しください。';
+      console.error(error);
+    } finally {
+      transportButton.disabled = false;
     }
   }
 
@@ -309,12 +394,15 @@
       });
       allBounds = townLayer.getBounds();
       map.fitBounds(allBounds,{padding:[8,8],animate:false});
-      renderResults();
+      transportButton.disabled = false;
+      if (pendingItem) showTown(pendingItem);
+      else renderResults();
       setTimeout(() => map.invalidateSize({animate:false}),0);
     })
     .catch(error => {
       mapFailed = true;
-      if (!searchInput.value) status.textContent = '地図データを読み込めませんでした。ページをもう一度開いてください。';
+      status.textContent = '地図データを読み込めませんでした。ページをもう一度開いてください。';
+      transportButton.disabled = true;
       console.error(error);
     });
 
@@ -326,9 +414,9 @@
     searchInput.focus();
   });
   byId('resetView').addEventListener('click',() => {
-    stopFlashing();
     if (allBounds) map.fitBounds(allBounds,{padding:[8,8],animate:false});
   });
+  transportButton.addEventListener('click',toggleTransport);
 })();
 </script>
 </body>
