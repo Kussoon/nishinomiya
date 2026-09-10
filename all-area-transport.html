@@ -32,7 +32,7 @@
     .footer{margin-top:14px;text-align:center;color:#66808e;font-size:11px}
     .leaflet-container{font:inherit;touch-action:pan-x pan-y}
 
-    #map{--label-font-size:5.2px;--label-pad-y:.35px;--label-pad-x:1.15px;--label-radius:2px;--label-shadow-y:.4px;--label-shadow-blur:1.2px;--transport-label-font-size:6.4px;--transport-label-pad-y:.7px;--transport-label-pad-x:1.5px;--transport-label-radius:2.5px}
+    #map{--label-font-size:5.2px;--label-pad-y:.35px;--label-pad-x:1.15px;--label-radius:2px;--label-shadow-y:.4px;--label-shadow-blur:1.2px;--transport-label-font-size:6.4px;--transport-label-pad-y:.7px;--transport-label-pad-x:1.5px;--transport-label-radius:2.5px;--station-label-font-size:5.8px;--station-dot-radius:2.2px}
     .town-label{border:0!important;background:#ffffffdd!important;color:#17385e!important;border-radius:var(--label-radius)!important;padding:var(--label-pad-y) var(--label-pad-x)!important;box-shadow:0 var(--label-shadow-y) var(--label-shadow-blur) #17385e44!important;font-size:var(--label-font-size)!important;font-weight:900!important;line-height:1.05!important;white-space:nowrap!important;pointer-events:none!important}
     .town-label:before{display:none!important}
 
@@ -48,6 +48,8 @@
     .transport-label:before{display:none!important}
     .transport-label.rail-label{background:#fff5f6e8!important;color:#6c1833!important}
     .transport-label.expressway-label{background:#f7f1ffe8!important;color:#593887!important}
+    .station-label{border:1px solid #17385e66!important;border-radius:3px!important;padding:1px 2px!important;background:#fffffff2!important;color:#17385e!important;font-size:var(--station-label-font-size)!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 .5px 1.5px #26384955!important;pointer-events:none!important}
+    .station-label:before{display:none!important}
     @media(max-width:480px){
       body{padding-left:8px;padding-right:8px}
       .teacher{grid-template-columns:62px 1fr}
@@ -80,7 +82,7 @@
   </div>
 
   <p class="note">通常モードでは、一丁目・二丁目などは同じ町名としてまとめています。</p>
-  <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。<br>鉄道・道路・湖沼データ：<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>（ODbL 1.0）を抽出・加工。</p>
+  <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。<br>駅・阪神武庫川線データ：国土数値情報「鉄道データ」（2025年）を加工。<br>その他の鉄道・道路・湖沼データ：<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a>（ODbL 1.0）を抽出・加工。</p>
   <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </main>
 
@@ -105,6 +107,13 @@
   map.getPane('transportExpressways').style.zIndex = 405;
   map.createPane('transportRails');
   map.getPane('transportRails').style.zIndex = 420;
+  map.createPane('boundaryOverlay');
+  map.getPane('boundaryOverlay').style.zIndex = 430;
+  map.createPane('stationMarkers');
+  map.getPane('stationMarkers').style.zIndex = 625;
+  map.createPane('stationLabels');
+  map.getPane('stationLabels').style.zIndex = 660;
+  map.getPane('stationLabels').style.pointerEvents = 'none';
 
   let townLayer;
   let allBounds;
@@ -182,6 +191,7 @@
     {name:'JR神戸線', kind:'rail', anchor:'east', direction:'right'},
     {name:'阪神本線', kind:'rail', anchor:'west', direction:'left'},
     {name:'阪神本線', kind:'rail', anchor:'east', direction:'right'},
+    {name:'阪神武庫川線', kind:'rail', anchor:'south', direction:'bottom'},
     {name:'山手幹線', kind:'road', anchor:'west', direction:'left', offset:[-3,4]},
     {name:'山手幹線', kind:'road', anchor:'east', direction:'right', offset:[3,4]},
     {name:'名神高速道路', kind:'expressway', anchor:'east', direction:'right', offset:[3,-6]},
@@ -252,6 +262,8 @@
     mapElement.style.setProperty('--transport-label-pad-y', `${.7 * scale}px`);
     mapElement.style.setProperty('--transport-label-pad-x', `${1.5 * scale}px`);
     mapElement.style.setProperty('--transport-label-radius', `${2.5 * scale}px`);
+    mapElement.style.setProperty('--station-label-font-size', `${5.8 * scale}px`);
+    mapElement.style.setProperty('--station-dot-radius', `${2.2 * Math.min(scale,3)}px`);
   }
   map.on('zoom zoomend', updateLabelScale);
 
@@ -271,9 +283,18 @@
     fetch('data/nishinomiya-water.geojson').then(response => {
       if (!response.ok) throw new Error('湖沼データを読み込めませんでした');
       return response.json();
+    }),
+    fetch('data/nishinomiya-transport-corrections.geojson').then(response => {
+      if (!response.ok) throw new Error('交通補正データを読み込めませんでした');
+      return response.json();
+    }),
+    fetch('data/nishinomiya-stations.geojson').then(response => {
+      if (!response.ok) throw new Error('駅データを読み込めませんでした');
+      return response.json();
     })
   ])
-    .then(([topology, mapping, transportData, waterData]) => {
+    .then(([topology, mapping, transportData, waterData, transportCorrections, stationData]) => {
+      transportData.features.push(...transportCorrections.features);
       const townObject = topology.objects.town || topology.objects[Object.keys(topology.objects)[0]];
       const allGeometries = townObject.geometries || [];
 
@@ -352,7 +373,8 @@
         '阪急甲陽線':'#7b1e3a',
         'JR神戸線':'#178447',
         'JR福知山線':'#178447',
-        '阪神本線':'#e26b22'
+        '阪神本線':'#e26b22',
+        '阪神武庫川線':'#e26b22'
       };
       L.geoJSON(transportData, {
         pane:'transportRoads',
@@ -360,6 +382,28 @@
         filter(feature) { return feature.properties?.kind === 'road'; },
         style(feature) {
           return {color:'#d58c16', weight:1.8, opacity:.92};
+        }
+      }).addTo(map);
+
+      // 道路・鉄道と町境が重なる箇所にも、境界だけを白い破線で重ねる。
+      L.geoJSON({type:'FeatureCollection',features:mergedFeatures}, {
+        pane:'boundaryOverlay',
+        interactive:false,
+        style:{color:'#ffffff',weight:1.15,opacity:.95,dashArray:'3 4',fill:false}
+      }).addTo(map);
+
+      L.geoJSON(stationData, {
+        pane:'stationMarkers',
+        interactive:false,
+        pointToLayer(feature,latlng) {
+          const color = feature.properties?.operator === 'JR' ? '#08743d'
+            : feature.properties?.operator?.startsWith('阪急') ? '#67162f' : '#c95216';
+          return L.circleMarker(latlng,{pane:'stationMarkers',radius:3.2,color,weight:1.6,fillColor:'#fff',fillOpacity:1});
+        },
+        onEachFeature(feature,layer) {
+          layer.bindTooltip(feature.properties?.label || feature.properties?.name,{
+            pane:'stationLabels',permanent:true,direction:'top',offset:L.point(0,-2),className:'station-label',interactive:false
+          });
         }
       }).addTo(map);
       L.geoJSON(transportData, {
