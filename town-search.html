@@ -43,9 +43,13 @@
     .transport-toggle{min-height:44px;padding:9px 20px;border:2px solid #8fc5e2;border-radius:999px;background:#fff;color:var(--navy);font-size:16px;font-weight:900;box-shadow:0 3px 10px #16365c24;cursor:pointer}
     .transport-toggle:disabled{opacity:.58;cursor:wait}
     .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
-    #map{height:min(58vh,620px);min-height:420px;background:#dfeaf1}
+    #map{height:min(58vh,620px);min-height:420px;background:#dfeaf1;--transport-label-font-size:6.4px;--transport-label-pad-y:.7px;--transport-label-pad-x:1.5px;--transport-label-radius:2.5px}
     .tools{position:absolute;z-index:500;right:8px;top:8px}
     .tools button{border:0;border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:9px 11px;box-shadow:0 2px 8px #16365c33;cursor:pointer}
+    .transport-label{border:0!important;border-radius:var(--transport-label-radius)!important;padding:var(--transport-label-pad-y) var(--transport-label-pad-x)!important;background:#fffef0e8!important;color:#6f4310!important;font-size:var(--transport-label-font-size)!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 .5px 1.5px #26384966!important;pointer-events:none!important}
+    .transport-label:before{display:none!important}
+    .transport-label.rail-label{background:#fff5f6e8!important;color:#6c1833!important}
+    .transport-label.expressway-label{background:#f7f1ffe8!important;color:#593887!important}
     .note{margin:10px 4px 0;color:#526373;font-size:13px;line-height:1.6}
     .credit{margin-top:14px;padding-top:10px;border-top:1px solid #cad8e3;color:#657786;font-size:10px;line-height:1.5}
     .footer{margin-top:14px;text-align:center;color:#66808e;font-size:11px}
@@ -166,6 +170,7 @@
   const status = byId('searchStatus');
   const clearButton = byId('clearSearch');
   const transportButton = byId('transportToggle');
+  const mapElement = byId('map');
   const map = L.map('map', {
     zoomControl:true,
     attributionControl:false,
@@ -181,6 +186,9 @@
   map.getPane('transportRoads').style.zIndex = 410;
   map.createPane('transportRails');
   map.getPane('transportRails').style.zIndex = 420;
+  map.createPane('transportLabels');
+  map.getPane('transportLabels').style.zIndex = 610;
+  map.getPane('transportLabels').style.pointerEvents = 'none';
   map.createPane('searchHighlight');
   map.getPane('searchHighlight').style.zIndex = 650;
   map.getPane('searchHighlight').style.pointerEvents = 'none';
@@ -198,6 +206,89 @@
   let highlightLayer = null;
   let transportGroup = null;
   let transportVisible = false;
+  let initialMapZoom;
+
+  const TRANSPORT_LABELS = [
+    {name:'中国自動車道',kind:'expressway',anchor:'west',direction:'left'},
+    {name:'中国自動車道',kind:'expressway',anchor:'east',direction:'right'},
+    {name:'阪神高速7号北神戸線',kind:'expressway',anchor:'west',direction:'left'},
+    {name:'JR福知山線',kind:'rail',anchor:'east',direction:'right',offset:[3,-7]},
+    {name:'JR福知山線',kind:'rail',anchor:'north',direction:'top'},
+    {name:'国道176号',kind:'road',anchor:'west',direction:'left'},
+    {name:'国道176号',kind:'road',anchor:'east',direction:'right',offset:[3,7]},
+    {name:'阪急今津線',kind:'rail',anchor:'north',direction:'top'},
+    {name:'国道171号',kind:'road',anchor:'east',direction:'right'},
+    {name:'中津浜線',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'中津浜線',kind:'road',anchor:'north',direction:'top'},
+    {name:'建石筋',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'建石筋',kind:'road',anchor:'north',direction:'bottom',offset:[-8,3]},
+    {name:'今津西線',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'今津西線',kind:'road',anchor:'north',direction:'top'},
+    {name:'小曽根線',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'小曽根線',kind:'road',anchor:'north',direction:'top'},
+    {name:'札場筋線',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'札場筋線',kind:'road',anchor:'north',direction:'top'},
+    {name:'北口線',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'北口線',kind:'road',anchor:'north',direction:'top'},
+    {name:'市役所前線',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'市役所前線',kind:'road',anchor:'north',direction:'top'},
+    {name:'用海筋',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'用海筋',kind:'road',anchor:'north',direction:'top'},
+    {name:'みたらし通り',kind:'road',anchor:'west',direction:'left'},
+    {name:'みたらし通り',kind:'road',anchor:'east',direction:'right'},
+    {name:'苦楽園口通り',kind:'road',anchor:'west',direction:'left'},
+    {name:'苦楽園口通り',kind:'road',anchor:'east',direction:'right'},
+    {name:'旧国道',kind:'road',anchor:'west',direction:'left'},
+    {name:'旧国道',kind:'road',anchor:'east',direction:'right'},
+    {name:'鳴尾御影線',kind:'road',anchor:'west',direction:'left'},
+    {name:'鳴尾御影線',kind:'road',anchor:'east',direction:'right'},
+    {name:'甲子園筋',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'甲子園筋',kind:'road',anchor:'north',direction:'top'},
+    {name:'酒蔵通り',kind:'road',anchor:'west',direction:'left'},
+    {name:'酒蔵通り',kind:'road',anchor:'east',direction:'right'},
+    {name:'えべっさん筋',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'えべっさん筋',kind:'road',anchor:'north',direction:'top'},
+    {name:'福祉センター筋',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'福祉センター筋',kind:'road',anchor:'north',direction:'top'},
+    {name:'苦楽園筋',kind:'road',anchor:'west',direction:'left'},
+    {name:'苦楽園筋',kind:'road',anchor:'east',direction:'right'},
+    {name:'北夙川通り',kind:'road',anchor:'west',direction:'left'},
+    {name:'北夙川通り',kind:'road',anchor:'east',direction:'right'},
+    {name:'旧西国街道',kind:'road',anchor:'west',direction:'left'},
+    {name:'旧西国街道',kind:'road',anchor:'east',direction:'right'},
+    {name:'生瀬通り',kind:'road',anchor:'west',direction:'left'},
+    {name:'生瀬通り',kind:'road',anchor:'east',direction:'right'},
+    {name:'宮前通り',kind:'road',anchor:'west',direction:'left'},
+    {name:'宮前通り',kind:'road',anchor:'east',direction:'right'},
+    {name:'車庫北線',kind:'road',anchor:'west',direction:'left'},
+    {name:'車庫北線',kind:'road',anchor:'east',direction:'right'},
+    {name:'甲山大師道',kind:'road',anchor:'west',direction:'left'},
+    {name:'甲山大師道',kind:'road',anchor:'east',direction:'right'},
+    {name:'県道82号（大沢西宮線）',kind:'road',anchor:'west',direction:'left'},
+    {name:'県道82号（大沢西宮線）',kind:'road',anchor:'south',direction:'top',offset:[8,-3]},
+    {name:'県道98号（有馬山口線）',kind:'road',anchor:'south',direction:'bottom'},
+    {name:'県道98号（有馬山口線）',kind:'road',anchor:'north',direction:'top'},
+    {name:'阪急甲陽線',kind:'rail',anchor:'north',direction:'top'},
+    {name:'阪急神戸線',kind:'rail',anchor:'west',direction:'left'},
+    {name:'阪急神戸線',kind:'rail',anchor:'east',direction:'right'},
+    {name:'JR神戸線',kind:'rail',anchor:'west',direction:'left'},
+    {name:'JR神戸線',kind:'rail',anchor:'east',direction:'right'},
+    {name:'阪神本線',kind:'rail',anchor:'west',direction:'left'},
+    {name:'阪神本線',kind:'rail',anchor:'east',direction:'right'},
+    {name:'山手幹線',kind:'road',anchor:'west',direction:'left',offset:[-3,4]},
+    {name:'山手幹線',kind:'road',anchor:'east',direction:'right',offset:[3,4]},
+    {name:'名神高速道路',kind:'expressway',anchor:'east',direction:'right',offset:[3,-6]},
+    {name:'国道2号',kind:'road',anchor:'west',direction:'left'},
+    {name:'国道2号',kind:'road',anchor:'east',direction:'right'},
+    {name:'阪神高速3号神戸線',kind:'expressway',anchor:'west',direction:'left',offset:[-3,-7]},
+    {name:'阪神高速3号神戸線',kind:'expressway',anchor:'east',direction:'right',offset:[3,-7]},
+    {name:'国道43号',kind:'road',anchor:'west',direction:'left',offset:[-3,7]},
+    {name:'国道43号',kind:'road',anchor:'east',direction:'right',offset:[3,7]},
+    {name:'臨港線',kind:'road',anchor:'west',direction:'left'},
+    {name:'臨港線',kind:'road',anchor:'east',direction:'right'},
+    {name:'阪神高速5号湾岸線',kind:'expressway',anchor:'west',direction:'left'},
+    {name:'阪神高速5号湾岸線',kind:'expressway',anchor:'east',direction:'right'}
+  ];
 
   function groupedName(name) {
     return String(name || '').replace(/[一二三四五六七八九十百]+丁目$/, '');
@@ -212,6 +303,38 @@
     const p = feature.properties || {};
     return p.S_NAME || p.s_name || p.MOJI || '町名不明';
   }
+
+  function geometryLines(geometry) {
+    if (!geometry) return [];
+    return geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates;
+  }
+
+  function transportLabelAnchor(transportData,label) {
+    const endpoints = transportData.features
+      .filter(feature => feature.properties?.name === label.name)
+      .flatMap(feature => geometryLines(feature.geometry))
+      .flatMap(line => line.length ? [line[0],line[line.length - 1]] : []);
+    if (!endpoints.length) return null;
+    const compare = {
+      west:(a,b) => a[0] - b[0],
+      east:(a,b) => b[0] - a[0],
+      south:(a,b) => a[1] - b[1],
+      north:(a,b) => b[1] - a[1]
+    }[label.anchor];
+    const point = [...endpoints].sort(compare)[0];
+    return [point[1],point[0]];
+  }
+
+  function updateTransportLabelScale() {
+    if (initialMapZoom === undefined) return;
+    const scale = Math.min(5,Math.max(.72,Math.pow(1.35,map.getZoom() - initialMapZoom)));
+    mapElement.style.setProperty('--transport-label-font-size',`${6.4 * scale}px`);
+    mapElement.style.setProperty('--transport-label-pad-y',`${.7 * scale}px`);
+    mapElement.style.setProperty('--transport-label-pad-x',`${1.5 * scale}px`);
+    mapElement.style.setProperty('--transport-label-radius',`${2.5 * scale}px`);
+  }
+
+  map.on('zoom zoomend',updateTransportLabelScale);
 
   function normalize(value) {
     return String(value || '')
@@ -268,6 +391,7 @@
       if (transportVisible) transportGroup.addTo(map);
       else map.removeLayer(transportGroup);
       transportButton.textContent = transportVisible ? '白地図に戻す' : '交通入りで見る';
+      if (transportVisible) updateTransportLabelScale();
       return;
     }
 
@@ -288,7 +412,7 @@
         'JR福知山線':'#178447',
         '阪神本線':'#e26b22'
       };
-      transportGroup = L.layerGroup([
+      const transportLayers = [
         L.geoJSON(waterData,{
           pane:'waterAreas',interactive:false,
           style:{color:'#ffffff',weight:.8,opacity:1,fillColor:'#ffffff',fillOpacity:1}
@@ -308,9 +432,29 @@
           filter:feature => feature.properties?.kind === 'rail',
           style:feature => ({color:railColors[feature.properties?.name] || '#7b1e3a',weight:2.4,opacity:.96})
         })
-      ]).addTo(map);
+      ];
+      const transportLabelLayers = TRANSPORT_LABELS.map(label => ({
+        ...label,
+        at:transportLabelAnchor(transportData,label)
+      })).filter(label => label.at).map(label => {
+        const defaultOffset = label.direction === 'right' ? [3,0]
+          : label.direction === 'left' ? [-3,0]
+          : label.direction === 'bottom' ? [0,3]
+          : [0,-3];
+        const offset = label.offset || defaultOffset;
+        return L.tooltip({
+          pane:'transportLabels',
+          permanent:true,
+          direction:label.direction,
+          offset:L.point(offset[0],offset[1]),
+          className:`transport-label ${label.kind === 'rail' ? 'rail-label' : label.kind === 'expressway' ? 'expressway-label' : ''}`,
+          interactive:false
+        }).setLatLng(label.at).setContent(label.name);
+      });
+      transportGroup = L.layerGroup([...transportLayers,...transportLabelLayers]).addTo(map);
       transportVisible = true;
       transportButton.textContent = '白地図に戻す';
+      updateTransportLabelScale();
     } catch (error) {
       transportButton.textContent = '交通入りで見る';
       status.textContent = '交通データを読み込めませんでした。もう一度お試しください。';
@@ -404,6 +548,8 @@
       });
       allBounds = townLayer.getBounds();
       map.fitBounds(allBounds,{padding:[8,8],animate:false});
+      initialMapZoom = map.getZoom();
+      updateTransportLabelScale();
       transportButton.disabled = false;
       if (pendingItem) showTown(pendingItem);
       else renderResults();
