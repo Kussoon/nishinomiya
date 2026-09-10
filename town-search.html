@@ -186,6 +186,8 @@
   map.getPane('transportExpressways').style.zIndex = 405;
   map.createPane('transportRoads');
   map.getPane('transportRoads').style.zIndex = 410;
+  map.createPane('transportRoadCasing');
+  map.getPane('transportRoadCasing').style.zIndex = 409;
   map.createPane('transportRails');
   map.getPane('transportRails').style.zIndex = 420;
   map.createPane('boundaryOverlay');
@@ -435,9 +437,14 @@
           style:{color:'#ffffff',weight:.8,opacity:1,fillColor:'#ffffff',fillOpacity:1}
         }),
         L.geoJSON(transportData,{
+          pane:'transportRoadCasing',interactive:false,
+          filter:feature => feature.properties?.kind === 'road',
+          style:{color:'#875510',weight:3.5,opacity:1}
+        }),
+        L.geoJSON(transportData,{
           pane:'transportRoads',interactive:false,
           filter:feature => feature.properties?.kind === 'road',
-          style:{color:'#d58c16',weight:1.8,opacity:1}
+          style:{color:'#e3a027',weight:2.1,opacity:1}
         }),
         L.geoJSON(transportData,{
           pane:'transportExpressways',interactive:false,
@@ -451,7 +458,7 @@
         }),
         L.geoJSON(townLayer.toGeoJSON(),{
           pane:'boundaryOverlay',interactive:false,
-          style:{color:'#ffffff',weight:1.15,opacity:.95,dashArray:'3 4',fill:false}
+          style:{color:'#ffffff',weight:.85,opacity:1,fill:false}
         }),
         L.geoJSON(stationData,{
           pane:'stationMarkers',interactive:false,
@@ -461,7 +468,11 @@
             return L.circleMarker(latlng,{pane:'stationMarkers',radius:3.2,color,weight:1.6,fillColor:'#fff',fillOpacity:1});
           },
           onEachFeature(feature,layer) {
-            layer.bindTooltip(feature.properties?.label || feature.properties?.name,{
+            const baseLabel = feature.properties?.label || feature.properties?.name || '';
+            const stationLabel = baseLabel.includes('（')
+              ? baseLabel.replace('（','駅（')
+              : `${baseLabel}駅`;
+            layer.bindTooltip(stationLabel,{
               pane:'stationLabels',permanent:true,direction:'top',offset:L.point(0,-2),className:'station-label',interactive:false
             });
           }
