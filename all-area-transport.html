@@ -278,7 +278,7 @@
       if (!response.ok) throw new Error('コミュニティ対応データを読み込めませんでした');
       return response.json();
     }),
-    fetch('data/nishinomiya-transport.geojson?v=6.5.185').then(response => {
+    fetch('data/nishinomiya-transport.geojson?v=6.5.186').then(response => {
       if (!response.ok) throw new Error('交通データを読み込めませんでした');
       return response.json();
     }),
@@ -286,11 +286,11 @@
       if (!response.ok) throw new Error('湖沼データを読み込めませんでした');
       return response.json();
     }),
-    fetch('data/nishinomiya-transport-corrections.geojson?v=6.5.185').then(response => {
+    fetch('data/nishinomiya-transport-corrections.geojson?v=6.5.186').then(response => {
       if (!response.ok) throw new Error('交通補正データを読み込めませんでした');
       return response.json();
     }),
-    fetch('data/nishinomiya-stations.geojson?v=6.5.185').then(response => {
+    fetch('data/nishinomiya-stations.geojson?v=6.5.186').then(response => {
       if (!response.ok) throw new Error('駅データを読み込めませんでした');
       return response.json();
     })

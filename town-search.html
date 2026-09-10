@@ -412,10 +412,10 @@
     transportButton.textContent = '交通を読み込んでいます…';
     try {
       const [transportResponse,waterResponse,correctionsResponse,stationsResponse] = await Promise.all([
-        fetch('data/nishinomiya-transport.geojson?v=6.5.185'),
+        fetch('data/nishinomiya-transport.geojson?v=6.5.186'),
         fetch('data/nishinomiya-water.geojson'),
-        fetch('data/nishinomiya-transport-corrections.geojson?v=6.5.185'),
-        fetch('data/nishinomiya-stations.geojson?v=6.5.185')
+        fetch('data/nishinomiya-transport-corrections.geojson?v=6.5.186'),
+        fetch('data/nishinomiya-stations.geojson?v=6.5.186')
       ]);
       if (!transportResponse.ok || !waterResponse.ok || !correctionsResponse.ok || !stationsResponse.ok) throw new Error('交通データを読み込めませんでした');
       const [transportData,waterData,transportCorrections,stationData] = await Promise.all([
