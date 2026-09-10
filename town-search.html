@@ -181,10 +181,13 @@
   map.getPane('transportRoads').style.zIndex = 410;
   map.createPane('transportRails');
   map.getPane('transportRails').style.zIndex = 420;
+  map.createPane('searchHighlight');
+  map.getPane('searchHighlight').style.zIndex = 650;
+  map.getPane('searchHighlight').style.pointerEvents = 'none';
 
   const normalStyle = {color:'#ffffff',weight:1.1,fillColor:'#75b8dc',fillOpacity:.78};
-  const selectedStyle = {color:'#a75f00',weight:2.8,fillColor:'#ffd34d',fillOpacity:1};
-  const flashStyle = {color:'#fff4a8',weight:4,fillColor:'#ff9f1c',fillOpacity:1};
+  const selectedStyle = {color:'#8d4b00',weight:4.5,fillColor:'#ffe14a',fillOpacity:1};
+  const flashStyle = {color:'#ffffff',weight:6,fillColor:'#ff5a3d',fillOpacity:1};
   let townLayer;
   let allBounds;
   let selectedLayer = null;
@@ -192,6 +195,7 @@
   const searchItems = SEARCH_INDEX.map(item => ({...item,aliases:aliasesFor(item),layer:null}));
   let mapFailed = false;
   let flashTimer = null;
+  let highlightLayer = null;
   let transportGroup = null;
   let transportVisible = false;
 
@@ -220,16 +224,22 @@
   function stopFlashing() {
     if (flashTimer !== null) clearInterval(flashTimer);
     flashTimer = null;
+    if (highlightLayer) {
+      map.removeLayer(highlightLayer);
+      highlightLayer = null;
+    }
   }
 
   function startFlashing(layer) {
+    highlightLayer = L.geoJSON(layer.feature, {
+      pane:'searchHighlight',
+      interactive:false,
+      style:flashStyle
+    }).addTo(map);
     let highlighted = true;
-    layer.setStyle(flashStyle);
-    layer.bringToFront();
     flashTimer = setInterval(() => {
       highlighted = !highlighted;
-      layer.setStyle(highlighted ? flashStyle : selectedStyle);
-      layer.bringToFront();
+      if (highlightLayer) highlightLayer.setStyle(highlighted ? flashStyle : selectedStyle);
     },520);
   }
 
@@ -245,10 +255,8 @@
         : '地図を読み込んでいます。少しお待ちください。';
       return;
     }
-    if (selectedLayer) selectedLayer.setStyle(normalStyle);
     selectedLayer = item.layer;
     pendingItem = null;
-    item.layer.bringToFront();
     map.fitBounds(item.layer.getBounds(), {padding:[34,34],maxZoom:15,animate:true});
     status.textContent = `${item.name}を地図に表示しています。`;
     startFlashing(item.layer);
@@ -260,7 +268,6 @@
       if (transportVisible) transportGroup.addTo(map);
       else map.removeLayer(transportGroup);
       transportButton.textContent = transportVisible ? '白地図に戻す' : '交通入りで見る';
-      if (selectedLayer) selectedLayer.bringToFront();
       return;
     }
 
@@ -304,7 +311,6 @@
       ]).addTo(map);
       transportVisible = true;
       transportButton.textContent = '白地図に戻す';
-      if (selectedLayer) selectedLayer.bringToFront();
     } catch (error) {
       transportButton.textContent = '交通入りで見る';
       status.textContent = '交通データを読み込めませんでした。もう一度お試しください。';
