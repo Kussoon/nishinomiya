@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#f3efff">
-<title>光った町名・丁目を当てる｜西宮市 町名記憶ゲーム</title>
+<title>光った丁目を当てる｜西宮市 町名記憶ゲーム</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{box-sizing:border-box}
@@ -48,9 +48,9 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
     <div class="stage">マニアック・4択</div>
     <div class="stats"><span id="progress">1 / 1</span><br>得点 <span id="scoreNow">0</span></div>
   </div>
-  <div class="question"><div class="prompt">光っている町名・丁目は？</div></div>
-  <div class="mapwrap"><div id="map" aria-label="町名・丁目4択地図"></div></div>
-  <div id="choices" class="choices" aria-label="町名・丁目の選択肢"></div>
+  <div class="question"><div class="prompt">光っている丁目は？</div></div>
+  <div class="mapwrap"><div id="map" aria-label="丁目4択地図"></div></div>
+  <div id="choices" class="choices" aria-label="丁目の選択肢"></div>
   <div id="feedback" class="feedback">答えを選んでください。</div>
   <button id="nextBtn" class="next hidden" type="button">次の問題</button>
   <nav class="links">
@@ -72,7 +72,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
   </div>
   <div class="actions">
     <button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button>
-    <button id="retryBtn" class="action" type="button">全町名・丁目をもう一度</button>
+    <button id="retryBtn" class="action" type="button">全丁目をもう一度</button>
     <a class="action secondary" href="./">マニアックモード</a>
     <a class="action secondary" href="../index.html">トップページ</a>
   </div>
@@ -83,6 +83,9 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
 <script>
+const CHOME_BASES=new Set([
+'鷲林寺','東町','西宮浜','小曽根町','小松北町','小松東町','小松町','小松西町','小松南町','若草町','学文殿町','里中町','東鳴尾町','高須町','鳴尾町','南甲子園','浜甲子園','甲子園浜','鳴尾浜','甲風園','甲子園口','上甲子園','仁川町','上甲東園','甲東園','段上町','上大市','樋ノ口町','名塩南台','東山台','国見台','名塩','名塩さくら台','宝生ケ丘','青葉台','生瀬町','山口町名来','山口町下山口','山口町上山口','山口町中野','山口町金仙寺','山口町阪神流通センター','北六甲台','すみれ台'
+]);
 const FIRST_THREE=new Set(['一','二','三']);
 let readings={};
 
@@ -162,6 +165,10 @@ function baseTown(name){
 function chomeOrdinal(name){
   const m=name.match(/^(.*?)([一二三四五六七八九十]+)丁目$/);
   return m?m[2]:'';
+}
+function isTargetChome(name){
+  const m=name.match(/^(.*?)([一二三四五六七八九十]+丁目)$/);
+  return !!(m&&CHOME_BASES.has(m[1]));
 }
 function flattenArcIndexes(arcs,out=[]){
   if(Array.isArray(arcs)){
@@ -376,7 +383,7 @@ function finish(){
     ? '全問一発正解です！'
     : score>=Math.ceil(order.length*.8)
       ? 'かなりよく覚えています！'
-      : '間違えた町名・丁目を地図で確認して、もう一度挑戦しましょう。';
+      : '間違えた丁目を地図で確認して、もう一度挑戦しましょう。';
   byId('mistakeRetryBtn').hidden=missed.size===0;
   show('result');
 }
@@ -439,6 +446,8 @@ Promise.all([
   ).addTo(map);
 
   items.forEach(item=>item.center=item.bounds.getCenter());
+  items=items.filter(item=>isTargetChome(item.name));
+  itemByName=new Map(items.map(item=>[item.name,item]));
   allBounds=cityLayer.getBounds();
   start();
 }).catch(err=>{
