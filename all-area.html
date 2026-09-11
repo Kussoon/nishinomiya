@@ -33,6 +33,7 @@
     .credit{margin-top:14px;padding-top:10px;border-top:1px solid #cad8e3;font-size:10px;line-height:1.5;color:#657786}
     .footer{margin-top:14px;text-align:center;color:#66808e;font-size:11px}
     .leaflet-container{font:inherit;touch-action:pan-x pan-y}
+    .leaflet-interactive.town-selected{fill:#fff1a6!important;fill-opacity:1!important;stroke:#d2a52b!important;stroke-width:2.5!important}
     .town-tooltip{background:#16365c;color:white;border:0;border-radius:8px;font-weight:800;box-shadow:0 2px 8px #0003}
     .town-tooltip:before{border-top-color:#16365c}
     @media(max-width:480px){
@@ -116,7 +117,7 @@
     return feature.properties?.COMMUNITIES || [];
   }
 
-  function chooseTown(feature) {
+  function chooseTown(feature, selectedLayer) {
     const name = featureName(feature);
     const communities = featureCommunities(feature);
     selectedName = name;
@@ -125,8 +126,12 @@
     townCommunity.textContent = communities.length ? `${communities.join('・')}コミュニティ` : '';
     message.textContent = `ここは「${name}」です。`;
     townLayer.eachLayer(layer => {
-      layer.setStyle(featureName(layer.feature) === name ? selectedStyle : normalStyle);
+      layer.setStyle(normalStyle);
+      layer.getElement()?.classList.remove('town-selected');
     });
+    selectedLayer.setStyle(selectedStyle);
+    selectedLayer.getElement()?.classList.add('town-selected');
+    selectedLayer.bringToFront();
   }
 
   Promise.all([
@@ -181,7 +186,7 @@
             const name = featureName(feature);
             layer.bindTooltip(name, { sticky:true, direction:'top', className:'town-tooltip' });
             layer.on({
-              click: () => chooseTown(feature),
+              click: () => chooseTown(feature, layer),
               mouseover: e => {
                 if (name !== selectedName) e.target.setStyle({ fillOpacity:.95, weight:2 });
               },
