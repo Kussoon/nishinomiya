@@ -53,7 +53,7 @@
 </head>
 <body>
 <main class="page">
-  <button type="button" class="back" id="backBtn">← ゲームトップへ</button>
+  <button type="button" class="back" id="backBtn">← 西宮市トップへ</button>
   <h1>西宮市 町名記憶ゲーム</h1>
   <div class="stage">🧭 26コミュニティの場所を覚える</div>
 
@@ -98,7 +98,7 @@
         <button type="button" class="action hidden" id="wrongRetryBtn">間違えた問題をもう一度</button>
         <button type="button" class="action" id="retryBtn">もう一度</button>
         <a class="action secondary" href="community-select.html">次は町名を覚える</a>
-        <button type="button" class="action secondary" id="resultHomeBtn">ゲームトップへ</button>
+        <button type="button" class="action secondary" id="resultHomeBtn">西宮市トップへ</button>
       </div>
     </div>
   </section>
@@ -307,9 +307,10 @@
   document.getElementById('resetView').addEventListener('click',()=>{if(allBounds)map.fitBounds(allBounds,{padding:[5,5]});});
   document.getElementById('resultHomeBtn').addEventListener('click',()=>location.href='index.html');
   document.getElementById('backBtn').addEventListener('click',()=>{
-    if(document.getElementById('gameScreen').classList.contains('hidden')||confirm('ラウンドをやめてゲームトップへ戻りますか？'))location.href='index.html';
+    if(document.getElementById('gameScreen').classList.contains('hidden')||confirm('ラウンドをやめて西宮市トップへ戻りますか？'))location.href='index.html';
   });
 })();
 </script>
+<script src="/nishinomiya/site-identity.js"></script>
 </body>
 </html>
