@@ -29,14 +29,14 @@
 <div class="mapwrap"><div id="map" aria-label="全域マニアック場所当て地図"></div></div>
 <div class="feedbackrow"><img id="quizCharacter" src="../images/kisaragi-thinking.png" alt="考えている如月ちゃん"><div id="feedback" class="feedback">地図をタップしてください。</div></div>
 <div class="controls"><button id="revealBtn" class="reveal" type="button">答えを見る</button><button id="nextBtn" class="next hidden" type="button">次の問題</button></div>
-<nav class="links"><a href="./">マニアックモード</a><a href="all-area-labeled.html">丁目入り全域図</a><a href="../index.html">トップページ</a></nav>
+<nav class="links"><a href="./">マニアックモード</a><a href="all-area-labeled.html">丁目入り全域図</a><a href="../index.html">西宮市トップへ</a></nav>
 <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450</p>
 <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </section>
 <section id="result" class="screen hidden">
 <div class="resulthead">全域マニアック・場所当て　結果</div>
 <div class="resultcontent"><img id="resultCharacter" src="../images/kisaragi-correct.png" alt="大きな笑顔で喜ぶ如月ちゃん"><div class="resultcard"><div id="resultTotal" class="outof"></div><div id="finalScore" class="score"></div><div id="mistakes" class="mistakes"></div><p id="comment" class="comment"></p></div></div>
-<div class="actions"><button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button><button id="retryBtn" class="action" type="button">全問題をもう一度</button><a class="action secondary" href="./">マニアックモード</a><a class="action secondary" href="../index.html">トップページ</a></div>
+<div class="actions"><button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button><button id="retryBtn" class="action" type="button">全問題をもう一度</button><a class="action secondary" href="./">マニアックモード</a><a class="action secondary" href="../index.html">西宮市トップへ</a></div>
 <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </section>
 </main>
@@ -190,5 +190,6 @@ byId('revealBtn').addEventListener('click',revealAnswer);
 byId('nextBtn').addEventListener('click',nextQuestion);
 byId('quitBtn').addEventListener('click',()=>location.href='./');
 </script>
+<script src="/nishinomiya/site-identity.js"></script>
 </body>
 </html>

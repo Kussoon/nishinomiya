@@ -22,14 +22,14 @@
 <div id="choices" class="choices"></div>
 <div id="feedback" class="feedback">答えを選んでください。</div>
 <button id="nextBtn" class="next hidden" type="button">次の問題</button>
-<nav class="links"><a href="./">マニアックモード</a><a href="all-area-labeled.html">丁目入り全域図</a><a href="../index.html">トップページ</a></nav>
+<nav class="links"><a href="./">マニアックモード</a><a href="all-area-labeled.html">丁目入り全域図</a><a href="../index.html">西宮市トップへ</a></nav>
 <p class="credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450</p>
 <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </section>
 <section id="result" class="screen hidden">
 <div class="resulthead">全域マニアック・4択　結果</div>
 <div class="resultcard"><div id="resultTotal" class="outof"></div><div id="finalScore" class="score"></div><div id="mistakes" class="mistakes"></div><p id="comment" class="comment"></p></div>
-<div class="actions"><button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button><button id="retryBtn" class="action" type="button">全問題をもう一度</button><a class="action secondary" href="./">マニアックモード</a><a class="action secondary" href="../index.html">トップページ</a></div>
+<div class="actions"><button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button><button id="retryBtn" class="action" type="button">全問題をもう一度</button><a class="action secondary" href="./">マニアックモード</a><a class="action secondary" href="../index.html">西宮市トップへ</a></div>
 <footer class="footer">© KUSSOON 2026 All Rights Reserved.</footer>
 </section>
 </main>
@@ -208,5 +208,6 @@ byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
 byId('nextBtn').addEventListener('click',()=>{if(byId('nextBtn').disabled)return;byId('nextBtn').disabled=true;index++;if(index>=order.length)finish();else loadQuestion()});
 byId('quitBtn').addEventListener('click',()=>{stopBlink();location.href='./'});
 </script>
+<script src="/nishinomiya/site-identity.js"></script>
 </body>
 </html>
