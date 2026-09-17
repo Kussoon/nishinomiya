@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>西宮市 交差点マップ（199件）</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.1</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -40,10 +40,16 @@
     font-weight: 700;
     margin: 0;
   }
-  .meta {
-    font-size: 0.8rem;
-    color: var(--sub);
+  .meta { font-size: 0.8rem; color: var(--sub); }
+  .trial {
+    padding: 8px 20px; background: #fff7e6; color: #7a4a00;
+    border-bottom: 1px solid #f0d59a; font-size: 0.82rem; line-height: 1.45;
   }
+  .controls { display:flex; gap:6px; padding:0 12px 10px; flex-wrap:wrap; }
+  .btn { border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 9px; font-size:.78rem; cursor:pointer; }
+  .btn.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:700; }
+  .count { padding:0 12px 8px; font-size:.75rem; color:var(--sub); }
+  .popup-meta { color:#5b6673;font-size:.8em;line-height:1.5; }
   #wrap {
     flex: 1;
     display: flex;
@@ -89,20 +95,33 @@
   .item.warn .name { color: var(--warn); }
   .item.hidden { display: none; }
   @media (max-width: 720px) {
+    header { padding:10px 12px; }
+    h1 { font-size:.98rem; }
+    .trial { padding:7px 12px; font-size:.76rem; }
     #wrap { flex-direction: column; }
-    #panel { width: 100%; flex: 0 0 40%; border-left: none; border-top: 1px solid var(--line); }
+    #map { flex: 0 0 58%; min-height: 300px; }
+    #panel { width: 100%; flex: 1 1 42%; min-height:0; border-left:none; border-top:1px solid var(--line); }
+    #search { margin:8px 12px; font-size:16px; }
+    .item { padding:9px 8px; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点マップ</h1>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.1</h1>
   <span class="meta">全199件（⚠ 推定位置 25件）</span>
 </header>
+<div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。</div>
 <div id="wrap">
   <div id="map"></div>
   <div id="panel">
     <input type="text" id="search" placeholder="交差点名で検索…" autocomplete="off">
+    <div class="controls">
+      <button class="btn" id="locateBtn">◎ 現在地</button>
+      <button class="btn" id="warnOnlyBtn">⚠ 推定位置のみ</button>
+      <button class="btn" id="resetBtn">全体表示</button>
+    </div>
+    <div class="count" id="resultCount"></div>
     <div id="list"></div>
   </div>
 </div>
@@ -330,7 +349,8 @@
 
   const markers = points.map(p => {
     const m = L.marker([p.lat, p.lon], {icon: p.conf === 'low' ? warnIcon : normalIcon});
-    m.bindPopup(`<strong>${p.flag}${p.no}. ${p.name}</strong><br><span style="color:#5b6673;font-size:0.8em;">確認状況: ${p.conf === 'low' ? '推定位置（要確認）' : p.conf}</span>`);
+    const status = p.conf === 'low' ? '⚠ 推定位置（要確認）' : (p.conf === 'high' ? '位置精度：高' : '位置精度：中');
+    m.bindPopup(`<strong>${p.no}. ${p.name}</strong><br><span class="popup-meta">${status}<br>緯度 ${p.lat.toFixed(6)} / 経度 ${p.lon.toFixed(6)}</span>`);
     m.addTo(map);
     return {marker: m, data: p};
   });
@@ -348,12 +368,38 @@
     listEl.appendChild(div);
   });
 
-  document.getElementById('search').addEventListener('input', (e) => {
-    const q = e.target.value.trim();
-    document.querySelectorAll('.item').forEach(el => {
-      el.classList.toggle('hidden', q && !el.dataset.name.includes(q));
+  const searchEl = document.getElementById('search');
+  const warnBtn = document.getElementById('warnOnlyBtn');
+  const resultCount = document.getElementById('resultCount');
+  let warnOnly = false;
+  function applyFilter() {
+    const q = searchEl.value.trim();
+    let shown = 0;
+    document.querySelectorAll('.item').forEach((el, i) => {
+      const d = markers[i].data;
+      const hide = (q && !d.name.includes(q)) || (warnOnly && d.conf !== 'low');
+      el.classList.toggle('hidden', hide);
+      if (!hide) shown++;
     });
+    resultCount.textContent = `表示 ${shown}件 / 全${points.length}件`;
+  }
+  searchEl.addEventListener('input', applyFilter);
+  warnBtn.addEventListener('click', () => { warnOnly = !warnOnly; warnBtn.classList.toggle('active', warnOnly); applyFilter(); });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    searchEl.value=''; warnOnly=false; warnBtn.classList.remove('active'); applyFilter(); map.setView([34.78,135.32],12);
   });
+
+  let userMarker = null;
+  document.getElementById('locateBtn').addEventListener('click', () => {
+    if (!navigator.geolocation) { alert('この端末では現在地を取得できません。'); return; }
+    navigator.geolocation.getCurrentPosition(pos => {
+      const ll=[pos.coords.latitude,pos.coords.longitude];
+      if (userMarker) map.removeLayer(userMarker);
+      userMarker=L.circleMarker(ll,{radius:8,weight:3,color:'#1677ff',fillColor:'#fff',fillOpacity:1}).addTo(map).bindPopup('現在地').openPopup();
+      map.setView(ll,17);
+    }, () => alert('現在地を取得できませんでした。Safariの位置情報許可をご確認ください。'), {enableHighAccuracy:true,timeout:10000});
+  });
+  applyFilter();
 </script>
 </body>
 </html>
