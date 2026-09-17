@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.5</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.7</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -134,10 +134,10 @@
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.5</h1>
-  <span class="meta">全199件（⚠ 推定位置 25件）</span>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.7</h1>
+  <span class="meta">全197件（全件位置監査対応）</span>
 </header>
-<div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。位置修正内容はこの端末のブラウザ内に一時保存されます。</div>
+<div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。全197件の位置監査に対応しています。位置修正内容はこの端末のブラウザ内に一時保存されます。</div>
 <div id="wrap">
   <div id="map"></div>
   <div id="panel">
@@ -148,13 +148,14 @@
       <button class="btn" id="nearBtn">近い順</button>
       <button class="btn" id="resetBtn">全体表示</button>
       <button class="btn" id="mapExpandBtn">⛶ 地図を大きく</button>
-      <button class="btn" id="editBtn">🛠 位置修正</button>
+      <button class="btn" id="editBtn">🛠 全197件位置監査</button>
+      <button class="btn" id="priorityBtn">⚠ 要確認から開始</button>
     </div>
     <div class="editbox" id="editBox">
-      <div class="edit-title" id="editTitle">位置修正モード</div>
+      <div class="edit-title" id="editTitle">全197件 位置監査モード</div>
       <div id="editInfo"></div>
       <div class="edit-actions">
-        <button class="btn done" id="acceptCurrentBtn">✓ 現在の推定位置でOK</button>
+        <button class="btn done" id="acceptCurrentBtn">✓ 現在位置でOK</button>
         <button class="btn" id="multiPosBtn">＋ 複数地点にする</button>
         <button class="btn primary" id="confirmPosBtn" disabled>この位置に修正</button>
         <button class="btn" id="skipPosBtn">次へ</button>
@@ -312,63 +313,61 @@
 {no:141, name:'中前田町南', lat:34.7419608, lon:135.3426557, conf:'high', flag:''},
 {no:142, name:'西宮警察署北', lat:34.7420289, lon:135.3446027, conf:'high', flag:''},
 {no:143, name:'門戸厄神駅前', lat:34.757912, lon:135.358078, conf:'high', flag:''},
-{no:144, name:'上大市5', lat:34.7674, lon:135.37101, conf:'low', flag:'⚠ '},
-{no:145, name:'甲武橋', lat:34.764599, lon:135.372757, conf:'high', flag:''},
-{no:146, name:'甲武橋北', lat:34.7665, lon:135.372425, conf:'high', flag:''},
-{no:147, name:'樋ノ口町バス停前', lat:34.745495, lon:135.344434, conf:'low', flag:'⚠ '},
-{no:148, name:'新田バス停前', lat:34.753683, lon:135.372717, conf:'low', flag:'⚠ '},
-{no:149, name:'上武庫橋', lat:34.74767, lon:135.375305, conf:'high', flag:''},
-{no:150, name:'上武庫橋西詰', lat:34.747348, lon:135.374705, conf:'high', flag:''},
-{no:151, name:'仁川橋', lat:34.774666, lon:135.358461, conf:'high', flag:''},
-{no:152, name:'仁川町2丁目', lat:34.774297, lon:135.360142, conf:'med', flag:''},
-{no:153, name:'仁川霊園前', lat:34.775105, lon:135.371892, conf:'high', flag:''},
-{no:154, name:'仁川北1丁目', lat:34.776, lon:135.362, conf:'low', flag:'⚠ '},
-{no:155, name:'仁川口橋', lat:34.774357, lon:135.370902, conf:'high', flag:''},
-{no:156, name:'生瀬', lat:34.819067, lon:135.32814, conf:'med', flag:''},
-{no:157, name:'生瀬北', lat:34.816624, lon:135.334555, conf:'high', flag:''},
-{no:158, name:'生瀬橋東詰', lat:34.817968, lon:135.333815, conf:'high', flag:''},
-{no:159, name:'生瀬橋西詰', lat:34.817897, lon:135.332323, conf:'high', flag:''},
-{no:160, name:'生瀬1', lat:34.820175, lon:135.32814, conf:'low', flag:'⚠ '},
-{no:161, name:'西宝橋南詰', lat:34.819162, lon:135.322149, conf:'high', flag:''},
-{no:162, name:'木ノ元バス停前', lat:34.824122, lon:135.317534, conf:'high', flag:''},
-{no:163, name:'尼子谷', lat:34.824014, lon:135.310364, conf:'high', flag:''},
-{no:164, name:'名塩八幡', lat:34.828158, lon:135.302949, conf:'med', flag:''},
-{no:165, name:'名塩南', lat:34.827862, lon:135.305235, conf:'med', flag:''},
-{no:166, name:'名塩東口', lat:34.82863, lon:135.305074, conf:'med', flag:''},
-{no:167, name:'名塩', lat:34.850635, lon:135.294693, conf:'low', flag:'⚠ '},
-{no:168, name:'名塩幼稚園前', lat:34.830996, lon:135.296891, conf:'med', flag:''},
-{no:169, name:'名塩西ノ口', lat:34.830285, lon:135.294526, conf:'med', flag:''},
-{no:170, name:'名塩山荘バス停前', lat:34.830304, lon:135.29111, conf:'med', flag:''},
-{no:171, name:'名塩茶園町', lat:34.835083, lon:135.283257, conf:'med', flag:''},
-{no:172, name:'さくら台入口', lat:34.8380769, lon:135.2771985, conf:'med', flag:''},
-{no:173, name:'赤坂峠', lat:34.835313, lon:135.268955, conf:'low', flag:'⚠ '},
-{no:174, name:'赤坂峠西', lat:34.835313, lon:135.268955, conf:'med', flag:''},
-{no:175, name:'西宮山口東ランプ', lat:34.834479, lon:135.260974, conf:'high', flag:''},
-{no:176, name:'丸山ダム北', lat:34.831703, lon:135.254981, conf:'high', flag:''},
-{no:177, name:'有馬病院前', lat:34.832825, lon:135.254015, conf:'high', flag:''},
-{no:178, name:'北六甲台4丁目', lat:34.831873, lon:135.250721, conf:'med', flag:''},
-{no:179, name:'北六甲台4西', lat:34.828464, lon:135.247088, conf:'high', flag:''},
-{no:180, name:'明治橋東詰', lat:34.831159, lon:135.242702, conf:'high', flag:''},
-{no:181, name:'新明治橋', lat:34.832431, lon:135.241339, conf:'high', flag:''},
-{no:182, name:'新天上橋西詰', lat:34.833946, lon:135.240284, conf:'med', flag:''},
-{no:183, name:'天上橋', lat:34.835156, lon:135.240066, conf:'high', flag:''},
-{no:184, name:'天上橋北', lat:34.8366773, lon:135.2394479, conf:'high', flag:''},
-{no:185, name:'名来2丁目', lat:34.840833, lon:135.2366588, conf:'med', flag:''},
-{no:186, name:'名来', lat:34.8433275, lon:135.236073, conf:'med', flag:''},
-{no:187, name:'名来1丁目', lat:34.8444458, lon:135.2377505, conf:'med', flag:''},
-{no:188, name:'天上橋西', lat:34.8347469, lon:135.2393608, conf:'high', flag:''},
-{no:189, name:'流通センター東', lat:34.8344302, lon:135.23688, conf:'high', flag:''},
-{no:190, name:'流通センター前', lat:34.8342662, lon:135.2357445, conf:'high', flag:''},
-{no:191, name:'西宮明治橋', lat:34.830552, lon:135.240663, conf:'high', flag:''},
-{no:192, name:'山口交番前', lat:34.8281453, lon:135.2405528, conf:'high', flag:''},
-{no:193, name:'松栄橋', lat:34.820841, lon:135.2469051, conf:'low', flag:'⚠ '},
-{no:194, name:'上山口', lat:34.8209058, lon:135.2465261, conf:'high', flag:''},
-{no:195, name:'金仙寺湖西', lat:34.824526, lon:135.2534865, conf:'low', flag:'⚠ '},
-{no:196, name:'山口町中野', lat:34.8094109, lon:135.2559956, conf:'high', flag:''},
-{no:197, name:'西宮浜3丁目西', lat:34.71701, lon:135.328616, conf:'high', flag:''},
-{no:198, name:'西宮浜3丁目', lat:34.718998, lon:135.328727, conf:'med', flag:''},
-{no:199, name:'西宮浜1丁目', lat:34.717514, lon:135.338707, conf:'med', flag:''}
-  ];
+{no:144, name:'甲武橋', lat:34.764599, lon:135.372757, conf:'high', flag:''},
+{no:145, name:'甲武橋北', lat:34.7665, lon:135.372425, conf:'high', flag:''},
+{no:146, name:'樋ノ口町バス停前', lat:34.745495, lon:135.344434, conf:'low', flag:'⚠ '},
+{no:147, name:'新田バス停前', lat:34.753683, lon:135.372717, conf:'low', flag:'⚠ '},
+{no:148, name:'上武庫橋', lat:34.74767, lon:135.375305, conf:'high', flag:''},
+{no:149, name:'仁川橋', lat:34.774666, lon:135.358461, conf:'high', flag:''},
+{no:150, name:'仁川町2丁目', lat:34.774297, lon:135.360142, conf:'med', flag:''},
+{no:151, name:'仁川霊園前', lat:34.775105, lon:135.371892, conf:'high', flag:''},
+{no:152, name:'仁川北1丁目', lat:34.776, lon:135.362, conf:'low', flag:'⚠ '},
+{no:153, name:'仁川口橋', lat:34.774357, lon:135.370902, conf:'high', flag:''},
+{no:154, name:'生瀬', lat:34.819067, lon:135.32814, conf:'med', flag:''},
+{no:155, name:'生瀬北', lat:34.816624, lon:135.334555, conf:'high', flag:''},
+{no:156, name:'生瀬橋東詰', lat:34.817968, lon:135.333815, conf:'high', flag:''},
+{no:157, name:'生瀬橋西詰', lat:34.817897, lon:135.332323, conf:'high', flag:''},
+{no:158, name:'生瀬1', lat:34.820175, lon:135.32814, conf:'low', flag:'⚠ '},
+{no:159, name:'西宝橋南詰', lat:34.819162, lon:135.322149, conf:'high', flag:''},
+{no:160, name:'木ノ元バス停前', lat:34.824122, lon:135.317534, conf:'high', flag:''},
+{no:161, name:'尼子谷', lat:34.824014, lon:135.310364, conf:'high', flag:''},
+{no:162, name:'名塩八幡', lat:34.828158, lon:135.302949, conf:'med', flag:''},
+{no:163, name:'名塩南', lat:34.827862, lon:135.305235, conf:'med', flag:''},
+{no:164, name:'名塩東口', lat:34.82863, lon:135.305074, conf:'med', flag:''},
+{no:165, name:'名塩', lat:34.850635, lon:135.294693, conf:'low', flag:'⚠ '},
+{no:166, name:'名塩幼稚園前', lat:34.830996, lon:135.296891, conf:'med', flag:''},
+{no:167, name:'名塩西ノ口', lat:34.830285, lon:135.294526, conf:'med', flag:''},
+{no:168, name:'名塩山荘バス停前', lat:34.830304, lon:135.29111, conf:'med', flag:''},
+{no:169, name:'名塩茶園町', lat:34.835083, lon:135.283257, conf:'med', flag:''},
+{no:170, name:'さくら台入口', lat:34.8380769, lon:135.2771985, conf:'med', flag:''},
+{no:171, name:'赤坂峠', lat:34.835313, lon:135.268955, conf:'low', flag:'⚠ '},
+{no:172, name:'赤坂峠西', lat:34.835313, lon:135.268955, conf:'med', flag:''},
+{no:173, name:'西宮山口東ランプ', lat:34.834479, lon:135.260974, conf:'high', flag:''},
+{no:174, name:'丸山ダム北', lat:34.831703, lon:135.254981, conf:'high', flag:''},
+{no:175, name:'有馬病院前', lat:34.832825, lon:135.254015, conf:'high', flag:''},
+{no:176, name:'北六甲台4丁目', lat:34.831873, lon:135.250721, conf:'med', flag:''},
+{no:177, name:'北六甲台4西', lat:34.828464, lon:135.247088, conf:'high', flag:''},
+{no:178, name:'明治橋東詰', lat:34.831159, lon:135.242702, conf:'high', flag:''},
+{no:179, name:'新明治橋', lat:34.832431, lon:135.241339, conf:'high', flag:''},
+{no:180, name:'新天上橋西詰', lat:34.833946, lon:135.240284, conf:'med', flag:''},
+{no:181, name:'天上橋', lat:34.835156, lon:135.240066, conf:'high', flag:''},
+{no:182, name:'天上橋北', lat:34.8366773, lon:135.2394479, conf:'high', flag:''},
+{no:183, name:'名来2丁目', lat:34.840833, lon:135.2366588, conf:'med', flag:''},
+{no:184, name:'名来', lat:34.8433275, lon:135.236073, conf:'med', flag:''},
+{no:185, name:'名来1丁目', lat:34.8444458, lon:135.2377505, conf:'med', flag:''},
+{no:186, name:'天上橋西', lat:34.8347469, lon:135.2393608, conf:'high', flag:''},
+{no:187, name:'流通センター東', lat:34.8344302, lon:135.23688, conf:'high', flag:''},
+{no:188, name:'流通センター前', lat:34.8342662, lon:135.2357445, conf:'high', flag:''},
+{no:189, name:'西宮明治橋', lat:34.830552, lon:135.240663, conf:'high', flag:''},
+{no:190, name:'山口交番前', lat:34.8281453, lon:135.2405528, conf:'high', flag:''},
+{no:191, name:'松栄橋', lat:34.820841, lon:135.2469051, conf:'low', flag:'⚠ '},
+{no:192, name:'上山口', lat:34.8209058, lon:135.2465261, conf:'high', flag:''},
+{no:193, name:'金仙寺湖西', lat:34.824526, lon:135.2534865, conf:'low', flag:'⚠ '},
+{no:194, name:'山口町中野', lat:34.8094109, lon:135.2559956, conf:'high', flag:''},
+{no:195, name:'西宮浜3丁目西', lat:34.71701, lon:135.328616, conf:'high', flag:''},
+{no:196, name:'西宮浜3丁目', lat:34.718998, lon:135.328727, conf:'med', flag:''},
+{no:197, name:'西宮浜1丁目', lat:34.717514, lon:135.338707, conf:'med', flag:''}
+];
 
   const map = L.map('map').setView([34.78, 135.32], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -389,9 +388,16 @@
     iconAnchor: [9,9]
   });
 
+  // Ver.0.7: 異なる名称なのに同一座標の地点を自動抽出し、優先監査対象にする。
+  const coordGroups = new Map();
+  points.forEach((p,i)=>{ const k=`${p.lat.toFixed(6)},${p.lon.toFixed(6)}`; if(!coordGroups.has(k))coordGroups.set(k,[]); coordGroups.get(k).push(i); });
+  const coordReviewIndexes = new Set();
+  coordGroups.forEach(idxs=>{ if(idxs.length>1 && new Set(idxs.map(i=>points[i].name)).size>1) idxs.forEach(i=>coordReviewIndexes.add(i)); });
+  points.forEach((p,i)=>{ p.coordReview=coordReviewIndexes.has(i); });
+
   const markers = points.map(p => {
     const m = L.marker([p.lat, p.lon], {icon: p.conf === 'low' ? warnIcon : normalIcon});
-    const status = p.conf === 'low' ? '⚠ 推定位置（要確認）' : (p.conf === 'high' ? '位置精度：高' : '位置精度：中');
+    const status = p.coordReview ? '⚠ 同一座標に別名称あり（優先確認）' : (p.conf === 'low' ? '⚠ 推定位置（要確認）' : (p.conf === 'high' ? '位置精度：高' : '位置精度：中'));
     m.bindPopup(`<strong>${p.no}. ${p.name}</strong><br><span class="popup-meta">${status}<br>緯度 ${p.lat.toFixed(6)} / 経度 ${p.lon.toFixed(6)}</span>`);
     m.addTo(map);
     return {marker: m, data: p};
@@ -413,10 +419,10 @@
 
   markers.forEach(({marker, data}, idx) => {
     const div = document.createElement('div');
-    div.className = 'item' + (data.conf === 'low' ? ' warn' : '');
+    div.className = 'item' + ((data.conf === 'low' || data.coordReview) ? ' warn' : '');
     div.dataset.name = data.name;
     div.dataset.idx = idx;
-    div.innerHTML = `<span class="no">${data.no}</span><span class="name">${data.flag}${data.name}</span>`;
+    div.innerHTML = `<span class="no">${data.no}</span><span class="name">${data.coordReview?'⚠ ':data.flag}${data.name}</span>`;
     div.addEventListener('click', () => {
       map.setView([data.lat, data.lon], 17);
       selectPoint(marker, data, div);
@@ -468,7 +474,7 @@
   }
   document.getElementById('nearBtn').addEventListener('click', sortByDistance);
 
-  // ---- Ver.0.5 位置確認・修正モード ----
+  // ---- Ver.0.7 全197件 位置監査・修正モード ----
   const editBtn=document.getElementById('editBtn');
   const editBox=document.getElementById('editBox');
   const editTitle=document.getElementById('editTitle');
@@ -479,13 +485,14 @@
   const skipPosBtn=document.getElementById('skipPosBtn');
   const exportBtn=document.getElementById('exportBtn');
   const exitEditBtn=document.getElementById('exitEditBtn');
-  const lowIndexes=markers.map((x,i)=>x.data.conf==='low'?i:null).filter(i=>i!==null);
+  const auditIndexes=markers.map((x,i)=>i);
+  const priorityIndexes=markers.map((x,i)=>(x.data.coordReview||x.data.conf==='low')?i:null).filter(i=>i!==null);
   let editMode=false, editCursor=0, proposedLatLng=null, proposedMarker=null, multiMode=false, secondLatLng=null, secondMarker=null;
 
   // 9/17に一巡して得られた23件を「現在の基準座標」として読み込む。
-  // Ver.0.5では確認済み扱いにはせず、25件すべてを最初から再確認する。
+  // Ver.0.7ではこれらを基準座標として保持しつつ、197件すべてを監査できる。
   const baselineByNo={
-    3:[34.73327267757251,135.3739365935326],5:[34.73374512584608,135.37160128355026],6:[34.73405666102156,135.370109975338],7:[34.73434835680757,135.3687670826912],8:[34.73457098539228,135.3672364354134],12:[34.73129615395535,135.37029951810842],17:[34.72633112387454,135.36405891180038],33:[34.72391646986631,135.35904586315158],83:[34.72970975749782,135.35023748874667],90:[34.737720784955826,135.32913118600848],113:[34.74423527980195,135.35505652427676],118:[34.7456,135.365292],124:[34.74129860258442,135.33925888137875],125:[34.74184156884147,135.3392013350323],126:[34.74339702748666,135.3391045331955],140:[34.76433448063511,135.3695257927045],144:[34.7674,135.37101],147:[34.75912222527962,135.371935878678],148:[34.75351793304606,135.37269294261935],154:[34.77450310193672,135.37108291538303],160:[34.82084467780002,135.32652407884598],167:[34.82963145615242,135.3000534918194],173:[34.835313,135.268955],193:[34.82473531213474,135.24416227623067],195:[34.82214464710217,135.25168271819493]
+    3:[34.73327267757251,135.3739365935326],5:[34.73374512584608,135.37160128355026],6:[34.73405666102156,135.370109975338],7:[34.73434835680757,135.3687670826912],8:[34.73457098539228,135.3672364354134],12:[34.73129615395535,135.37029951810842],17:[34.72633112387454,135.36405891180038],33:[34.72391646986631,135.35904586315158],83:[34.72970975749782,135.35023748874667],90:[34.737720784955826,135.32913118600848],113:[34.74423527980195,135.35505652427676],118:[34.7456,135.365292],124:[34.74129860258442,135.33925888137875],125:[34.74184156884147,135.3392013350323],126:[34.74339702748666,135.3391045331955],140:[34.76433448063511,135.3695257927045],146:[34.75912222527962,135.371935878678],147:[34.75351793304606,135.37269294261935],152:[34.77450310193672,135.37108291538303],158:[34.82084467780002,135.32652407884598],165:[34.82963145615242,135.3000534918194],171:[34.835313,135.268955],191:[34.82473531213474,135.24416227623067],193:[34.82214464710217,135.25168271819493]
   };
   markers.forEach(({marker,data})=>{ const b=baselineByNo[data.no]; if(b){ data.lat=b[0]; data.lon=b[1]; marker.setLatLng(b); } });
 
@@ -497,7 +504,7 @@
     83:[[34.72970975749782,135.35023748874667],[34.729908150568725,135.35037159919742]],
     126:[[34.74339702748666,135.3391045331955],[34.74321629887901,135.3391233086586]],
     140:[[34.76433448063511,135.3695257927045],[34.76422739035001,135.3693750500679]],
-    160:[[34.82084467780002,135.32652407884598],[34.82074559058633,135.3265455365181]]
+    158:[[34.82084467780002,135.32652407884598],[34.82074559058633,135.3265455365181]]
   };
   const reviewedMultiLayers=[];
   Object.entries(reviewedMultiByNo).forEach(([no,pts])=>{
@@ -509,10 +516,10 @@
 
 
   // 新しいキーを使うので、旧版の「確認済み」は引き継がない。
-  const storageKey='nishinomiyaIntersectionCorrectionsV05';
+  const storageKey='nishinomiyaIntersectionCorrectionsV07';
   const savedCorrections=JSON.parse(localStorage.getItem(storageKey)||'{}');
   function saveCorrections(){ localStorage.setItem(storageKey,JSON.stringify(savedCorrections)); }
-  function editTarget(){ return lowIndexes[editCursor]; }
+  function editTarget(){ return auditIndexes[editCursor]; }
   function clearProposal(){
     if(proposedMarker){map.removeLayer(proposedMarker); proposedMarker=null;}
     if(secondMarker){map.removeLayer(secondMarker); secondMarker=null;}
@@ -521,20 +528,21 @@
   function showEditTarget(){
     if(!editMode) return; clearProposal();
     const i=editTarget();
-    if(i===undefined){ editTitle.textContent='推定位置の再確認 完了'; editInfo.innerHTML='<strong>25件を一巡しました。</strong><br>必要ならCSVを書き出してください。'; return; }
+    if(i===undefined){ editTitle.textContent='全197件の位置監査 完了'; editInfo.innerHTML='<strong>197件を一巡しました。</strong><br>必要ならCSVを書き出してください。'; return; }
     const d=markers[i].data, done=savedCorrections[i];
-    editTitle.textContent=`⚠ ${d.name}　${editCursor+1} / ${lowIndexes.length}`;
-    editInfo.innerHTML=`現在座標：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}${done?'<br><strong>✓ 今回の再確認済み</strong>':''}<br><span class="crosshair-note">そのままで正しければ「現在の推定位置でOK」。違えば地図上の正しい位置をタップしてください。</span>`;
+    editTitle.textContent=`${d.coordReview?'⚠ ':''}${d.name}　${editCursor+1} / ${auditIndexes.length}`;
+    editInfo.innerHTML=`現在座標：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}${done?'<br><strong>✓ 今回の再確認済み</strong>':''}<br><span class="crosshair-note">そのままで正しければ「現在位置でOK」。違えば地図上の正しい位置をタップしてください。${d.coordReview?'<br><strong>⚠ 別名称と同一座標のため優先確認対象です。</strong>':''}</span>`;
     map.setView(markers[i].marker.getLatLng(),18);
     const el=document.querySelector(`.item[data-idx="${i}"]`); selectPoint(markers[i].marker,d,el);
   }
   function startEdit(){
-    editMode=true; editBtn.classList.add('active'); editBox.classList.add('active'); warnOnly=true; warnBtn.classList.add('active'); applyFilter();
+    editMode=true; editBtn.classList.add('active'); editBox.classList.add('active'); warnOnly=false; warnBtn.classList.remove('active'); applyFilter();
     // 毎回「全部再確認」できるよう、開始時は先頭へ。途中再開は次へで進められる。
     editCursor=0; showEditTarget();
   }
   function exitEdit(){ editMode=false; editBtn.classList.remove('active'); editBox.classList.remove('active'); clearProposal(); }
   editBtn.addEventListener('click',()=> editMode?exitEdit():startEdit());
+  document.getElementById('priorityBtn').addEventListener('click',()=>{ startEdit(); const first=priorityIndexes[0]; editCursor=first===undefined?0:first; showEditTarget(); });
   exitEditBtn.addEventListener('click',exitEdit);
 
   function recordCurrent(pointsArr,method){
@@ -551,7 +559,7 @@
     if(!editMode) return;
     const i=editTarget(); if(i===undefined) return;
     const ll=markers[i].marker.getLatLng();
-    recordCurrent([{lat:ll.lat,lng:ll.lng}],'推定位置でOK');
+    recordCurrent([{lat:ll.lat,lng:ll.lng}],'現在位置でOK');
   });
 
   multiPosBtn.addEventListener('click',()=>{
@@ -594,7 +602,7 @@
     if(multiMode){ if(!secondLatLng)return; recordCurrent([proposedLatLng,secondLatLng],'複数地点'); }
     else recordCurrent([proposedLatLng],'座標修正');
   });
-  skipPosBtn.addEventListener('click',()=>{ if(!editMode)return; editCursor++; if(editCursor>=lowIndexes.length) editCursor=0; showEditTarget(); });
+  skipPosBtn.addEventListener('click',()=>{ if(!editMode)return; editCursor++; if(editCursor>=auditIndexes.length) editCursor=0; showEditTarget(); });
 
   exportBtn.addEventListener('click',()=>{
     const vals=Object.values(savedCorrections); if(!vals.length){alert('まだ今回の確認データがありません。');return;}
@@ -602,7 +610,7 @@
     const lines=[['No','交差点名','確認方法','地点','緯度','経度','確認日時'].map(esc).join(',')];
     vals.sort((a,b)=>a.no-b.no).forEach(c=>c.points.forEach(p=>lines.push([c.no,c.name,c.method,p.point,p.lat,p.lng,c.updatedAt].map(esc).join(','))));
     const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}), url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-review-v0.5.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-audit-v0.7.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
 
   // 今回の再確認結果がすでに端末にある場合は代表座標を反映
