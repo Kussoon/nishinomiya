@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>西宮市 交差点マップ（199件）</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root {
+    --ink: #1b2430;
+    --sub: #5b6673;
+    --line: #dfe3e8;
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --accent: #1f5fa8;
+    --accent-soft: #e8f0fa;
+    --warn: #b3541e;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--card);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  .meta {
+    font-size: 0.8rem;
+    color: var(--sub);
+  }
+  #wrap {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+  #map {
+    flex: 1;
+    min-width: 0;
+  }
+  #panel {
+    width: 280px;
+    flex: 0 0 280px;
+    border-left: 1px solid var(--line);
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #search {
+    margin: 12px;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 0.88rem;
+  }
+  #search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0 8px 12px;
+  }
+  .item {
+    padding: 8px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .item:hover { background: var(--accent-soft); }
+  .item .no { color: var(--sub); font-size: 0.75rem; flex: 0 0 26px; text-align: right; }
+  .item.warn .name { color: var(--warn); }
+  .item.hidden { display: none; }
+  @media (max-width: 720px) {
+    #wrap { flex-direction: column; }
+    #panel { width: 100%; flex: 0 0 40%; border-left: none; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>西宮市 交差点マップ</h1>
+  <span class="meta">全199件（⚠ 推定位置 25件）</span>
+</header>
+<div id="wrap">
+  <div id="map"></div>
+  <div id="panel">
+    <input type="text" id="search" placeholder="交差点名で検索…" autocomplete="off">
+    <div id="list"></div>
+  </div>
+</div>
+<script>
+  const points = [
+{no:1, name:'武庫大橋西詰', lat:34.731844, lon:135.379705, conf:'high', flag:''},
+{no:2, name:'戸崎町', lat:34.732837, lon:135.376402, conf:'high', flag:''},
+{no:3, name:'上甲子園', lat:34.733729, lon:135.37283, conf:'low', flag:'⚠ '},
+{no:4, name:'上甲子園交番前', lat:34.733729, lon:135.37283, conf:'high', flag:''},
+{no:5, name:'甲子園口3丁目', lat:34.7355, lon:135.367, conf:'low', flag:'⚠ '},
+{no:6, name:'甲子園口4', lat:34.7345, lon:135.3655, conf:'low', flag:'⚠ '},
+{no:7, name:'上甲子園1', lat:34.733729, lon:135.37283, conf:'low', flag:'⚠ '},
+{no:8, name:'瓦木東', lat:34.735359, lon:135.36603, conf:'low', flag:'⚠ '},
+{no:9, name:'瓦木', lat:34.735359, lon:135.36603, conf:'high', flag:''},
+{no:10, name:'瓦木郵便局前', lat:34.734816, lon:135.364744, conf:'high', flag:''},
+{no:11, name:'甲子園二番町', lat:34.731744, lon:135.372479, conf:'med', flag:''},
+{no:12, name:'甲子園二番町南', lat:34.7295, lon:135.372, conf:'low', flag:'⚠ '},
+{no:13, name:'甲子園三番町', lat:34.729547, lon:135.370129, conf:'med', flag:''},
+{no:14, name:'甲子園三保町', lat:34.729311, lon:135.366017, conf:'med', flag:''},
+{no:15, name:'甲子園四番町', lat:34.727895, lon:135.368954, conf:'med', flag:''},
+{no:16, name:'甲子園五番町北', lat:34.726809, lon:135.366604, conf:'med', flag:''},
+{no:17, name:'甲子園五番町', lat:34.7249, lon:135.3664, conf:'low', flag:'⚠ '},
+{no:18, name:'甲子園六番町', lat:34.723048, lon:135.366241, conf:'med', flag:''},
+{no:19, name:'阪神甲子園駅北', lat:34.723932, lon:135.363182, conf:'med', flag:''},
+{no:20, name:'阪神甲子園駅前', lat:34.722675, lon:135.363464, conf:'med', flag:''},
+{no:21, name:'甲子園球場前', lat:34.720466, lon:135.362119, conf:'high', flag:''},
+{no:22, name:'甲子園球場南', lat:34.721217, lon:135.361656, conf:'med', flag:''},
+{no:23, name:'甲子園九番町', lat:34.715062, lon:135.362198, conf:'med', flag:''},
+{no:24, name:'甲子園九番町南', lat:34.717555, lon:135.361097, conf:'high', flag:''},
+{no:25, name:'浜甲子園1丁目北', lat:34.7145806, lon:135.3594173, conf:'high', flag:''},
+{no:26, name:'浜甲子園1丁目', lat:34.713043, lon:135.3560308, conf:'med', flag:''},
+{no:27, name:'鳴尾浜公園前', lat:34.7109842, lon:135.3574097, conf:'high', flag:''},
+{no:28, name:'中津交番前', lat:34.7184489, lon:135.3595307, conf:'high', flag:''},
+{no:29, name:'中津交番西', lat:34.7193562, lon:135.3579406, conf:'high', flag:''},
+{no:30, name:'南甲子園東', lat:34.7201187, lon:135.3565888, conf:'high', flag:''},
+{no:31, name:'南甲子園', lat:34.717895, lon:135.3563244, conf:'med', flag:''},
+{no:32, name:'網引公園西', lat:34.7211637, lon:135.3549502, conf:'high', flag:''},
+{no:33, name:'高潮', lat:34.724093, lon:135.36073, conf:'low', flag:'⚠ '},
+{no:34, name:'鳴尾', lat:34.719681, lon:135.370432, conf:'med', flag:''},
+{no:35, name:'本郷', lat:34.717722, lon:135.371644, conf:'med', flag:''},
+{no:36, name:'笠屋町', lat:34.714164, lon:135.374465, conf:'med', flag:''},
+{no:37, name:'笠屋町東', lat:34.7126689, lon:135.374429, conf:'high', flag:''},
+{no:38, name:'東鳴尾町西', lat:34.7122755, lon:135.3761128, conf:'high', flag:''},
+{no:39, name:'東鳴尾町', lat:34.7129585, lon:135.3780614, conf:'med', flag:''},
+{no:40, name:'南武橋西詰', lat:34.7115718, lon:135.3791529, conf:'high', flag:''},
+{no:41, name:'高須東', lat:34.7033547, lon:135.3736541, conf:'high', flag:''},
+{no:42, name:'高須小学校前', lat:34.7013296, lon:135.3701227, conf:'high', flag:''},
+{no:43, name:'鳴尾町2丁目', lat:34.7145536, lon:135.3713043, conf:'med', flag:''},
+{no:44, name:'鳴尾町4丁目', lat:34.7159707, lon:135.3683667, conf:'med', flag:''},
+{no:45, name:'鳴尾浜', lat:34.6892504, lon:135.3627857, conf:'med', flag:''},
+{no:46, name:'古川町', lat:34.7133378, lon:135.3680729, conf:'med', flag:''},
+{no:47, name:'枝川一の橋', lat:34.7158047, lon:135.3652558, conf:'high', flag:''},
+{no:48, name:'甲子園浜1丁目', lat:34.7088046, lon:135.349864, conf:'med', flag:''},
+{no:49, name:'西長五郎橋', lat:34.7268106, lon:135.3472831, conf:'high', flag:''},
+{no:50, name:'今津出在家町', lat:34.7257316, lon:135.3492768, conf:'med', flag:''},
+{no:51, name:'今津巽町', lat:34.72238, lon:135.3516259, conf:'med', flag:''},
+{no:52, name:'今津港町', lat:34.7235126, lon:135.3492768, conf:'med', flag:''},
+{no:53, name:'社前交番前', lat:34.7254749, lon:135.3532693, conf:'high', flag:''},
+{no:54, name:'今津曙町', lat:34.728861, lon:135.355443, conf:'med', flag:''},
+{no:55, name:'西宮消防署前', lat:34.737446, lon:135.3497769, conf:'high', flag:''},
+{no:56, name:'津門稲荷町', lat:34.7361068, lon:135.3519195, conf:'med', flag:''},
+{no:57, name:'津門大塚町', lat:34.7378668, lon:135.3563244, conf:'med', flag:''},
+{no:58, name:'北今津', lat:34.737115, lon:135.352513, conf:'high', flag:''},
+{no:59, name:'津門飯田町', lat:34.737255, lon:135.362198, conf:'med', flag:''},
+{no:60, name:'津門', lat:34.735861, lon:135.359835, conf:'high', flag:''},
+{no:61, name:'津門西', lat:34.736366, lon:135.357182, conf:'high', flag:''},
+{no:62, name:'津門大箇町', lat:34.735082, lon:135.357499, conf:'med', flag:''},
+{no:63, name:'今津山中町', lat:34.730785, lon:135.357206, conf:'med', flag:''},
+{no:64, name:'西宮インター北', lat:34.727112, lon:135.355437, conf:'high', flag:''},
+{no:65, name:'西宮インター', lat:34.726102, lon:135.35551, conf:'high', flag:''},
+{no:66, name:'JR西宮駅前', lat:34.737735, lon:135.347348, conf:'high', flag:''},
+{no:67, name:'東川', lat:34.739445, lon:135.345288, conf:'med', flag:''},
+{no:68, name:'西宮市役所前', lat:34.738247, lon:135.341807, conf:'high', flag:''},
+{no:69, name:'上天神橋', lat:34.73623, lon:135.343836, conf:'high', flag:''},
+{no:70, name:'与古道公園前', lat:34.735543, lon:135.343638, conf:'med', flag:''},
+{no:71, name:'札場筋', lat:34.738612, lon:135.339409, conf:'high', flag:''},
+{no:72, name:'西宮郵便局前', lat:34.738602, lon:135.337712, conf:'med', flag:''},
+{no:73, name:'産所町', lat:34.73807, lon:135.335185, conf:'med', flag:''},
+{no:74, name:'産所町西', lat:34.738603, lon:135.334792, conf:'high', flag:''},
+{no:75, name:'和上町', lat:34.737907, lon:135.337827, conf:'med', flag:''},
+{no:76, name:'田中町北', lat:34.736261, lon:135.336134, conf:'high', flag:''},
+{no:77, name:'田中町', lat:34.736526, lon:135.337239, conf:'med', flag:''},
+{no:78, name:'西宮本町', lat:34.733937, lon:135.339735, conf:'med', flag:''},
+{no:79, name:'石在町', lat:34.729129, lon:135.34223, conf:'med', flag:''},
+{no:80, name:'用海', lat:34.7313245, lon:135.3445789, conf:'med', flag:''},
+{no:81, name:'用海東', lat:34.7297934, lon:135.3457346, conf:'high', flag:''},
+{no:82, name:'染殿', lat:34.734228, lon:135.3454597, conf:'med', flag:''},
+{no:83, name:'今津', lat:34.729397, lon:135.350305, conf:'low', flag:'⚠ '},
+{no:84, name:'戎前', lat:34.735685, lon:135.334607, conf:'med', flag:''},
+{no:85, name:'浜町', lat:34.730283, lon:135.337533, conf:'med', flag:''},
+{no:86, name:'前浜町', lat:34.727414, lon:135.33313, conf:'med', flag:''},
+{no:87, name:'建石', lat:34.729762, lon:135.334011, conf:'med', flag:''},
+{no:88, name:'神楽町', lat:34.738115, lon:135.330488, conf:'med', flag:''},
+{no:89, name:'千歳町', lat:34.7407351, lon:135.3319558, conf:'med', flag:''},
+{no:90, name:'夙川橋', lat:34.748958, lon:135.347962, conf:'low', flag:'⚠ '},
+{no:91, name:'森具', lat:34.736565, lon:135.324785, conf:'high', flag:''},
+{no:92, name:'郷免町', lat:34.737072, lon:135.323444, conf:'med', flag:''},
+{no:93, name:'寿町', lat:34.7418442, lon:135.3319558, conf:'med', flag:''},
+{no:94, name:'寿町北', lat:34.741835, lon:135.331421, conf:'med', flag:''},
+{no:95, name:'若松町', lat:34.7429422, lon:135.3331299, conf:'med', flag:''},
+{no:96, name:'大井手町', lat:34.7436602, lon:135.3304882, conf:'med', flag:''},
+{no:97, name:'南郷町', lat:34.7459977, lon:135.3325428, conf:'med', flag:''},
+{no:98, name:'南郷町北', lat:34.7467453, lon:135.3311898, conf:'high', flag:''},
+{no:99, name:'名次町南', lat:34.7486606, lon:135.3311067, conf:'high', flag:''},
+{no:100, name:'名次町', lat:34.7497489, lon:135.3316622, conf:'med', flag:''},
+{no:101, name:'神原', lat:34.7558373, lon:135.3328363, conf:'med', flag:''},
+{no:102, name:'神園町', lat:34.756968, lon:135.330488, conf:'med', flag:''},
+{no:103, name:'獅子ヶ口町', lat:34.758664, lon:135.326966, conf:'med', flag:''},
+{no:104, name:'柏堂町', lat:34.7637704, lon:135.3140544, conf:'med', flag:''},
+{no:105, name:'北山緑化植物園前', lat:34.7644596, lon:135.3166801, conf:'high', flag:''},
+{no:106, name:'鷲林寺町', lat:34.7737891, lon:135.3093601, conf:'med', flag:''},
+{no:107, name:'甲寿橋', lat:34.7811226, lon:135.3116904, conf:'high', flag:''},
+{no:108, name:'盤滝トンネル東', lat:34.784002, lon:135.298667, conf:'high', flag:''},
+{no:109, name:'船坂', lat:34.797621, lon:135.275927, conf:'med', flag:''},
+{no:110, name:'船坂小学校前', lat:34.805067, lon:135.28243, conf:'high', flag:''},
+{no:111, name:'両度町東', lat:34.742384, lon:135.355112, conf:'high', flag:''},
+{no:112, name:'両度町南', lat:34.742295, lon:135.352124, conf:'high', flag:''},
+{no:113, name:'球場橋', lat:34.738, lon:135.353, conf:'low', flag:'⚠ '},
+{no:114, name:'芸術文化センター前', lat:34.744221, lon:135.356689, conf:'high', flag:''},
+{no:115, name:'高松町南', lat:34.742506, lon:135.358437, conf:'high', flag:''},
+{no:116, name:'高松町', lat:34.744217, lon:135.359261, conf:'med', flag:''},
+{no:117, name:'大屋町', lat:34.744952, lon:135.369248, conf:'med', flag:''},
+{no:118, name:'大屋町北', lat:34.7456, lon:135.365292, conf:'low', flag:'⚠ '},
+{no:119, name:'瓦林北', lat:34.745684, lon:135.367032, conf:'high', flag:''},
+{no:120, name:'松山西', lat:34.745831, lon:135.370171, conf:'high', flag:''},
+{no:121, name:'松山町', lat:34.747148, lon:135.371598, conf:'med', flag:''},
+{no:122, name:'上武庫橋西詰', lat:34.747348, lon:135.374705, conf:'high', flag:''},
+{no:123, name:'江上町', lat:34.7403742, lon:135.3407622, conf:'med', flag:''},
+{no:124, name:'城ケ堀町', lat:34.746, lon:135.339, conf:'low', flag:'⚠ '},
+{no:125, name:'城ケ堀町北', lat:34.7465, lon:135.3395, conf:'low', flag:'⚠ '},
+{no:126, name:'越水阪急高架下', lat:34.7439342, lon:135.3598518, conf:'low', flag:'⚠ '},
+{no:127, name:'越水', lat:34.7457898, lon:135.3398815, conf:'med', flag:''},
+{no:128, name:'越水町東', lat:34.745012, lon:135.3403282, conf:'high', flag:''},
+{no:129, name:'室川町', lat:34.7454846, lon:135.3428173, conf:'med', flag:''},
+{no:130, name:'青木', lat:34.7457228, lon:135.3469278, conf:'med', flag:''},
+{no:131, name:'河原町', lat:34.748507, lon:135.3457533, conf:'med', flag:''},
+{no:132, name:'御手洗川橋', lat:34.7489577, lon:135.3479622, conf:'high', flag:''},
+{no:133, name:'能登町', lat:34.751224, lon:135.3516259, conf:'med', flag:''},
+{no:134, name:'丸橋町', lat:34.7523108, lon:135.3539751, conf:'med', flag:''},
+{no:135, name:'門戸陸橋西', lat:34.7535222, lon:135.3549648, conf:'high', flag:''},
+{no:136, name:'門戸陸橋東', lat:34.7579454, lon:135.3609029, conf:'high', flag:''},
+{no:137, name:'若山町', lat:34.7598329, lon:135.3648418, conf:'med', flag:''},
+{no:138, name:'上大市4西', lat:34.7616963, lon:135.3659822, conf:'high', flag:''},
+{no:139, name:'上大市4', lat:34.7632909, lon:135.365723, conf:'med', flag:''},
+{no:140, name:'上大市5', lat:34.7674, lon:135.37101, conf:'low', flag:'⚠ '},
+{no:141, name:'中前田町南', lat:34.7419608, lon:135.3426557, conf:'high', flag:''},
+{no:142, name:'西宮警察署北', lat:34.7420289, lon:135.3446027, conf:'high', flag:''},
+{no:143, name:'門戸厄神駅前', lat:34.757912, lon:135.358078, conf:'high', flag:''},
+{no:144, name:'上大市5', lat:34.7674, lon:135.37101, conf:'low', flag:'⚠ '},
+{no:145, name:'甲武橋', lat:34.764599, lon:135.372757, conf:'high', flag:''},
+{no:146, name:'甲武橋北', lat:34.7665, lon:135.372425, conf:'high', flag:''},
+{no:147, name:'樋ノ口町バス停前', lat:34.745495, lon:135.344434, conf:'low', flag:'⚠ '},
+{no:148, name:'新田バス停前', lat:34.753683, lon:135.372717, conf:'low', flag:'⚠ '},
+{no:149, name:'上武庫橋', lat:34.74767, lon:135.375305, conf:'high', flag:''},
+{no:150, name:'上武庫橋西詰', lat:34.747348, lon:135.374705, conf:'high', flag:''},
+{no:151, name:'仁川橋', lat:34.774666, lon:135.358461, conf:'high', flag:''},
+{no:152, name:'仁川町2丁目', lat:34.774297, lon:135.360142, conf:'med', flag:''},
+{no:153, name:'仁川霊園前', lat:34.775105, lon:135.371892, conf:'high', flag:''},
+{no:154, name:'仁川北1丁目', lat:34.776, lon:135.362, conf:'low', flag:'⚠ '},
+{no:155, name:'仁川口橋', lat:34.774357, lon:135.370902, conf:'high', flag:''},
+{no:156, name:'生瀬', lat:34.819067, lon:135.32814, conf:'med', flag:''},
+{no:157, name:'生瀬北', lat:34.816624, lon:135.334555, conf:'high', flag:''},
+{no:158, name:'生瀬橋東詰', lat:34.817968, lon:135.333815, conf:'high', flag:''},
+{no:159, name:'生瀬橋西詰', lat:34.817897, lon:135.332323, conf:'high', flag:''},
+{no:160, name:'生瀬1', lat:34.820175, lon:135.32814, conf:'low', flag:'⚠ '},
+{no:161, name:'西宝橋南詰', lat:34.819162, lon:135.322149, conf:'high', flag:''},
+{no:162, name:'木ノ元バス停前', lat:34.824122, lon:135.317534, conf:'high', flag:''},
+{no:163, name:'尼子谷', lat:34.824014, lon:135.310364, conf:'high', flag:''},
+{no:164, name:'名塩八幡', lat:34.828158, lon:135.302949, conf:'med', flag:''},
+{no:165, name:'名塩南', lat:34.827862, lon:135.305235, conf:'med', flag:''},
+{no:166, name:'名塩東口', lat:34.82863, lon:135.305074, conf:'med', flag:''},
+{no:167, name:'名塩', lat:34.850635, lon:135.294693, conf:'low', flag:'⚠ '},
+{no:168, name:'名塩幼稚園前', lat:34.830996, lon:135.296891, conf:'med', flag:''},
+{no:169, name:'名塩西ノ口', lat:34.830285, lon:135.294526, conf:'med', flag:''},
+{no:170, name:'名塩山荘バス停前', lat:34.830304, lon:135.29111, conf:'med', flag:''},
+{no:171, name:'名塩茶園町', lat:34.835083, lon:135.283257, conf:'med', flag:''},
+{no:172, name:'さくら台入口', lat:34.8380769, lon:135.2771985, conf:'med', flag:''},
+{no:173, name:'赤坂峠', lat:34.835313, lon:135.268955, conf:'low', flag:'⚠ '},
+{no:174, name:'赤坂峠西', lat:34.835313, lon:135.268955, conf:'med', flag:''},
+{no:175, name:'西宮山口東ランプ', lat:34.834479, lon:135.260974, conf:'high', flag:''},
+{no:176, name:'丸山ダム北', lat:34.831703, lon:135.254981, conf:'high', flag:''},
+{no:177, name:'有馬病院前', lat:34.832825, lon:135.254015, conf:'high', flag:''},
+{no:178, name:'北六甲台4丁目', lat:34.831873, lon:135.250721, conf:'med', flag:''},
+{no:179, name:'北六甲台4西', lat:34.828464, lon:135.247088, conf:'high', flag:''},
+{no:180, name:'明治橋東詰', lat:34.831159, lon:135.242702, conf:'high', flag:''},
+{no:181, name:'新明治橋', lat:34.832431, lon:135.241339, conf:'high', flag:''},
+{no:182, name:'新天上橋西詰', lat:34.833946, lon:135.240284, conf:'med', flag:''},
+{no:183, name:'天上橋', lat:34.835156, lon:135.240066, conf:'high', flag:''},
+{no:184, name:'天上橋北', lat:34.8366773, lon:135.2394479, conf:'high', flag:''},
+{no:185, name:'名来2丁目', lat:34.840833, lon:135.2366588, conf:'med', flag:''},
+{no:186, name:'名来', lat:34.8433275, lon:135.236073, conf:'med', flag:''},
+{no:187, name:'名来1丁目', lat:34.8444458, lon:135.2377505, conf:'med', flag:''},
+{no:188, name:'天上橋西', lat:34.8347469, lon:135.2393608, conf:'high', flag:''},
+{no:189, name:'流通センター東', lat:34.8344302, lon:135.23688, conf:'high', flag:''},
+{no:190, name:'流通センター前', lat:34.8342662, lon:135.2357445, conf:'high', flag:''},
+{no:191, name:'西宮明治橋', lat:34.830552, lon:135.240663, conf:'high', flag:''},
+{no:192, name:'山口交番前', lat:34.8281453, lon:135.2405528, conf:'high', flag:''},
+{no:193, name:'松栄橋', lat:34.820841, lon:135.2469051, conf:'low', flag:'⚠ '},
+{no:194, name:'上山口', lat:34.8209058, lon:135.2465261, conf:'high', flag:''},
+{no:195, name:'金仙寺湖西', lat:34.824526, lon:135.2534865, conf:'low', flag:'⚠ '},
+{no:196, name:'山口町中野', lat:34.8094109, lon:135.2559956, conf:'high', flag:''},
+{no:197, name:'西宮浜3丁目西', lat:34.71701, lon:135.328616, conf:'high', flag:''},
+{no:198, name:'西宮浜3丁目', lat:34.718998, lon:135.328727, conf:'med', flag:''},
+{no:199, name:'西宮浜1丁目', lat:34.717514, lon:135.338707, conf:'med', flag:''}
+  ];
+
+  const map = L.map('map').setView([34.78, 135.32], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  const normalIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:12px;height:12px;border-radius:50%;background:#1f5fa8;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);"></div>',
+    iconSize: [12,12],
+    iconAnchor: [6,6]
+  });
+  const warnIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:12px;height:12px;border-radius:50%;background:#e07b2a;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);"></div>',
+    iconSize: [12,12],
+    iconAnchor: [6,6]
+  });
+
+  const markers = points.map(p => {
+    const m = L.marker([p.lat, p.lon], {icon: p.conf === 'low' ? warnIcon : normalIcon});
+    m.bindPopup(`<strong>${p.flag}${p.no}. ${p.name}</strong><br><span style="color:#5b6673;font-size:0.8em;">確認状況: ${p.conf === 'low' ? '推定位置（要確認）' : p.conf}</span>`);
+    m.addTo(map);
+    return {marker: m, data: p};
+  });
+
+  const listEl = document.getElementById('list');
+  markers.forEach(({marker, data}) => {
+    const div = document.createElement('div');
+    div.className = 'item' + (data.conf === 'low' ? ' warn' : '');
+    div.dataset.name = data.name;
+    div.innerHTML = `<span class="no">${data.no}</span><span class="name">${data.flag}${data.name}</span>`;
+    div.addEventListener('click', () => {
+      map.setView([data.lat, data.lon], 17);
+      marker.openPopup();
+    });
+    listEl.appendChild(div);
+  });
+
+  document.getElementById('search').addEventListener('input', (e) => {
+    const q = e.target.value.trim();
+    document.querySelectorAll('.item').forEach(el => {
+      el.classList.toggle('hidden', q && !el.dataset.name.includes(q));
+    });
+  });
+</script>
+</body>
+</html>
