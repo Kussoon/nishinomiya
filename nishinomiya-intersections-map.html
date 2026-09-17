@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.3.2</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.4</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -124,7 +124,7 @@
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.3.2</h1>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.4</h1>
   <span class="meta">全199件（⚠ 推定位置 25件）</span>
 </header>
 <div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。位置修正内容はこの端末のブラウザ内に一時保存されます。</div>
@@ -143,6 +143,8 @@
       <div class="edit-title" id="editTitle">位置修正モード</div>
       <div id="editInfo"></div>
       <div class="edit-actions">
+        <button class="btn done" id="acceptCurrentBtn">✓ 現在の推定位置でOK</button>
+        <button class="btn" id="multiPosBtn">＋ 複数地点にする</button>
         <button class="btn primary" id="confirmPosBtn" disabled>この位置に修正</button>
         <button class="btn" id="skipPosBtn">次へ</button>
         <button class="btn done" id="exportBtn">修正CSVを書き出す</button>
@@ -455,89 +457,126 @@
   }
   document.getElementById('nearBtn').addEventListener('click', sortByDistance);
 
-  // ---- Ver.0.3 位置修正モード ----
+  // ---- Ver.0.4 位置確認・修正モード ----
   const editBtn=document.getElementById('editBtn');
   const editBox=document.getElementById('editBox');
   const editTitle=document.getElementById('editTitle');
   const editInfo=document.getElementById('editInfo');
+  const acceptCurrentBtn=document.getElementById('acceptCurrentBtn');
+  const multiPosBtn=document.getElementById('multiPosBtn');
   const confirmPosBtn=document.getElementById('confirmPosBtn');
   const skipPosBtn=document.getElementById('skipPosBtn');
   const exportBtn=document.getElementById('exportBtn');
   const exitEditBtn=document.getElementById('exitEditBtn');
   const lowIndexes=markers.map((x,i)=>x.data.conf==='low'?i:null).filter(i=>i!==null);
-  let editMode=false, editCursor=0, proposedLatLng=null, proposedMarker=null;
-  const importedCorrections={"2":{"no":3,"name":"上甲子園","oldLat":34.733729,"oldLon":135.37283,"newLat":34.733458571227935,"newLon":135.37286549806595,"original":{"lat":34.733729,"lon":135.37283},"updatedAt":"2026-09-17T05:25:53.703Z"},"4":{"no":5,"name":"甲子園口3丁目","oldLat":34.7355,"oldLon":135.367,"newLat":34.73374512584608,"newLon":135.37160128355026,"original":{"lat":34.7355,"lon":135.367},"updatedAt":"2026-09-17T05:26:56.052Z"},"5":{"no":6,"name":"甲子園口4","oldLat":34.7345,"oldLon":135.3655,"newLat":34.73405666102156,"newLon":135.370109975338,"original":{"lat":34.7345,"lon":135.3655},"updatedAt":"2026-09-17T05:27:14.254Z"},"6":{"no":7,"name":"上甲子園1","oldLat":34.733729,"oldLon":135.37283,"newLat":34.734296924376,"newLon":135.36869913339615,"original":{"lat":34.733729,"lon":135.37283},"updatedAt":"2026-09-17T05:27:41.214Z"},"7":{"no":8,"name":"瓦木東","oldLat":34.735359,"oldLon":135.36603,"newLat":34.73457098539228,"newLon":135.3672364354134,"original":{"lat":34.735359,"lon":135.36603},"updatedAt":"2026-09-17T05:27:49.965Z"},"11":{"no":12,"name":"甲子園二番町南","oldLat":34.7295,"oldLon":135.372,"newLat":34.73129615395535,"newLon":135.37029951810842,"original":{"lat":34.7295,"lon":135.372},"updatedAt":"2026-09-17T05:28:33.928Z"},"16":{"no":17,"name":"甲子園五番町","oldLat":34.7249,"oldLon":135.3664,"newLat":34.72633112387454,"newLon":135.36405891180038,"original":{"lat":34.7249,"lon":135.3664},"updatedAt":"2026-09-17T05:29:02.932Z"},"32":{"no":33,"name":"高潮","oldLat":34.724093,"oldLon":135.36073,"newLat":34.723855477996686,"newLon":135.3589913249016,"original":{"lat":34.724093,"lon":135.36073},"updatedAt":"2026-09-17T05:29:17.679Z"},"82":{"no":83,"name":"今津","oldLat":34.729397,"oldLon":135.350305,"newLat":34.72981042367109,"newLon":135.35030722618106,"original":{"lat":34.729397,"lon":135.350305},"updatedAt":"2026-09-17T05:29:32.006Z"},"89":{"no":90,"name":"夙川橋","oldLat":34.748958,"oldLon":135.347962,"newLat":34.737720784955826,"newLon":135.32913118600848,"original":{"lat":34.748958,"lon":135.347962},"updatedAt":"2026-09-17T05:30:20.062Z"},"112":{"no":113,"name":"球場橋","oldLat":34.738,"oldLon":135.353,"newLat":34.74423527980195,"newLon":135.35505652427676,"original":{"lat":34.738,"lon":135.353},"updatedAt":"2026-09-17T05:31:03.660Z"}};
-  const savedCorrections=JSON.parse(localStorage.getItem('nishinomiyaIntersectionCorrectionsV03')||'{}');
-  // Ver.0.3で回収した11件を初期値として統合。端末側に新しい修正があればそちらを優先。
-  Object.entries(importedCorrections).forEach(([idx,c])=>{ if(!savedCorrections[idx]) savedCorrections[idx]=c; });
-  localStorage.setItem('nishinomiyaIntersectionCorrectionsV03',JSON.stringify(savedCorrections));
+  let editMode=false, editCursor=0, proposedLatLng=null, proposedMarker=null, multiMode=false, secondLatLng=null, secondMarker=null;
 
-  function applySavedCorrections(){
-    Object.entries(savedCorrections).forEach(([idx,c])=>{
-      const i=+idx; if(!markers[i]) return;
-      markers[i].marker.setLatLng([c.newLat,c.newLon]);
-      markers[i].data.lat=c.newLat; markers[i].data.lon=c.newLon;
-      const el=document.querySelector(`.item[data-idx="${i}"]`); if(el) el.classList.add('corrected');
-    });
-  }
-  function saveCorrections(){ localStorage.setItem('nishinomiyaIntersectionCorrectionsV03',JSON.stringify(savedCorrections)); }
+  // 9/17に一巡して得られた23件を「現在の基準座標」として読み込む。
+  // Ver.0.4では確認済み扱いにはせず、25件すべてを最初から再確認する。
+  const baselineByNo={
+    3:[34.733458571227935,135.37286549806595],5:[34.73374512584608,135.37160128355026],6:[34.73405666102156,135.370109975338],7:[34.734296924376,135.36869913339615],8:[34.73457098539228,135.3672364354134],12:[34.73129615395535,135.37029951810842],17:[34.72633112387454,135.36405891180038],33:[34.723855477996686,135.3589913249016],83:[34.72981042367109,135.35030722618106],90:[34.737720784955826,135.32913118600848],113:[34.74423527980195,135.35505652427676],118:[34.7456,135.365292],124:[34.74129860258442,135.33925888137875],125:[34.74184156884147,135.3392013350323],126:[34.743302141917376,135.3391086943522],140:[34.76433448063511,135.3695257927045],147:[34.75912222527962,135.371935878678],148:[34.75351793304606,135.37269294261935],154:[34.77450310193672,135.37108291538303],160:[34.820799318600415,135.32653838815438],167:[34.82963145615242,135.3000534918194],193:[34.82473531213474,135.24416227623067],195:[34.82214464710217,135.25168271819493]
+  };
+  markers.forEach(({marker,data})=>{ const b=baselineByNo[data.no]; if(b){ data.lat=b[0]; data.lon=b[1]; marker.setLatLng(b); } });
+
+  // 新しいキーを使うので、旧版の「確認済み」は引き継がない。
+  const storageKey='nishinomiyaIntersectionCorrectionsV04';
+  const savedCorrections=JSON.parse(localStorage.getItem(storageKey)||'{}');
+  function saveCorrections(){ localStorage.setItem(storageKey,JSON.stringify(savedCorrections)); }
   function editTarget(){ return lowIndexes[editCursor]; }
+  function clearProposal(){
+    if(proposedMarker){map.removeLayer(proposedMarker); proposedMarker=null;}
+    if(secondMarker){map.removeLayer(secondMarker); secondMarker=null;}
+    proposedLatLng=null; secondLatLng=null; multiMode=false; confirmPosBtn.disabled=true; multiPosBtn.classList.remove('active'); multiPosBtn.textContent='＋ 複数地点にする';
+  }
   function showEditTarget(){
-    if(!editMode) return;
-    if(proposedMarker){map.removeLayer(proposedMarker); proposedMarker=null;} proposedLatLng=null; confirmPosBtn.disabled=true;
+    if(!editMode) return; clearProposal();
     const i=editTarget();
-    if(i===undefined){ editInfo.innerHTML='<strong>推定位置25件を一巡しました。</strong><br>必要ならCSVを書き出してください。'; return; }
+    if(i===undefined){ editTitle.textContent='推定位置の再確認 完了'; editInfo.innerHTML='<strong>25件を一巡しました。</strong><br>必要ならCSVを書き出してください。'; return; }
     const d=markers[i].data, done=savedCorrections[i];
     editTitle.textContent=`⚠ ${d.name}　${editCursor+1} / ${lowIndexes.length}`;
-    editInfo.innerHTML=`現在座標：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}${done?'<br><strong>✓ この端末で修正済み</strong>':''}<br><span class="crosshair-note">地図上の正しい交差点中心をタップしてください。</span>`;
+    editInfo.innerHTML=`現在座標：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}${done?'<br><strong>✓ 今回の再確認済み</strong>':''}<br><span class="crosshair-note">そのままで正しければ「現在の推定位置でOK」。違えば地図上の正しい位置をタップしてください。</span>`;
     map.setView(markers[i].marker.getLatLng(),18);
     const el=document.querySelector(`.item[data-idx="${i}"]`); selectPoint(markers[i].marker,d,el);
   }
   function startEdit(){
     editMode=true; editBtn.classList.add('active'); editBox.classList.add('active'); warnOnly=true; warnBtn.classList.add('active'); applyFilter();
-    const firstUndone=lowIndexes.findIndex(i=>!savedCorrections[i]); editCursor=firstUndone>=0?firstUndone:0; showEditTarget();
+    // 毎回「全部再確認」できるよう、開始時は先頭へ。途中再開は次へで進められる。
+    editCursor=0; showEditTarget();
   }
-  function exitEdit(){ editMode=false; editBtn.classList.remove('active'); editBox.classList.remove('active'); if(proposedMarker){map.removeLayer(proposedMarker);proposedMarker=null;} proposedLatLng=null; }
+  function exitEdit(){ editMode=false; editBtn.classList.remove('active'); editBox.classList.remove('active'); clearProposal(); }
   editBtn.addEventListener('click',()=> editMode?exitEdit():startEdit());
   exitEditBtn.addEventListener('click',exitEdit);
-  function proposePosition(latlng){
-    if(!editMode) return;
-    proposedLatLng=L.latLng(latlng.lat,latlng.lng);
-    if(proposedMarker) map.removeLayer(proposedMarker);
-    proposedMarker=L.circleMarker(proposedLatLng,{radius:10,weight:3,color:'#c2410c',fillColor:'#fde68a',fillOpacity:.8,interactive:false}).addTo(map);
-    const i=editTarget(), d=markers[i].data;
-    editInfo.innerHTML=`旧：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}<br>新：<strong>${proposedLatLng.lat.toFixed(6)}, ${proposedLatLng.lng.toFixed(6)}</strong><br><span class="crosshair-note">位置がよければ「この位置に修正」</span>`;
-    confirmPosBtn.disabled=false;
-  }
-  map.on('click',e=>proposePosition(e.latlng));
 
-  // 修正対象の「!」ピン自体をタップした場合も、現在の推定座標を候補位置として扱う。
-  // これにより「推定位置のままで正しい」地点も、その場で確定できる。
-  markers.forEach(({marker},idx)=>{
-    marker.on('click',()=>{
-      if(editMode && idx===editTarget()) proposePosition(marker.getLatLng());
-    });
-  });
-  confirmPosBtn.addEventListener('click',()=>{
-    if(!editMode||!proposedLatLng) return;
+  function recordCurrent(pointsArr,method){
     const i=editTarget(), d=markers[i].data;
-    const old=savedCorrections[i]?.original || {lat:d.lat,lon:d.lon};
-    savedCorrections[i]={no:d.no,name:d.name,oldLat:old.lat,oldLon:old.lon,newLat:proposedLatLng.lat,newLon:proposedLatLng.lng,original:old,updatedAt:new Date().toISOString()};
-    saveCorrections(); markers[i].marker.setLatLng(proposedLatLng); d.lat=proposedLatLng.lat; d.lon=proposedLatLng.lng;
+    savedCorrections[i]={no:d.no,name:d.name,points:pointsArr.map((p,n)=>({point:n+1,lat:p.lat,lng:p.lng})),method,updatedAt:new Date().toISOString()};
+    saveCorrections();
+    // 地点1を代表座標として地図本体にも反映
+    if(pointsArr[0]){ d.lat=pointsArr[0].lat; d.lon=pointsArr[0].lng; markers[i].marker.setLatLng(pointsArr[0]); }
     const el=document.querySelector(`.item[data-idx="${i}"]`); if(el) el.classList.add('corrected');
     editCursor++; showEditTarget();
+  }
+
+  acceptCurrentBtn.addEventListener('click',()=>{
+    if(!editMode) return;
+    const i=editTarget(); if(i===undefined) return;
+    const ll=markers[i].marker.getLatLng();
+    recordCurrent([{lat:ll.lat,lng:ll.lng}],'推定位置でOK');
+  });
+
+  multiPosBtn.addEventListener('click',()=>{
+    if(!editMode) return;
+    multiMode=!multiMode; secondLatLng=null;
+    if(secondMarker){map.removeLayer(secondMarker);secondMarker=null;}
+    multiPosBtn.classList.toggle('active',multiMode);
+    multiPosBtn.textContent=multiMode?'複数地点：ON（2地点をタップ）':'＋ 複数地点にする';
+    proposedLatLng=null;
+    if(proposedMarker){map.removeLayer(proposedMarker);proposedMarker=null;}
+    confirmPosBtn.disabled=true;
+    editInfo.insertAdjacentHTML('beforeend', multiMode?'<br><strong>地点1、地点2の順に地図をタップしてください。</strong>':'');
+  });
+
+  function proposalDot(ll,label){
+    const m=L.circleMarker(ll,{radius:10,weight:3,color:'#c2410c',fillColor:'#fde68a',fillOpacity:.85,interactive:false}).addTo(map);
+    m.bindTooltip(label,{permanent:true,direction:'top',offset:[0,-8]}); return m;
+  }
+  function proposePosition(latlng){
+    if(!editMode) return;
+    const ll=L.latLng(latlng.lat,latlng.lng);
+    if(multiMode){
+      if(!proposedLatLng){ proposedLatLng=ll; if(proposedMarker)map.removeLayer(proposedMarker); proposedMarker=proposalDot(ll,'地点1'); confirmPosBtn.disabled=true; }
+      else { secondLatLng=ll; if(secondMarker)map.removeLayer(secondMarker); secondMarker=proposalDot(ll,'地点2'); confirmPosBtn.disabled=false; }
+      const p1=proposedLatLng?`${proposedLatLng.lat.toFixed(6)}, ${proposedLatLng.lng.toFixed(6)}`:'未選択';
+      const p2=secondLatLng?`${secondLatLng.lat.toFixed(6)}, ${secondLatLng.lng.toFixed(6)}`:'未選択';
+      editInfo.innerHTML=`<strong>複数地点</strong><br>地点1：${p1}<br>地点2：${p2}<br><span class="crosshair-note">2地点そろったら「この位置に修正」</span>`;
+    }else{
+      proposedLatLng=ll; if(proposedMarker)map.removeLayer(proposedMarker); proposedMarker=proposalDot(ll,'新位置');
+      const i=editTarget(), d=markers[i].data;
+      editInfo.innerHTML=`現在：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}<br>新：<strong>${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</strong><br><span class="crosshair-note">位置がよければ「この位置に修正」</span>`;
+      confirmPosBtn.disabled=false;
+    }
+  }
+  map.on('click',e=>proposePosition(e.latlng));
+  markers.forEach(({marker},idx)=>marker.on('click',()=>{ if(editMode && idx===editTarget()) proposePosition(marker.getLatLng()); }));
+
+  confirmPosBtn.addEventListener('click',()=>{
+    if(!editMode||!proposedLatLng) return;
+    if(multiMode){ if(!secondLatLng)return; recordCurrent([proposedLatLng,secondLatLng],'複数地点'); }
+    else recordCurrent([proposedLatLng],'座標修正');
   });
   skipPosBtn.addEventListener('click',()=>{ if(!editMode)return; editCursor++; if(editCursor>=lowIndexes.length) editCursor=0; showEditTarget(); });
+
   exportBtn.addEventListener('click',()=>{
-    const vals=Object.values(savedCorrections);
-    if(!vals.length){alert('まだ修正データがありません。');return;}
-    const esc=v=>'"'+String(v).replaceAll('"','""')+'"';
-    const lines=[['No','交差点名','旧緯度','旧経度','新緯度','新経度','修正日時'].map(esc).join(',')];
-    vals.sort((a,b)=>a.no-b.no).forEach(c=>lines.push([c.no,c.name,c.oldLat,c.oldLon,c.newLat,c.newLon,c.updatedAt].map(esc).join(',')));
-    const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-corrections-v0.3.2.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const vals=Object.values(savedCorrections); if(!vals.length){alert('まだ今回の確認データがありません。');return;}
+    const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';
+    const lines=[['No','交差点名','確認方法','地点','緯度','経度','確認日時'].map(esc).join(',')];
+    vals.sort((a,b)=>a.no-b.no).forEach(c=>c.points.forEach(p=>lines.push([c.no,c.name,c.method,p.point,p.lat,p.lng,c.updatedAt].map(esc).join(','))));
+    const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}), url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-review-v0.4.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
-  applySavedCorrections();
+
+  // 今回の再確認結果がすでに端末にある場合は代表座標を反映
+  Object.entries(savedCorrections).forEach(([idx,c])=>{ const i=+idx,p=c.points?.[0]; if(markers[i]&&p){markers[i].data.lat=p.lat;markers[i].data.lon=p.lng;markers[i].marker.setLatLng([p.lat,p.lng]);} });
 
   document.getElementById('locateBtn').addEventListener('click', () => {
     if (!navigator.geolocation) { alert('この端末では現在地を取得できません。'); return; }
