@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.3</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.3.2</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -124,7 +124,7 @@
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.3</h1>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.3.2</h1>
   <span class="meta">全199件（⚠ 推定位置 25件）</span>
 </header>
 <div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。位置修正内容はこの端末のブラウザ内に一時保存されます。</div>
@@ -466,7 +466,11 @@
   const exitEditBtn=document.getElementById('exitEditBtn');
   const lowIndexes=markers.map((x,i)=>x.data.conf==='low'?i:null).filter(i=>i!==null);
   let editMode=false, editCursor=0, proposedLatLng=null, proposedMarker=null;
+  const importedCorrections={"2":{"no":3,"name":"上甲子園","oldLat":34.733729,"oldLon":135.37283,"newLat":34.733458571227935,"newLon":135.37286549806595,"original":{"lat":34.733729,"lon":135.37283},"updatedAt":"2026-09-17T05:25:53.703Z"},"4":{"no":5,"name":"甲子園口3丁目","oldLat":34.7355,"oldLon":135.367,"newLat":34.73374512584608,"newLon":135.37160128355026,"original":{"lat":34.7355,"lon":135.367},"updatedAt":"2026-09-17T05:26:56.052Z"},"5":{"no":6,"name":"甲子園口4","oldLat":34.7345,"oldLon":135.3655,"newLat":34.73405666102156,"newLon":135.370109975338,"original":{"lat":34.7345,"lon":135.3655},"updatedAt":"2026-09-17T05:27:14.254Z"},"6":{"no":7,"name":"上甲子園1","oldLat":34.733729,"oldLon":135.37283,"newLat":34.734296924376,"newLon":135.36869913339615,"original":{"lat":34.733729,"lon":135.37283},"updatedAt":"2026-09-17T05:27:41.214Z"},"7":{"no":8,"name":"瓦木東","oldLat":34.735359,"oldLon":135.36603,"newLat":34.73457098539228,"newLon":135.3672364354134,"original":{"lat":34.735359,"lon":135.36603},"updatedAt":"2026-09-17T05:27:49.965Z"},"11":{"no":12,"name":"甲子園二番町南","oldLat":34.7295,"oldLon":135.372,"newLat":34.73129615395535,"newLon":135.37029951810842,"original":{"lat":34.7295,"lon":135.372},"updatedAt":"2026-09-17T05:28:33.928Z"},"16":{"no":17,"name":"甲子園五番町","oldLat":34.7249,"oldLon":135.3664,"newLat":34.72633112387454,"newLon":135.36405891180038,"original":{"lat":34.7249,"lon":135.3664},"updatedAt":"2026-09-17T05:29:02.932Z"},"32":{"no":33,"name":"高潮","oldLat":34.724093,"oldLon":135.36073,"newLat":34.723855477996686,"newLon":135.3589913249016,"original":{"lat":34.724093,"lon":135.36073},"updatedAt":"2026-09-17T05:29:17.679Z"},"82":{"no":83,"name":"今津","oldLat":34.729397,"oldLon":135.350305,"newLat":34.72981042367109,"newLon":135.35030722618106,"original":{"lat":34.729397,"lon":135.350305},"updatedAt":"2026-09-17T05:29:32.006Z"},"89":{"no":90,"name":"夙川橋","oldLat":34.748958,"oldLon":135.347962,"newLat":34.737720784955826,"newLon":135.32913118600848,"original":{"lat":34.748958,"lon":135.347962},"updatedAt":"2026-09-17T05:30:20.062Z"},"112":{"no":113,"name":"球場橋","oldLat":34.738,"oldLon":135.353,"newLat":34.74423527980195,"newLon":135.35505652427676,"original":{"lat":34.738,"lon":135.353},"updatedAt":"2026-09-17T05:31:03.660Z"}};
   const savedCorrections=JSON.parse(localStorage.getItem('nishinomiyaIntersectionCorrectionsV03')||'{}');
+  // Ver.0.3で回収した11件を初期値として統合。端末側に新しい修正があればそちらを優先。
+  Object.entries(importedCorrections).forEach(([idx,c])=>{ if(!savedCorrections[idx]) savedCorrections[idx]=c; });
+  localStorage.setItem('nishinomiyaIntersectionCorrectionsV03',JSON.stringify(savedCorrections));
 
   function applySavedCorrections(){
     Object.entries(savedCorrections).forEach(([idx,c])=>{
@@ -496,14 +500,23 @@
   function exitEdit(){ editMode=false; editBtn.classList.remove('active'); editBox.classList.remove('active'); if(proposedMarker){map.removeLayer(proposedMarker);proposedMarker=null;} proposedLatLng=null; }
   editBtn.addEventListener('click',()=> editMode?exitEdit():startEdit());
   exitEditBtn.addEventListener('click',exitEdit);
-  map.on('click',e=>{
+  function proposePosition(latlng){
     if(!editMode) return;
-    proposedLatLng=e.latlng;
+    proposedLatLng=L.latLng(latlng.lat,latlng.lng);
     if(proposedMarker) map.removeLayer(proposedMarker);
-    proposedMarker=L.circleMarker(e.latlng,{radius:10,weight:3,color:'#c2410c',fillColor:'#fde68a',fillOpacity:.8}).addTo(map);
+    proposedMarker=L.circleMarker(proposedLatLng,{radius:10,weight:3,color:'#c2410c',fillColor:'#fde68a',fillOpacity:.8,interactive:false}).addTo(map);
     const i=editTarget(), d=markers[i].data;
-    editInfo.innerHTML=`旧：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}<br>新：<strong>${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}</strong><br><span class="crosshair-note">位置がよければ「この位置に修正」</span>`;
+    editInfo.innerHTML=`旧：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}<br>新：<strong>${proposedLatLng.lat.toFixed(6)}, ${proposedLatLng.lng.toFixed(6)}</strong><br><span class="crosshair-note">位置がよければ「この位置に修正」</span>`;
     confirmPosBtn.disabled=false;
+  }
+  map.on('click',e=>proposePosition(e.latlng));
+
+  // 修正対象の「!」ピン自体をタップした場合も、現在の推定座標を候補位置として扱う。
+  // これにより「推定位置のままで正しい」地点も、その場で確定できる。
+  markers.forEach(({marker},idx)=>{
+    marker.on('click',()=>{
+      if(editMode && idx===editTarget()) proposePosition(marker.getLatLng());
+    });
   });
   confirmPosBtn.addEventListener('click',()=>{
     if(!editMode||!proposedLatLng) return;
@@ -522,7 +535,7 @@
     const lines=[['No','交差点名','旧緯度','旧経度','新緯度','新経度','修正日時'].map(esc).join(',')];
     vals.sort((a,b)=>a.no-b.no).forEach(c=>lines.push([c.no,c.name,c.oldLat,c.oldLon,c.newLat,c.newLon,c.updatedAt].map(esc).join(',')));
     const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-corrections-v0.3.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-corrections-v0.3.2.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
   applySavedCorrections();
 
