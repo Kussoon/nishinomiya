@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.4</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.5</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -108,6 +108,16 @@
   .item .no { color: var(--sub); font-size: 0.75rem; flex: 0 0 26px; text-align: right; }
   .item.warn .name { color: var(--warn); }
   .item.hidden { display: none; }
+  
+  #mapExpandBtn.active { background:#111827; color:#fff; border-color:#111827; }
+  body.map-expanded { overflow:hidden; }
+  body.map-expanded #map {
+    position:fixed; inset:0; width:100vw; height:100dvh !important; min-height:100dvh !important; z-index:2000;
+  }
+  body.map-expanded #mapExpandBtn {
+    position:fixed; right:12px; top:12px; z-index:2100; box-shadow:0 2px 10px rgba(0,0,0,.25);
+  }
+
   @media (max-width: 720px) {
     header { padding:10px 12px; }
     h1 { font-size:.98rem; }
@@ -124,7 +134,7 @@
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.4</h1>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.5</h1>
   <span class="meta">全199件（⚠ 推定位置 25件）</span>
 </header>
 <div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。位置修正内容はこの端末のブラウザ内に一時保存されます。</div>
@@ -137,6 +147,7 @@
       <button class="btn" id="warnOnlyBtn">⚠ 推定位置のみ</button>
       <button class="btn" id="nearBtn">近い順</button>
       <button class="btn" id="resetBtn">全体表示</button>
+      <button class="btn" id="mapExpandBtn">⛶ 地図を大きく</button>
       <button class="btn" id="editBtn">🛠 位置修正</button>
     </div>
     <div class="editbox" id="editBox">
@@ -457,7 +468,7 @@
   }
   document.getElementById('nearBtn').addEventListener('click', sortByDistance);
 
-  // ---- Ver.0.4 位置確認・修正モード ----
+  // ---- Ver.0.5 位置確認・修正モード ----
   const editBtn=document.getElementById('editBtn');
   const editBox=document.getElementById('editBox');
   const editTitle=document.getElementById('editTitle');
@@ -472,14 +483,33 @@
   let editMode=false, editCursor=0, proposedLatLng=null, proposedMarker=null, multiMode=false, secondLatLng=null, secondMarker=null;
 
   // 9/17に一巡して得られた23件を「現在の基準座標」として読み込む。
-  // Ver.0.4では確認済み扱いにはせず、25件すべてを最初から再確認する。
+  // Ver.0.5では確認済み扱いにはせず、25件すべてを最初から再確認する。
   const baselineByNo={
-    3:[34.733458571227935,135.37286549806595],5:[34.73374512584608,135.37160128355026],6:[34.73405666102156,135.370109975338],7:[34.734296924376,135.36869913339615],8:[34.73457098539228,135.3672364354134],12:[34.73129615395535,135.37029951810842],17:[34.72633112387454,135.36405891180038],33:[34.723855477996686,135.3589913249016],83:[34.72981042367109,135.35030722618106],90:[34.737720784955826,135.32913118600848],113:[34.74423527980195,135.35505652427676],118:[34.7456,135.365292],124:[34.74129860258442,135.33925888137875],125:[34.74184156884147,135.3392013350323],126:[34.743302141917376,135.3391086943522],140:[34.76433448063511,135.3695257927045],147:[34.75912222527962,135.371935878678],148:[34.75351793304606,135.37269294261935],154:[34.77450310193672,135.37108291538303],160:[34.820799318600415,135.32653838815438],167:[34.82963145615242,135.3000534918194],193:[34.82473531213474,135.24416227623067],195:[34.82214464710217,135.25168271819493]
+    3:[34.73327267757251,135.3739365935326],5:[34.73374512584608,135.37160128355026],6:[34.73405666102156,135.370109975338],7:[34.73434835680757,135.3687670826912],8:[34.73457098539228,135.3672364354134],12:[34.73129615395535,135.37029951810842],17:[34.72633112387454,135.36405891180038],33:[34.72391646986631,135.35904586315158],83:[34.72970975749782,135.35023748874667],90:[34.737720784955826,135.32913118600848],113:[34.74423527980195,135.35505652427676],118:[34.7456,135.365292],124:[34.74129860258442,135.33925888137875],125:[34.74184156884147,135.3392013350323],126:[34.74339702748666,135.3391045331955],140:[34.76433448063511,135.3695257927045],144:[34.7674,135.37101],147:[34.75912222527962,135.371935878678],148:[34.75351793304606,135.37269294261935],154:[34.77450310193672,135.37108291538303],160:[34.82084467780002,135.32652407884598],167:[34.82963145615242,135.3000534918194],173:[34.835313,135.268955],193:[34.82473531213474,135.24416227623067],195:[34.82214464710217,135.25168271819493]
   };
   markers.forEach(({marker,data})=>{ const b=baselineByNo[data.no]; if(b){ data.lat=b[0]; data.lon=b[1]; marker.setLatLng(b); } });
 
+  // 9/17再確認で複数地点と確認した交差点。地点1を代表ピン、地点2を補助点として表示する。
+  const reviewedMultiByNo={
+    3:[[34.73327267757251,135.3739365935326],[34.73321757067731,135.37373542785647]],
+    7:[[34.73434835680757,135.3687670826912],[34.734269003899726,135.3686597943306]],
+    33:[[34.72391646986631,135.35904586315158],[34.723806243563075,135.358946621418]],
+    83:[[34.72970975749782,135.35023748874667],[34.729908150568725,135.35037159919742]],
+    126:[[34.74339702748666,135.3391045331955],[34.74321629887901,135.3391233086586]],
+    140:[[34.76433448063511,135.3695257927045],[34.76422739035001,135.3693750500679]],
+    160:[[34.82084467780002,135.32652407884598],[34.82074559058633,135.3265455365181]]
+  };
+  const reviewedMultiLayers=[];
+  Object.entries(reviewedMultiByNo).forEach(([no,pts])=>{
+    const p=points.find(x=>x.no===+no); if(!p) return;
+    const line=L.polyline(pts,{weight:3,opacity:.7,dashArray:'5,5'}).addTo(map);
+    const dot=L.circleMarker(pts[1],{radius:7,weight:2,fillOpacity:.9}).addTo(map).bindPopup(`<strong>${p.name}</strong><br><span class="popup-meta">複数地点・地点2</span>`);
+    reviewedMultiLayers.push(line,dot);
+  });
+
+
   // 新しいキーを使うので、旧版の「確認済み」は引き継がない。
-  const storageKey='nishinomiyaIntersectionCorrectionsV04';
+  const storageKey='nishinomiyaIntersectionCorrectionsV05';
   const savedCorrections=JSON.parse(localStorage.getItem(storageKey)||'{}');
   function saveCorrections(){ localStorage.setItem(storageKey,JSON.stringify(savedCorrections)); }
   function editTarget(){ return lowIndexes[editCursor]; }
@@ -572,11 +602,22 @@
     const lines=[['No','交差点名','確認方法','地点','緯度','経度','確認日時'].map(esc).join(',')];
     vals.sort((a,b)=>a.no-b.no).forEach(c=>c.points.forEach(p=>lines.push([c.no,c.name,c.method,p.point,p.lat,p.lng,c.updatedAt].map(esc).join(','))));
     const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}), url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-review-v0.4.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-review-v0.5.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
 
   // 今回の再確認結果がすでに端末にある場合は代表座標を反映
   Object.entries(savedCorrections).forEach(([idx,c])=>{ const i=+idx,p=c.points?.[0]; if(markers[i]&&p){markers[i].data.lat=p.lat;markers[i].data.lon=p.lng;markers[i].marker.setLatLng([p.lat,p.lng]);} });
+
+  // 地図をほぼ全画面に拡大。データ仕様ではなく表示領域だけを切り替える。
+  const mapExpandBtn=document.getElementById('mapExpandBtn');
+  function setMapExpanded(on){
+    document.body.classList.toggle('map-expanded',on);
+    mapExpandBtn.classList.toggle('active',on);
+    mapExpandBtn.textContent=on?'× 地図を戻す':'⛶ 地図を大きく';
+    setTimeout(()=>map.invalidateSize(),80);
+  }
+  mapExpandBtn.addEventListener('click',()=>setMapExpanded(!document.body.classList.contains('map-expanded')));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('map-expanded'))setMapExpanded(false);});
 
   document.getElementById('locateBtn').addEventListener('click', () => {
     if (!navigator.geolocation) { alert('この端末では現在地を取得できません。'); return; }
