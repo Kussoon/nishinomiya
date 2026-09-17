@@ -103,9 +103,11 @@
     header { padding:10px 12px; }
     h1 { font-size:.98rem; }
     .trial { padding:7px 12px; font-size:.76rem; }
-    #wrap { flex-direction: column; }
-    #map { flex: 0 0 58%; min-height: 300px; }
-    #panel { width: 100%; flex: 1 1 42%; min-height:0; border-left:none; border-top:1px solid var(--line); }
+    body { overflow-y:auto; }
+    #wrap { flex-direction: column; flex:none; min-height:auto; }
+    #map { flex: 0 0 auto; height: 450px; min-height: 450px; }
+    #panel { width: 100%; flex: 0 0 auto; min-height:0; border-left:none; border-top:1px solid var(--line); overflow: visible; }
+    #list { flex: none; height: 460px; overflow-y: auto; }
     #search { margin:8px 12px; font-size:16px; }
     .item { padding:9px 8px; }
   }
@@ -113,7 +115,7 @@
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.2</h1>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.2.1</h1>
   <span class="meta">全199件（⚠ 推定位置 25件）</span>
 </header>
 <div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。</div>
