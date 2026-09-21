@@ -152,7 +152,7 @@ function popupHtml(p) {
   const rows = [
     ['地区', p.area],
     ['現地確認', p.fieldStatus === '現地確認済み' ? p.fieldCheckMonth : ''],
-    ['Street View', [p.svMonth, p.svLabel].filter(Boolean).join(' / ')]
+    ['Street View確認', p.fieldStatus !== '現地確認済み' ? [p.svMonth, p.svLabel].filter(Boolean).join(' / ') : '']
   ].filter(([,v]) => v);
   return `<div class="popup-title">${esc(p.name)}</div><div class="popup-meta">No.${p.no}<br>${rows.map(([k,v]) => `${esc(k)}：${esc(v)}`).join('<br>')}${p.note ? `<div class="popup-note">備考：${esc(p.note)}</div>` : ''}</div>`;
 }
@@ -220,16 +220,15 @@ function renderList() {
     const parts=[];
     if (nearMode && Number.isFinite(distanceTo(p))) parts.push(distanceTo(p)<1000 ? `${Math.round(distanceTo(p))}m` : `${(distanceTo(p)/1000).toFixed(1)}km`);
     if (nearMode) parts.push(p.area);
-    if (p.sign) parts.push(`看板:${p.sign}`);
     if (!hasPosition(p)) parts.push(p.positionState || '位置未登録');
     else if (Number.isFinite(p.lat2) && Number.isFinite(p.lon2)) parts.push('複数地点');
     meta.textContent=parts.join(' / ');
-    body.append(name,meta); item.append(no,body); item.addEventListener('click',()=>selectPoint(p.no,true)); listEl.appendChild(item);
+    body.append(name,meta); item.append(no,body); item.addEventListener('click',()=>selectPoint(p.no,true,true)); listEl.appendChild(item);
   }
   const mapped=items.filter(hasPosition).length;
   resultCount.textContent=`表示 ${items.length}件 / 全${points.length}件（地図${mapped}件）`;
 }
-function selectPoint(no, pan=true) {
+function selectPoint(no, pan=true, jumpToMap=false) {
   selectedNo=no; const p=points.find(x=>x.no===no); if(!p)return;
   if (auditMode) setAuditTarget(no);
   if (hasPosition(p)) {
@@ -241,7 +240,14 @@ function selectPoint(no, pan=true) {
     selectionInfo.textContent=`${p.name}：${p.positionState || '位置未登録'}。${p.note || '位置監査モードで位置を登録できます。'}`;
   }
   renderList();
-  listEl.querySelector(`[data-no="${no}"]`)?.scrollIntoView({block:'nearest'});
+  if (jumpToMap) {
+    setTimeout(() => {
+      map.getContainer().scrollIntoView({behavior:'smooth', block:'start'});
+      map.invalidateSize();
+    }, 40);
+  } else {
+    listEl.querySelector(`[data-no="${no}"]`)?.scrollIntoView({block:'nearest'});
+  }
 }
 function fitAll() {
   const coords=points.filter(hasPosition).flatMap(p=>[[p.lat,p.lon],...(Number.isFinite(p.lat2)&&Number.isFinite(p.lon2)?[[p.lat2,p.lon2]]:[])]);
