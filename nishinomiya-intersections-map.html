@@ -150,8 +150,8 @@ function isReview(p) { return !hasPosition(p) || /保留|未登録|未確認/.te
 function displaySign(p) { return p.sign || '記載なし'; }
 function popupHtml(p) {
   const rows = [
-    ['地区', p.area], ['青看板', displaySign(p)], ['位置状態', p.fieldStatus],
-    ['現地確認日', p.fieldStatus === '現地確認済み' ? p.fieldCheckMonth : ''],
+    ['地区', p.area],
+    ['現地確認', p.fieldStatus === '現地確認済み' ? p.fieldCheckMonth : ''],
     ['Street View', [p.svMonth, p.svLabel].filter(Boolean).join(' / ')]
   ].filter(([,v]) => v);
   return `<div class="popup-title">${esc(p.name)}</div><div class="popup-meta">No.${p.no}<br>${rows.map(([k,v]) => `${esc(k)}：${esc(v)}`).join('<br>')}${p.note ? `<div class="popup-note">備考：${esc(p.note)}</div>` : ''}</div>`;
