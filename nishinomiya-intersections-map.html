@@ -3,696 +3,305 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.7</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<meta name="description" content="西宮市の交差点看板203件を地区別・地図上で確認できる試作版リスト">
+<title>西宮市 交差点看板リスト 試作版 Ver.0.8.0</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  :root {
-    --ink: #1b2430;
-    --sub: #5b6673;
-    --line: #dfe3e8;
-    --bg: #f7f8fa;
-    --card: #ffffff;
-    --accent: #1f5fa8;
-    --accent-soft: #e8f0fa;
-    --warn: #b3541e;
-  }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
-  body {
-    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
-    color: var(--ink);
-    display: flex;
-    flex-direction: column;
-  }
-  header {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--line);
-    background: var(--card);
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  h1 {
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin: 0;
-  }
-  .meta { font-size: 0.8rem; color: var(--sub); }
-  .trial {
-    padding: 8px 20px; background: #fff7e6; color: #7a4a00;
-    border-bottom: 1px solid #f0d59a; font-size: 0.82rem; line-height: 1.45;
-  }
+  :root { --ink:#1b2430; --sub:#5b6673; --line:#dfe3e8; --bg:#f7f8fa; --card:#fff; --accent:#1f5fa8; --accent-soft:#e8f0fa; --warn:#b3541e; --hold:#7a4a00; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; margin:0; }
+  body { font-family:-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif; color:var(--ink); display:flex; flex-direction:column; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); background:var(--card); display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  h1 { font-size:1.05rem; font-weight:700; margin:0; }
+  .meta { font-size:.8rem; color:var(--sub); }
+  .trial { padding:8px 20px; background:#fff7e6; color:#7a4a00; border-bottom:1px solid #f0d59a; font-size:.82rem; line-height:1.45; }
+  #wrap { flex:1; display:flex; min-height:0; }
+  #map { flex:1; min-width:0; }
+  #panel { width:310px; flex:0 0 310px; border-left:1px solid var(--line); background:var(--card); display:flex; flex-direction:column; overflow:hidden; }
+  .filters { display:grid; grid-template-columns:1fr; gap:7px; padding:10px 12px 7px; }
+  #search, #areaFilter { width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:.88rem; }
+  #search:focus, #areaFilter:focus { outline:2px solid var(--accent); outline-offset:1px; }
   .controls { display:flex; gap:6px; padding:0 12px 8px; flex-wrap:wrap; }
+  .btn { border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 9px; font-size:.78rem; cursor:pointer; }
+  .btn:hover { background:#f5f8fc; }
+  .btn.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:700; }
   .legend { padding:0 12px 8px; font-size:.73rem; color:var(--sub); display:flex; gap:12px; flex-wrap:wrap; }
   .legend-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px; }
   .legend-normal { background:#1f5fa8; }
-  .legend-warn { background:#e07b2a; border:1px solid #8f3f0e; }
-  .item.selected { background:#dcecff; outline:1px solid #8bb7e8; font-weight:700; }
-  .btn { border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 9px; font-size:.78rem; cursor:pointer; }
-  .btn.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:700; }
+  .legend-multi { background:#6c4ccf; }
+  .legend-missing { background:#fff; border:2px solid #c47200; }
   .count { padding:0 12px 8px; font-size:.75rem; color:var(--sub); }
-  .popup-meta { color:#5b6673;font-size:.8em;line-height:1.5; }
+  #selectionInfo { display:none; margin:0 12px 8px; padding:8px 10px; border-radius:8px; background:#fff7e6; border:1px solid #f0d59a; color:#704500; font-size:.78rem; line-height:1.45; }
+  #list { overflow-y:auto; flex:1; padding:0 8px 12px; }
+  .area-heading { position:sticky; top:0; z-index:2; padding:7px 8px 5px; margin-top:3px; background:rgba(247,248,250,.96); border-bottom:1px solid var(--line); color:#3f4a57; font-size:.73rem; font-weight:700; }
+  .item { padding:8px; border-radius:6px; cursor:pointer; display:flex; gap:8px; align-items:flex-start; }
+  .item:hover { background:var(--accent-soft); }
+  .item.selected { background:#dcecff; outline:1px solid #8bb7e8; }
+  .item .no { color:var(--sub); font-size:.72rem; flex:0 0 28px; text-align:right; padding-top:2px; }
+  .item-body { min-width:0; }
+  .item .name { font-size:.85rem; line-height:1.3; }
+  .item .item-meta { margin-top:2px; color:var(--sub); font-size:.68rem; line-height:1.35; }
+  .item.no-location .name { color:var(--hold); font-weight:700; }
+  .item.corrected .name::after { content:" ✓"; color:#218739; font-weight:700; }
+  .popup-title { font-size:1.05em; font-weight:700; margin-bottom:4px; }
+  .popup-meta { color:#4f5a67; font-size:.82em; line-height:1.55; }
+  .popup-note { margin-top:5px; padding-top:5px; border-top:1px solid #e5e7eb; color:#724600; }
   .editbox { display:none; margin:0 12px 10px; padding:10px; border:2px solid #d97706; border-radius:10px; background:#fff8e8; font-size:.8rem; line-height:1.45; }
   .editbox.active { display:block; }
   .edit-title { font-weight:700; margin-bottom:4px; }
   .edit-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-  .edit-actions .btn { background:#fff; }
   .edit-actions .primary { background:#d97706; color:white; border-color:#b45309; }
   .edit-actions .done { background:#e7f7ed; border-color:#58a66f; }
-  .item.corrected .name::after { content:" ✓"; color:#218739; font-weight:700; }
-  .crosshair-note { color:#9a4d00; font-weight:700; }
-  #wrap {
-    flex: 1;
-    display: flex;
-    min-height: 0;
-  }
-  #map {
-    flex: 1;
-    min-width: 0;
-  }
-  #panel {
-    width: 280px;
-    flex: 0 0 280px;
-    border-left: 1px solid var(--line);
-    background: var(--card);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #search {
-    margin: 12px;
-    padding: 9px 11px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    font-size: 0.88rem;
-  }
-  #search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  #list {
-    overflow-y: auto;
-    flex: 1;
-    padding: 0 8px 12px;
-  }
-  .item {
-    padding: 8px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: flex;
-    gap: 8px;
-    align-items: baseline;
-  }
-  .item:hover { background: var(--accent-soft); }
-  .item .no { color: var(--sub); font-size: 0.75rem; flex: 0 0 26px; text-align: right; }
-  .item.warn .name { color: var(--warn); }
-  .item.hidden { display: none; }
-  
   #mapExpandBtn.active { background:#111827; color:#fff; border-color:#111827; }
   body.map-expanded { overflow:hidden; }
-  body.map-expanded #map {
-    position:fixed; inset:0; width:100vw; height:100dvh !important; min-height:100dvh !important; z-index:2000;
-  }
-  body.map-expanded #mapExpandBtn {
-    position:fixed; right:12px; top:12px; z-index:2100; box-shadow:0 2px 10px rgba(0,0,0,.25);
-  }
-
-  @media (max-width: 720px) {
+  body.map-expanded #map { position:fixed; inset:0; width:100vw; height:100dvh!important; min-height:100dvh!important; z-index:2000; }
+  body.map-expanded #mapExpandBtn { position:fixed; right:12px; top:12px; z-index:2100; box-shadow:0 2px 10px rgba(0,0,0,.25); }
+  @media (max-width:720px) {
     header { padding:10px 12px; }
     h1 { font-size:.98rem; }
     .trial { padding:7px 12px; font-size:.76rem; }
     body { overflow-y:auto; }
-    #wrap { flex-direction: column; flex:none; min-height:auto; }
-    #map { flex: 0 0 auto; height: 450px; min-height: 450px; }
-    #panel { width: 100%; flex: 0 0 auto; min-height:0; border-left:none; border-top:1px solid var(--line); overflow: visible; }
-    #list { flex: none; height: 460px; overflow-y: auto; }
-    #search { margin:8px 12px; font-size:16px; }
+    #wrap { flex-direction:column; flex:none; min-height:auto; }
+    #map { flex:0 0 auto; height:450px; min-height:450px; }
+    #panel { width:100%; flex:0 0 auto; min-height:0; border-left:0; border-top:1px solid var(--line); overflow:visible; }
+    #list { flex:none; height:500px; overflow-y:auto; }
+    #search, #areaFilter { font-size:16px; }
     .item { padding:9px 8px; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.7.4</h1>
-  <span class="meta">全197件（全件位置監査対応）</span>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.8.0</h1>
+  <span class="meta">全203件（位置登録済み197件／未登録・保留6件）</span>
 </header>
-<div class="trial">⚠ <strong>試作版・トライアルデータ</strong>　交差点名・看板の有無・位置情報は確認作業中です。推定位置や誤りを含む場合があります。全197件の位置監査に対応しています。位置修正内容はこの端末のブラウザ内に一時保存されます。</div>
+<div class="trial"><strong>試作版・トライアルデータ</strong>　看板一覧 Ver.0.9.4を反映。交差点名・看板の有無・位置情報は確認作業中です。位置未登録の6件は推測配置せず、一覧から確認できます。位置修正内容はこの端末のブラウザ内に保存されます。</div>
 <div id="wrap">
   <div id="map"></div>
-  <div id="panel">
-    <input type="text" id="search" placeholder="交差点名で検索…" autocomplete="off">
+  <aside id="panel">
+    <div class="filters">
+      <input type="search" id="search" placeholder="交差点名・地区で検索…" autocomplete="off">
+      <select id="areaFilter" aria-label="地区で絞り込み"><option value="">全地区</option></select>
+    </div>
     <div class="controls">
       <button class="btn" id="locateBtn">◎ 現在地</button>
-      <button class="btn" id="warnOnlyBtn">⚠ 推定位置のみ</button>
+      <button class="btn" id="reviewOnlyBtn">？ 要確認のみ</button>
       <button class="btn" id="nearBtn">近い順</button>
       <button class="btn" id="resetBtn">全体表示</button>
       <button class="btn" id="mapExpandBtn">⛶ 地図を大きく</button>
-      <button class="btn" id="editBtn">🛠 全197件位置監査</button>
-      <button class="btn" id="priorityBtn">⚠ 要確認から開始</button>
-      <button class="btn" id="holdOnlyBtn">？ 保留だけ確認</button>
+      <button class="btn" id="editBtn">位置監査</button>
     </div>
     <div class="editbox" id="editBox">
-      <div class="edit-title" id="editTitle">全197件 位置監査モード</div><div id="auditProgress" style="margin:6px 0;font-weight:700"></div>
+      <div class="edit-title" id="editTitle">位置監査モード</div>
+      <div id="auditProgress"></div>
       <div id="editInfo"></div>
       <div class="edit-actions">
         <button class="btn done" id="acceptCurrentBtn">✓ 現在位置でOK</button>
-        <button class="btn" id="multiPosBtn">＋ 複数地点にする</button>
+        <button class="btn" id="multiPosBtn">＋ 複数地点</button>
         <button class="btn primary" id="confirmPosBtn" disabled>この位置に修正</button>
         <button class="btn" id="holdPosBtn">？ 該当なし・保留</button>
         <button class="btn" id="skipPosBtn">次へ</button>
         <button class="btn done" id="exportBtn">修正CSVを書き出す</button>
+        <button class="btn" id="newRoundBtn">新しい一周</button>
         <button class="btn" id="exitEditBtn">終了</button>
-        <button class="btn" id="newRoundBtn">新しい一周を開始</button>
       </div>
     </div>
-    <div class="legend"><span><i class="legend-dot legend-normal"></i>位置確認済み/中</span><span><i class="legend-dot legend-warn"></i>⚠ 推定位置</span><span>？ 該当なし・保留</span></div>
+    <div class="legend"><span><i class="legend-dot legend-normal"></i>位置登録済み</span><span><i class="legend-dot legend-multi"></i>複数地点</span><span><i class="legend-dot legend-missing"></i>未登録・保留</span></div>
     <div class="count" id="resultCount"></div>
+    <div id="selectionInfo"></div>
     <div id="list"></div>
-  </div>
+  </aside>
 </div>
 <script>
-  const points = [
-{no:1, name:'武庫大橋西詰', lat:34.731844, lon:135.379705, conf:'high', flag:''},
-{no:2, name:'戸崎町', lat:34.732837, lon:135.376402, conf:'high', flag:''},
-{no:3, name:'上甲子園', lat:34.733729, lon:135.37283, conf:'low', flag:'⚠ '},
-{no:4, name:'上甲子園交番前', lat:34.733729, lon:135.37283, conf:'high', flag:''},
-{no:5, name:'甲子園口3丁目', lat:34.7355, lon:135.367, conf:'low', flag:'⚠ '},
-{no:6, name:'甲子園口4', lat:34.7345, lon:135.3655, conf:'low', flag:'⚠ '},
-{no:7, name:'上甲子園1', lat:34.733729, lon:135.37283, conf:'low', flag:'⚠ '},
-{no:8, name:'瓦木東', lat:34.735359, lon:135.36603, conf:'low', flag:'⚠ '},
-{no:9, name:'瓦木', lat:34.735359, lon:135.36603, conf:'high', flag:''},
-{no:10, name:'瓦木郵便局前', lat:34.734816, lon:135.364744, conf:'high', flag:''},
-{no:11, name:'甲子園二番町', lat:34.731744, lon:135.372479, conf:'med', flag:''},
-{no:12, name:'甲子園二番町南', lat:34.7295, lon:135.372, conf:'low', flag:'⚠ '},
-{no:13, name:'甲子園三番町', lat:34.729547, lon:135.370129, conf:'med', flag:''},
-{no:14, name:'甲子園三保町', lat:34.729311, lon:135.366017, conf:'med', flag:''},
-{no:15, name:'甲子園四番町', lat:34.727895, lon:135.368954, conf:'med', flag:''},
-{no:16, name:'甲子園五番町北', lat:34.726809, lon:135.366604, conf:'med', flag:''},
-{no:17, name:'甲子園五番町', lat:34.7249, lon:135.3664, conf:'low', flag:'⚠ '},
-{no:18, name:'甲子園六番町', lat:34.723048, lon:135.366241, conf:'med', flag:''},
-{no:19, name:'阪神甲子園駅北', lat:34.723932, lon:135.363182, conf:'med', flag:''},
-{no:20, name:'阪神甲子園駅前', lat:34.722675, lon:135.363464, conf:'med', flag:''},
-{no:21, name:'甲子園球場前', lat:34.720466, lon:135.362119, conf:'high', flag:''},
-{no:22, name:'甲子園球場南', lat:34.721217, lon:135.361656, conf:'med', flag:''},
-{no:23, name:'甲子園九番町', lat:34.715062, lon:135.362198, conf:'med', flag:''},
-{no:24, name:'甲子園九番町南', lat:34.717555, lon:135.361097, conf:'high', flag:''},
-{no:25, name:'浜甲子園1丁目北', lat:34.7145806, lon:135.3594173, conf:'high', flag:''},
-{no:26, name:'浜甲子園1丁目', lat:34.713043, lon:135.3560308, conf:'med', flag:''},
-{no:27, name:'鳴尾浜公園前', lat:34.7109842, lon:135.3574097, conf:'high', flag:''},
-{no:28, name:'中津交番前', lat:34.7184489, lon:135.3595307, conf:'high', flag:''},
-{no:29, name:'中津交番西', lat:34.7193562, lon:135.3579406, conf:'high', flag:''},
-{no:30, name:'南甲子園東', lat:34.7201187, lon:135.3565888, conf:'high', flag:''},
-{no:31, name:'南甲子園', lat:34.717895, lon:135.3563244, conf:'med', flag:''},
-{no:32, name:'網引公園西', lat:34.7211637, lon:135.3549502, conf:'high', flag:''},
-{no:33, name:'高潮', lat:34.724093, lon:135.36073, conf:'low', flag:'⚠ '},
-{no:34, name:'鳴尾', lat:34.719681, lon:135.370432, conf:'med', flag:''},
-{no:35, name:'本郷', lat:34.717722, lon:135.371644, conf:'med', flag:''},
-{no:36, name:'笠屋町', lat:34.714164, lon:135.374465, conf:'med', flag:''},
-{no:37, name:'笠屋町東', lat:34.7126689, lon:135.374429, conf:'high', flag:''},
-{no:38, name:'東鳴尾町西', lat:34.7122755, lon:135.3761128, conf:'high', flag:''},
-{no:39, name:'東鳴尾町', lat:34.7129585, lon:135.3780614, conf:'med', flag:''},
-{no:40, name:'南武橋西詰', lat:34.7115718, lon:135.3791529, conf:'high', flag:''},
-{no:41, name:'高須東', lat:34.7033547, lon:135.3736541, conf:'high', flag:''},
-{no:42, name:'高須小学校前', lat:34.7013296, lon:135.3701227, conf:'high', flag:''},
-{no:43, name:'鳴尾町2丁目', lat:34.7145536, lon:135.3713043, conf:'med', flag:''},
-{no:44, name:'鳴尾町4丁目', lat:34.7159707, lon:135.3683667, conf:'med', flag:''},
-{no:45, name:'鳴尾浜', lat:34.6892504, lon:135.3627857, conf:'med', flag:''},
-{no:46, name:'古川町', lat:34.7133378, lon:135.3680729, conf:'med', flag:''},
-{no:47, name:'枝川一の橋', lat:34.7158047, lon:135.3652558, conf:'high', flag:''},
-{no:48, name:'甲子園浜1丁目', lat:34.7088046, lon:135.349864, conf:'med', flag:''},
-{no:49, name:'西長五郎橋', lat:34.7268106, lon:135.3472831, conf:'high', flag:''},
-{no:50, name:'今津出在家町', lat:34.7257316, lon:135.3492768, conf:'med', flag:''},
-{no:51, name:'今津巽町', lat:34.72238, lon:135.3516259, conf:'med', flag:''},
-{no:52, name:'今津港町', lat:34.7235126, lon:135.3492768, conf:'med', flag:''},
-{no:53, name:'社前交番前', lat:34.7254749, lon:135.3532693, conf:'high', flag:''},
-{no:54, name:'今津曙町', lat:34.728861, lon:135.355443, conf:'med', flag:''},
-{no:55, name:'西宮消防署前', lat:34.737446, lon:135.3497769, conf:'high', flag:''},
-{no:56, name:'津門稲荷町', lat:34.7361068, lon:135.3519195, conf:'med', flag:''},
-{no:57, name:'津門大塚町', lat:34.7378668, lon:135.3563244, conf:'med', flag:''},
-{no:58, name:'北今津', lat:34.737115, lon:135.352513, conf:'high', flag:''},
-{no:59, name:'津門飯田町', lat:34.737255, lon:135.362198, conf:'med', flag:''},
-{no:60, name:'津門', lat:34.735861, lon:135.359835, conf:'high', flag:''},
-{no:61, name:'津門西', lat:34.736366, lon:135.357182, conf:'high', flag:''},
-{no:62, name:'津門大箇町', lat:34.735082, lon:135.357499, conf:'med', flag:''},
-{no:63, name:'今津山中町', lat:34.730785, lon:135.357206, conf:'med', flag:''},
-{no:64, name:'西宮インター北', lat:34.727112, lon:135.355437, conf:'high', flag:''},
-{no:65, name:'西宮インター', lat:34.726102, lon:135.35551, conf:'high', flag:''},
-{no:66, name:'JR西宮駅前', lat:34.737735, lon:135.347348, conf:'high', flag:''},
-{no:67, name:'東川', lat:34.739445, lon:135.345288, conf:'med', flag:''},
-{no:68, name:'西宮市役所前', lat:34.738247, lon:135.341807, conf:'high', flag:''},
-{no:69, name:'上天神橋', lat:34.73623, lon:135.343836, conf:'high', flag:''},
-{no:70, name:'与古道公園前', lat:34.735543, lon:135.343638, conf:'med', flag:''},
-{no:71, name:'札場筋', lat:34.738612, lon:135.339409, conf:'high', flag:''},
-{no:72, name:'西宮郵便局前', lat:34.738602, lon:135.337712, conf:'med', flag:''},
-{no:73, name:'産所町', lat:34.73807, lon:135.335185, conf:'med', flag:''},
-{no:74, name:'産所町西', lat:34.738603, lon:135.334792, conf:'high', flag:''},
-{no:75, name:'和上町', lat:34.737907, lon:135.337827, conf:'med', flag:''},
-{no:76, name:'田中町北', lat:34.736261, lon:135.336134, conf:'high', flag:''},
-{no:77, name:'田中町', lat:34.736526, lon:135.337239, conf:'med', flag:''},
-{no:78, name:'西宮本町', lat:34.733937, lon:135.339735, conf:'med', flag:''},
-{no:79, name:'石在町', lat:34.729129, lon:135.34223, conf:'med', flag:''},
-{no:80, name:'用海', lat:34.7313245, lon:135.3445789, conf:'med', flag:''},
-{no:81, name:'用海東', lat:34.7297934, lon:135.3457346, conf:'high', flag:''},
-{no:82, name:'染殿', lat:34.734228, lon:135.3454597, conf:'med', flag:''},
-{no:83, name:'今津', lat:34.729397, lon:135.350305, conf:'low', flag:'⚠ '},
-{no:84, name:'戎前', lat:34.735685, lon:135.334607, conf:'med', flag:''},
-{no:85, name:'浜町', lat:34.730283, lon:135.337533, conf:'med', flag:''},
-{no:86, name:'前浜町', lat:34.727414, lon:135.33313, conf:'med', flag:''},
-{no:87, name:'建石', lat:34.729762, lon:135.334011, conf:'med', flag:''},
-{no:88, name:'神楽町', lat:34.738115, lon:135.330488, conf:'med', flag:''},
-{no:89, name:'千歳町', lat:34.7407351, lon:135.3319558, conf:'med', flag:''},
-{no:90, name:'夙川橋', lat:34.748958, lon:135.347962, conf:'low', flag:'⚠ '},
-{no:91, name:'森具', lat:34.736565, lon:135.324785, conf:'high', flag:''},
-{no:92, name:'郷免町', lat:34.737072, lon:135.323444, conf:'med', flag:''},
-{no:93, name:'寿町', lat:34.7418442, lon:135.3319558, conf:'med', flag:''},
-{no:94, name:'寿町北', lat:34.741835, lon:135.331421, conf:'med', flag:''},
-{no:95, name:'若松町', lat:34.7429422, lon:135.3331299, conf:'med', flag:''},
-{no:96, name:'大井手町', lat:34.7436602, lon:135.3304882, conf:'med', flag:''},
-{no:97, name:'南郷町', lat:34.7459977, lon:135.3325428, conf:'med', flag:''},
-{no:98, name:'南郷町北', lat:34.7467453, lon:135.3311898, conf:'high', flag:''},
-{no:99, name:'名次町南', lat:34.7486606, lon:135.3311067, conf:'high', flag:''},
-{no:100, name:'名次町', lat:34.7497489, lon:135.3316622, conf:'med', flag:''},
-{no:101, name:'神原', lat:34.7558373, lon:135.3328363, conf:'med', flag:''},
-{no:102, name:'神園町', lat:34.756968, lon:135.330488, conf:'med', flag:''},
-{no:103, name:'獅子ヶ口町', lat:34.758664, lon:135.326966, conf:'med', flag:''},
-{no:104, name:'柏堂町', lat:34.7637704, lon:135.3140544, conf:'med', flag:''},
-{no:105, name:'北山緑化植物園前', lat:34.7644596, lon:135.3166801, conf:'high', flag:''},
-{no:106, name:'鷲林寺町', lat:34.7737891, lon:135.3093601, conf:'med', flag:''},
-{no:107, name:'甲寿橋', lat:34.7811226, lon:135.3116904, conf:'high', flag:''},
-{no:108, name:'盤滝トンネル東', lat:34.784002, lon:135.298667, conf:'high', flag:''},
-{no:109, name:'船坂', lat:34.797621, lon:135.275927, conf:'med', flag:''},
-{no:110, name:'船坂小学校前', lat:34.805067, lon:135.28243, conf:'high', flag:''},
-{no:111, name:'両度町東', lat:34.742384, lon:135.355112, conf:'high', flag:''},
-{no:112, name:'両度町南', lat:34.742295, lon:135.352124, conf:'high', flag:''},
-{no:113, name:'球場橋', lat:34.738, lon:135.353, conf:'low', flag:'⚠ '},
-{no:114, name:'芸術文化センター前', lat:34.744221, lon:135.356689, conf:'high', flag:''},
-{no:115, name:'高松町南', lat:34.742506, lon:135.358437, conf:'high', flag:''},
-{no:116, name:'高松町', lat:34.744217, lon:135.359261, conf:'med', flag:''},
-{no:117, name:'大屋町', lat:34.744952, lon:135.369248, conf:'med', flag:''},
-{no:118, name:'大屋町北', lat:34.7456, lon:135.365292, conf:'low', flag:'⚠ '},
-{no:119, name:'瓦林北', lat:34.745684, lon:135.367032, conf:'high', flag:''},
-{no:120, name:'松山西', lat:34.745831, lon:135.370171, conf:'high', flag:''},
-{no:121, name:'松山町', lat:34.747148, lon:135.371598, conf:'med', flag:''},
-{no:122, name:'上武庫橋西詰', lat:34.747348, lon:135.374705, conf:'high', flag:''},
-{no:123, name:'江上町', lat:34.7403742, lon:135.3407622, conf:'med', flag:''},
-{no:124, name:'城ケ堀町', lat:34.746, lon:135.339, conf:'low', flag:'⚠ '},
-{no:125, name:'城ケ堀町北', lat:34.7465, lon:135.3395, conf:'low', flag:'⚠ '},
-{no:126, name:'越水阪急高架下', lat:34.7439342, lon:135.3598518, conf:'low', flag:'⚠ '},
-{no:127, name:'越水', lat:34.7457898, lon:135.3398815, conf:'med', flag:''},
-{no:128, name:'越水町東', lat:34.745012, lon:135.3403282, conf:'high', flag:''},
-{no:129, name:'室川町', lat:34.7454846, lon:135.3428173, conf:'med', flag:''},
-{no:130, name:'青木', lat:34.7457228, lon:135.3469278, conf:'med', flag:''},
-{no:131, name:'河原町', lat:34.748507, lon:135.3457533, conf:'med', flag:''},
-{no:132, name:'御手洗川橋', lat:34.7489577, lon:135.3479622, conf:'high', flag:''},
-{no:133, name:'能登町', lat:34.751224, lon:135.3516259, conf:'med', flag:''},
-{no:134, name:'丸橋町', lat:34.7523108, lon:135.3539751, conf:'med', flag:''},
-{no:135, name:'門戸陸橋西', lat:34.7535222, lon:135.3549648, conf:'high', flag:''},
-{no:136, name:'門戸陸橋東', lat:34.7579454, lon:135.3609029, conf:'high', flag:''},
-{no:137, name:'若山町', lat:34.7598329, lon:135.3648418, conf:'med', flag:''},
-{no:138, name:'上大市4西', lat:34.7616963, lon:135.3659822, conf:'high', flag:''},
-{no:139, name:'上大市4', lat:34.7632909, lon:135.365723, conf:'med', flag:''},
-{no:140, name:'上大市5', lat:34.7674, lon:135.37101, conf:'low', flag:'⚠ '},
-{no:141, name:'中前田町南', lat:34.7419608, lon:135.3426557, conf:'high', flag:''},
-{no:142, name:'西宮警察署北', lat:34.7420289, lon:135.3446027, conf:'high', flag:''},
-{no:143, name:'門戸厄神駅前', lat:34.757912, lon:135.358078, conf:'high', flag:''},
-{no:144, name:'甲武橋', lat:34.764599, lon:135.372757, conf:'high', flag:''},
-{no:145, name:'甲武橋北', lat:34.7665, lon:135.372425, conf:'high', flag:''},
-{no:146, name:'樋ノ口町バス停前', lat:34.745495, lon:135.344434, conf:'low', flag:'⚠ '},
-{no:147, name:'新田バス停前', lat:34.753683, lon:135.372717, conf:'low', flag:'⚠ '},
-{no:148, name:'上武庫橋', lat:34.74767, lon:135.375305, conf:'high', flag:''},
-{no:149, name:'仁川橋', lat:34.774666, lon:135.358461, conf:'high', flag:''},
-{no:150, name:'仁川町2丁目', lat:34.774297, lon:135.360142, conf:'med', flag:''},
-{no:151, name:'仁川霊園前', lat:34.775105, lon:135.371892, conf:'high', flag:''},
-{no:152, name:'仁川北1丁目', lat:34.776, lon:135.362, conf:'low', flag:'⚠ '},
-{no:153, name:'仁川口橋', lat:34.774357, lon:135.370902, conf:'high', flag:''},
-{no:154, name:'生瀬', lat:34.819067, lon:135.32814, conf:'med', flag:''},
-{no:155, name:'生瀬北', lat:34.816624, lon:135.334555, conf:'high', flag:''},
-{no:156, name:'生瀬橋東詰', lat:34.817968, lon:135.333815, conf:'high', flag:''},
-{no:157, name:'生瀬橋西詰', lat:34.817897, lon:135.332323, conf:'high', flag:''},
-{no:158, name:'生瀬1', lat:34.820175, lon:135.32814, conf:'low', flag:'⚠ '},
-{no:159, name:'西宝橋南詰', lat:34.819162, lon:135.322149, conf:'high', flag:''},
-{no:160, name:'木ノ元バス停前', lat:34.824122, lon:135.317534, conf:'high', flag:''},
-{no:161, name:'尼子谷', lat:34.824014, lon:135.310364, conf:'high', flag:''},
-{no:162, name:'名塩八幡', lat:34.828158, lon:135.302949, conf:'med', flag:''},
-{no:163, name:'名塩南', lat:34.827862, lon:135.305235, conf:'med', flag:''},
-{no:164, name:'名塩東口', lat:34.82863, lon:135.305074, conf:'med', flag:''},
-{no:165, name:'名塩', lat:34.850635, lon:135.294693, conf:'low', flag:'⚠ '},
-{no:166, name:'名塩幼稚園前', lat:34.830996, lon:135.296891, conf:'med', flag:''},
-{no:167, name:'名塩西ノ口', lat:34.830285, lon:135.294526, conf:'med', flag:''},
-{no:168, name:'名塩山荘バス停前', lat:34.830304, lon:135.29111, conf:'med', flag:''},
-{no:169, name:'名塩茶園町', lat:34.835083, lon:135.283257, conf:'med', flag:''},
-{no:170, name:'さくら台入口', lat:34.8380769, lon:135.2771985, conf:'med', flag:''},
-{no:171, name:'赤坂峠', lat:34.835313, lon:135.268955, conf:'low', flag:'⚠ '},
-{no:172, name:'赤坂峠西', lat:34.835313, lon:135.268955, conf:'med', flag:''},
-{no:173, name:'西宮山口東ランプ', lat:34.834479, lon:135.260974, conf:'high', flag:''},
-{no:174, name:'丸山ダム北', lat:34.831703, lon:135.254981, conf:'high', flag:''},
-{no:175, name:'有馬病院前', lat:34.832825, lon:135.254015, conf:'high', flag:''},
-{no:176, name:'北六甲台4丁目', lat:34.831873, lon:135.250721, conf:'med', flag:''},
-{no:177, name:'北六甲台4西', lat:34.828464, lon:135.247088, conf:'high', flag:''},
-{no:178, name:'明治橋東詰', lat:34.831159, lon:135.242702, conf:'high', flag:''},
-{no:179, name:'新明治橋', lat:34.832431, lon:135.241339, conf:'high', flag:''},
-{no:180, name:'新天上橋西詰', lat:34.833946, lon:135.240284, conf:'med', flag:''},
-{no:181, name:'天上橋', lat:34.835156, lon:135.240066, conf:'high', flag:''},
-{no:182, name:'天上橋北', lat:34.8366773, lon:135.2394479, conf:'high', flag:''},
-{no:183, name:'名来2丁目', lat:34.840833, lon:135.2366588, conf:'med', flag:''},
-{no:184, name:'名来', lat:34.8433275, lon:135.236073, conf:'med', flag:''},
-{no:185, name:'名来1丁目', lat:34.8444458, lon:135.2377505, conf:'med', flag:''},
-{no:186, name:'天上橋西', lat:34.8347469, lon:135.2393608, conf:'high', flag:''},
-{no:187, name:'流通センター東', lat:34.8344302, lon:135.23688, conf:'high', flag:''},
-{no:188, name:'流通センター前', lat:34.8342662, lon:135.2357445, conf:'high', flag:''},
-{no:189, name:'西宮明治橋', lat:34.830552, lon:135.240663, conf:'high', flag:''},
-{no:190, name:'山口交番前', lat:34.8281453, lon:135.2405528, conf:'high', flag:''},
-{no:191, name:'松栄橋', lat:34.820841, lon:135.2469051, conf:'low', flag:'⚠ '},
-{no:192, name:'上山口', lat:34.8209058, lon:135.2465261, conf:'high', flag:''},
-{no:193, name:'金仙寺湖西', lat:34.824526, lon:135.2534865, conf:'low', flag:'⚠ '},
-{no:194, name:'山口町中野', lat:34.8094109, lon:135.2559956, conf:'high', flag:''},
-{no:195, name:'西宮浜3丁目西', lat:34.71701, lon:135.328616, conf:'high', flag:''},
-{no:196, name:'西宮浜3丁目', lat:34.718998, lon:135.328727, conf:'med', flag:''},
-{no:197, name:'西宮浜1丁目', lat:34.717514, lon:135.338707, conf:'med', flag:''}
-];
+const points = [{"no":1,"area":"甲子園口・上甲子園","name":"武庫大橋西詰","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73213599857625,"lon":135.3786027431488,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":2,"area":"甲子園口・上甲子園","name":"戸崎町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73260624905507,"lon":135.3764909505844,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":3,"area":"甲子園口・上甲子園","name":"上甲子園","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73327267757251,"lon":135.3739365935326,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":4,"area":"甲子園口・上甲子園","name":"上甲子園交番前","sign":"あり","note":"2026/09/17","currentCheck":"📷","svMonth":"2025/05","svLabel":"","lat":34.73345930598465,"lon":135.3728646039963,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":5,"area":"甲子園口・上甲子園","name":"甲子園口3丁目","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73374512584608,"lon":135.3716012835503,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":6,"area":"甲子園口・上甲子園","name":"甲子園口4","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73405666102156,"lon":135.370109975338,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":7,"area":"甲子園口・上甲子園","name":"上甲子園1","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73431382360703,"lon":135.3686866164207,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":8,"area":"甲子園口・上甲子園","name":"瓦木東","sign":"","note":"","currentCheck":"M","svMonth":"2025/10","svLabel":"","lat":34.73457098539228,"lon":135.3672364354134,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":9,"area":"甲子園口・上甲子園","name":"瓦木","sign":"","note":"","currentCheck":"M","svMonth":"2025/10","svLabel":"","lat":34.73482667688819,"lon":135.3658238053322,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":10,"area":"甲子園口・上甲子園","name":"瓦木郵便局前","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73502652716175,"lon":135.364710688591,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":11,"area":"甲子園・浜甲子園","name":"甲子園二番町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73223298795654,"lon":135.3719455003738,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":12,"area":"甲子園・浜甲子園","name":"甲子園二番町南","sign":"","note":"","currentCheck":"M","svMonth":"2024/08","svLabel":"","lat":34.73129615395535,"lon":135.3702995181084,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":13,"area":"甲子園・浜甲子園","name":"甲子園三番町","sign":"","note":"","currentCheck":"M","svMonth":"2022/11","svLabel":"","lat":34.73045336166656,"lon":135.3688305616379,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":14,"area":"甲子園・浜甲子園","name":"甲子園三保町","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2024/08","svLabel":"","lat":34.72949960728112,"lon":135.3671532869339,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":15,"area":"甲子園・浜甲子園","name":"甲子園四番町","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2024/08","svLabel":"","lat":34.72863989628537,"lon":135.36585688591,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":16,"area":"甲子園・浜甲子園","name":"甲子園五番町北","sign":"あり","note":"2026/09/19","currentCheck":"📷","svMonth":"2017/01","svLabel":"","lat":34.7275964743469,"lon":135.3650057315827,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":17,"area":"甲子園・浜甲子園","name":"甲子園五番町","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2021/08","svLabel":"","lat":34.72633112387454,"lon":135.3640589118004,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":18,"area":"甲子園・浜甲子園","name":"甲子園六番町","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.72476373781056,"lon":135.3634294867516,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":19,"area":"甲子園・浜甲子園","name":"阪神甲子園駅北","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.72415749753733,"lon":135.36327034235,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":20,"area":"甲子園・浜甲子園","name":"阪神甲子園駅前","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.72334035209814,"lon":135.3631603717804,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":21,"area":"甲子園・浜甲子園","name":"甲子園球場前","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.72228584042675,"lon":135.3632900118828,"lat2":34.7218978355349,"lon2":135.3633061051369,"positionState":"複数地点"},{"no":22,"area":"甲子園・浜甲子園","name":"甲子園球場南","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.72013782836191,"lon":135.36261677742,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":23,"area":"甲子園・浜甲子園","name":"甲子園九番町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.71755396707925,"lon":135.3611361980439,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":24,"area":"甲子園・浜甲子園","name":"甲子園九番町南","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.7155954405001,"lon":135.3600105643273,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":25,"area":"甲子園・浜甲子園","name":"浜甲子園1丁目北","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.7145806,"lon":135.3594173,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":26,"area":"甲子園・浜甲子園","name":"浜甲子園1丁目","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.71309522022126,"lon":135.3585720062256,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":27,"area":"甲子園・浜甲子園","name":"鳴尾浜公園前","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.7109842,"lon":135.3574097,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":28,"area":"甲子園・浜甲子園","name":"中津交番前","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7184489,"lon":135.3595307,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":29,"area":"甲子園・浜甲子園","name":"中津交番西","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7193562,"lon":135.3579406,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":30,"area":"甲子園・浜甲子園","name":"南甲子園東","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.7201187,"lon":135.3565888,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":31,"area":"甲子園・浜甲子園","name":"南甲子園","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.72068383877103,"lon":135.355575978756,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":32,"area":"甲子園・浜甲子園","name":"網引公園西","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7211637,"lon":135.3549502,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":33,"area":"甲子園・浜甲子園","name":"高潮","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"","svLabel":"","lat":34.72391646986631,"lon":135.3590458631516,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":34,"area":"甲子園・浜甲子園","name":"甲子園浜1丁目","sign":"※","note":"","currentCheck":"M","svMonth":"","svLabel":"Street Viewでは看板なし","lat":34.71247272564262,"lon":135.3459942340851,"lat2":34.71215522955509,"lon2":135.3456830978394,"positionState":"複数地点"},{"no":35,"area":"鳴尾・小松・武庫川団地","name":"鳴尾","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.71812718559575,"lon":135.3745204210281,"lat2":34.71791333146005,"lon2":135.3744399547577,"positionState":"複数地点"},{"no":36,"area":"鳴尾・小松・武庫川団地","name":"本郷","sign":"あり","note":"2026/09/18","currentCheck":"MN","svMonth":"","svLabel":"","lat":34.71951391703362,"lon":135.3691846132279,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":37,"area":"鳴尾・小松・武庫川団地","name":"笠屋町","sign":"","note":"","currentCheck":"📷","svMonth":"2025/05","svLabel":"","lat":34.71302834086306,"lon":135.3727269172669,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":38,"area":"鳴尾・小松・武庫川団地","name":"笠屋町東","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7126689,"lon":135.374429,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":39,"area":"鳴尾・小松・武庫川団地","name":"東鳴尾町西","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7122755,"lon":135.3761128,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":40,"area":"鳴尾・小松・武庫川団地","name":"東鳴尾町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.71197810736552,"lon":135.3773841261864,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":41,"area":"鳴尾・小松・武庫川団地","name":"南武橋西詰","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.71164958512174,"lon":135.3791597485542,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":42,"area":"鳴尾・小松・武庫川団地","name":"高須東","sign":"","note":"","currentCheck":"M","svMonth":"2025/10","svLabel":"","lat":34.7033547,"lon":135.3736541,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":43,"area":"鳴尾・小松・武庫川団地","name":"高須小学校前","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7013296,"lon":135.3701227,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":44,"area":"鳴尾・小松・武庫川団地","name":"鳴尾町2丁目","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.71340168867633,"lon":135.3711694478989,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":45,"area":"鳴尾・小松・武庫川団地","name":"鳴尾町4丁目","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.7143321111292,"lon":135.3687554597855,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":46,"area":"鳴尾・小松・武庫川団地","name":"鳴尾浜","sign":"","note":"","currentCheck":"M","svMonth":"2025/10","svLabel":"","lat":34.69797102454194,"lon":135.3632694482804,"lat2":34.69774168173632,"lon2":135.3629422187805,"positionState":"複数地点"},{"no":47,"area":"鳴尾・小松・武庫川団地","name":"古川町","sign":"","note":"","currentCheck":"M","svMonth":"2025/10","svLabel":"","lat":34.71525958344073,"lon":135.3666007518769,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":48,"area":"鳴尾・小松・武庫川団地","name":"枝川一の橋","sign":"","note":"","currentCheck":"M","svMonth":"2025/02","svLabel":"","lat":34.7158047,"lon":135.3652558,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":49,"area":"今津・津門","name":"西長五郎橋","sign":"あり","note":"2026/09/18","currentCheck":"N","svMonth":"","svLabel":"","lat":34.72688811560951,"lon":135.3471583127976,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":50,"area":"今津・津門","name":"今津出在家町","sign":"あり","note":"2026/09/18","currentCheck":"N","svMonth":"","svLabel":"","lat":34.72630760962901,"lon":135.3480917215348,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":51,"area":"今津・津門","name":"今津巽町","sign":"","note":"","currentCheck":"M","svMonth":"2024/12","svLabel":"","lat":34.72245706170337,"lon":135.3532147407532,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":52,"area":"今津・津門","name":"今津港町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.72399436303196,"lon":135.3511708974839,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":53,"area":"今津・津門","name":"社前交番前","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7254749,"lon":135.3532693,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":54,"area":"今津・津門","name":"今津曙町","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"","svLabel":"","lat":34.72889634092848,"lon":135.357323884964,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":55,"area":"今津・津門","name":"西宮消防署前","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.737446,"lon":135.3497769,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":56,"area":"今津・津門","name":"津門稲荷町","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.73726011497874,"lon":135.3512942790985,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":57,"area":"今津・津門","name":"津門大塚町","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"","svLabel":"","lat":34.73697504200001,"lon":135.3537359833717,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":58,"area":"今津・津門","name":"北今津","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.737115,"lon":135.352513,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":59,"area":"今津・津門","name":"津門飯田町","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73566134247181,"lon":135.3610932826996,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":60,"area":"今津・津門","name":"津門","sign":"","note":"","currentCheck":"MN","svMonth":"2025/05","svLabel":"","lat":34.73596111467308,"lon":135.3593301773072,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":61,"area":"今津・津門","name":"津門西","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.736366,"lon":135.357182,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":62,"area":"今津・津門","name":"津門大箇町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73418303816358,"lon":135.359243452549,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":63,"area":"今津・津門","name":"今津山中町","sign":"あり","note":"2026/09/18","currentCheck":"MN","svMonth":"","svLabel":"","lat":34.73214187672376,"lon":135.3583681583405,"lat2":34.73211542505673,"lon2":135.3585183620453,"positionState":"複数地点"},{"no":64,"area":"今津・津門","name":"西宮インター北","sign":"","note":"","currentCheck":"M","svMonth":"2018/11","svLabel":"","lat":34.72706667549,"lon":135.3554812073708,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":65,"area":"今津・津門","name":"西宮インター","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"","svLabel":"","lat":34.72669559382474,"lon":135.3550377488137,"lat2":34.72656112223584,"lon2":135.3548312187195,"positionState":"複数地点"},{"no":66,"area":"今津・津門","name":"今津","sign":"あり","note":"2026/09/18","currentCheck":"N","svMonth":"","svLabel":"","lat":34.72970975749782,"lon":135.3502374887467,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":67,"area":"JR西宮・阪神西宮・用海","name":"JR西宮駅前","sign":"あり","note":"2026/09/17","currentCheck":"📷","svMonth":"","svLabel":"","lat":34.737735,"lon":135.347348,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":68,"area":"JR西宮・阪神西宮・用海","name":"東川","sign":"あり","note":"2026/09/17","currentCheck":"MN","svMonth":"","svLabel":"","lat":34.738096225414,"lon":135.3443062305451,"lat2":34.73805214247405,"lon2":135.3445959091187,"positionState":"複数地点"},{"no":69,"area":"JR西宮・阪神西宮・用海","name":"西宮市役所前","sign":"あり","note":"2026/09/19","currentCheck":"MN","svMonth":"2025/05","svLabel":"","lat":34.7383107620528,"lon":135.342373251915,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":70,"area":"JR西宮・阪神西宮・用海","name":"上天神橋","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"","svLabel":"","lat":34.73623,"lon":135.343836,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":71,"area":"JR西宮・阪神西宮・用海","name":"与古道公園前","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"","svLabel":"","lat":34.735543,"lon":135.343638,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":72,"area":"JR西宮・阪神西宮・用海","name":"札場筋","sign":"あり","note":"2026/09/17","currentCheck":"MN","svMonth":"","svLabel":"","lat":34.738612,"lon":135.339409,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":73,"area":"JR西宮・阪神西宮・用海","name":"西宮郵便局前","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.738602,"lon":135.337712,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":74,"area":"JR西宮・阪神西宮・用海","name":"産所町","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73807,"lon":135.335185,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":75,"area":"JR西宮・阪神西宮・用海","name":"産所町西","sign":"あり","note":"2026/09/17","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.738603,"lon":135.334792,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":76,"area":"JR西宮・阪神西宮・用海","name":"和上町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73750477734378,"lon":135.3361621499062,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":77,"area":"JR西宮・阪神西宮・用海","name":"田中町北","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.736261,"lon":135.336134,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":78,"area":"JR西宮・阪神西宮・用海","name":"田中町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.73583327077905,"lon":135.3361237049103,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":79,"area":"JR西宮・阪神西宮・用海","name":"西宮本町","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.73367605892643,"lon":135.3394567966461,"lat2":34.73350853466878,"lon2":135.3394407033921,"positionState":"複数地点"},{"no":80,"area":"JR西宮・阪神西宮・用海","name":"石在町","sign":"あり","note":"2026/09/16","currentCheck":"M","svMonth":"","svLabel":"","lat":34.73346738830791,"lon":135.3413718938828,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":81,"area":"JR西宮・阪神西宮・用海","name":"用海","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.73334541861792,"lon":135.3431296348572,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":82,"area":"JR西宮・阪神西宮・用海","name":"用海東","sign":"あり","note":"2026/09/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.7297934,"lon":135.3457346,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":83,"area":"JR西宮・阪神西宮・用海","name":"染殿","sign":"あり","note":"2026/09/18","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.73256363271567,"lon":135.3459513187409,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":84,"area":"西宮神社・香櫨園","name":"戎前","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7338127232009,"lon":135.3358662128449,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":85,"area":"西宮神社・香櫨園","name":"浜町","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7308369177232,"lon":135.3357857465744,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":86,"area":"西宮神社・香櫨園","name":"前浜町","sign":"あり","note":"2026/09/19","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.72845031778556,"lon":135.3357857465744,"lat2":34.72844150017033,"lon2":135.3360968828202,"positionState":"複数地点"},{"no":87,"area":"西宮神社・香櫨園","name":"建石","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7338597474151,"lon":135.3315925598145,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":88,"area":"西宮神社・香櫨園","name":"神楽町","sign":"あり","note":"2026/09/17","currentCheck":"MN","svMonth":"2025/05","svLabel":"","lat":34.73828872064298,"lon":135.3314566612244,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":89,"area":"西宮神社・香櫨園","name":"夙川橋","sign":"あり","note":"2026/09/17","currentCheck":"N","svMonth":"","svLabel":"","lat":34.73772078495583,"lon":135.3291311860085,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":90,"area":"西宮神社・香櫨園","name":"森具","sign":"あり","note":"2026/09/17","currentCheck":"N","svMonth":"","svLabel":"","lat":34.736565,"lon":135.324785,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":91,"area":"西宮神社・香櫨園","name":"郷免町","sign":"あり","note":"","currentCheck":"M","svMonth":"2020/12","svLabel":"郷免町 / Gomencho","lat":null,"lon":null,"lat2":null,"lon2":null,"positionState":"位置未登録"},{"no":92,"area":"夙川・苦楽園・甲陽園","name":"千歳町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.74025038309158,"lon":135.3314191102982,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":93,"area":"夙川・苦楽園・甲陽園","name":"寿町","sign":"","note":"","currentCheck":"M","svMonth":"2024/12","svLabel":"","lat":34.74129070652428,"lon":135.3314325213432,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":94,"area":"夙川・苦楽園・甲陽園","name":"寿町北","sign":"あり","note":"2026/09/17","currentCheck":"N","svMonth":"","svLabel":"","lat":34.741835,"lon":135.331421,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":95,"area":"夙川・苦楽園・甲陽園","name":"若松町","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.74248897243629,"lon":135.3314074873925,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":96,"area":"夙川・苦楽園・甲陽園","name":"大井手町","sign":"","note":"","currentCheck":"M","svMonth":"2018/11","svLabel":"","lat":34.74370558761035,"lon":135.3313493728638,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":97,"area":"夙川・苦楽園・甲陽園","name":"南郷町","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.74461877189041,"lon":135.3313019871712,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":98,"area":"夙川・苦楽園・甲陽園","name":"南郷町北","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7467453,"lon":135.3311898,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":99,"area":"夙川・苦楽園・甲陽園","name":"名次町南","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.7486606,"lon":135.3311067,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":100,"area":"夙川・苦楽園・甲陽園","name":"名次町","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.75040326225003,"lon":135.331022143364,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":101,"area":"夙川・苦楽園・甲陽園","name":"神原","sign":"","note":"","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.75315284681581,"lon":135.3307503461838,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":102,"area":"夙川・苦楽園・甲陽園","name":"神園町","sign":"","note":"Mapionでは夙川学院前","currentCheck":"※N","svMonth":"2025/05","svLabel":"","lat":34.75479462029106,"lon":135.3300449252129,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":103,"area":"夙川・苦楽園・甲陽園","name":"獅子ヶ口町","sign":"","note":"Mapionでは夙川学院北","currentCheck":"※N","svMonth":"2025/05","svLabel":"","lat":34.75993422534932,"lon":135.3265759348869,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":104,"area":"夙川・苦楽園・甲陽園","name":"柏堂町","sign":"","note":"","currentCheck":"MN","svMonth":"2025/05","svLabel":"","lat":34.76372206447181,"lon":135.317149758339,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":105,"area":"夙川・苦楽園・甲陽園","name":"北山緑化植物園前","sign":"","note":"","currentCheck":"MN","svMonth":"2025/05","svLabel":"","lat":34.7644596,"lon":135.3166801,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":106,"area":"夙川・苦楽園・甲陽園","name":"鷲林寺町","sign":"","note":"","currentCheck":"MN","svMonth":"2025/05","svLabel":"","lat":34.77511758638757,"lon":135.3153562545776,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":107,"area":"夙川・苦楽園・甲陽園","name":"甲寿橋","sign":"","note":"","currentCheck":"N","svMonth":"2025/6","svLabel":"","lat":34.78112097458218,"lon":135.3116047382355,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":108,"area":"西宮浜","name":"西宮浜3丁目西","sign":"あり","note":"2026/09/17","currentCheck":"M","svMonth":"","svLabel":"","lat":34.71663578985738,"lon":135.328646898786,"lat2":34.71701,"lon2":135.328616,"positionState":"複数地点"},{"no":109,"area":"西宮浜","name":"西宮浜3丁目","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"","svLabel":"","lat":34.71707687261593,"lon":135.3306789668364,"lat2":34.71674396119431,"lon2":135.3306655557913,"positionState":"複数地点"},{"no":110,"area":"西宮浜","name":"西宮浜1丁目","sign":"あり","note":"2026/09/16","currentCheck":"M","svMonth":"","svLabel":"","lat":34.71675962429087,"lon":135.3337617733768,"lat2":34.71635175093196,"lon2":135.3335793831638,"positionState":"複数地点"},{"no":111,"area":"西宮北口・瓦林","name":"神祇官町南","sign":"あり","note":"2026/09/18","currentCheck":"","svMonth":"","svLabel":"","lat":34.738780977395,"lon":135.352647900581,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":112,"area":"西宮北口・瓦林","name":"神祇官町北","sign":"あり","note":"2026/09/17","currentCheck":"","svMonth":"","svLabel":"","lat":34.739298945885,"lon":135.352631807327,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":113,"area":"西宮北口・瓦林","name":"芦原町","sign":"あり","note":"2026/09/17","currentCheck":"","svMonth":"","svLabel":"","lat":null,"lon":null,"lat2":null,"lon2":null,"positionState":"位置未登録"},{"no":114,"area":"西宮北口・瓦林","name":"両度町","sign":"あり","note":"2026/09/17","currentCheck":"","svMonth":"","svLabel":"","lat":34.744141243156,"lon":135.351940691471,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":115,"area":"西宮北口・瓦林","name":"両度町東","sign":"あり","note":"2026/09/17","currentCheck":"NM","svMonth":"","svLabel":"","lat":34.742384,"lon":135.355112,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":116,"area":"西宮北口・瓦林","name":"両度町南","sign":"あり","note":"2026/09/17","currentCheck":"NM","svMonth":"","svLabel":"","lat":34.742295,"lon":135.352124,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":117,"area":"西宮北口・瓦林","name":"球場橋","sign":"あり","note":"2026/09/17","currentCheck":"N","svMonth":"","svLabel":"","lat":34.74423527980195,"lon":135.3550565242768,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":118,"area":"西宮北口・瓦林","name":"芸術文化センター前","sign":"あり","note":"2026/09/17","currentCheck":"N","svMonth":"","svLabel":"","lat":34.744221,"lon":135.356689,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":119,"area":"西宮北口・瓦林","name":"高松町南","sign":"","note":"","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.742506,"lon":135.358437,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":120,"area":"西宮北口・瓦林","name":"高松町","sign":"あり","note":"2026/09/17","currentCheck":"N","svMonth":"","svLabel":"","lat":34.74420075073346,"lon":135.3577592968941,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":121,"area":"西宮北口・瓦林","name":"大屋町","sign":"","note":"","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74254113444484,"lon":135.3654992580414,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":122,"area":"西宮北口・瓦林","name":"大屋町北","sign":"あり","note":"2026/09/18","currentCheck":"N","svMonth":"","svLabel":"","lat":34.7456,"lon":135.365292,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":123,"area":"西宮北口・瓦林","name":"瓦林北","sign":"あり","note":"2026/09/18","currentCheck":"N","svMonth":"","svLabel":"","lat":34.745684,"lon":135.367032,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":124,"area":"西宮北口・瓦林","name":"松山西","sign":"あり","note":"2026/09/18","currentCheck":"N","svMonth":"","svLabel":"","lat":34.745831,"lon":135.370171,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":125,"area":"西宮北口・瓦林","name":"松山町","sign":"","note":"","currentCheck":"NM","svMonth":"2025/05","svLabel":"","lat":34.74595216443343,"lon":135.3728592395783,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":126,"area":"西宮北口・瓦林","name":"上武庫橋西詰","sign":"あり","note":"2026/09/18","currentCheck":"M","svMonth":"2025/05","svLabel":"","lat":34.747348,"lon":135.374705,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":127,"area":"広田・越水・大社","name":"江上町","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74023715855683,"lon":135.3393325209618,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":128,"area":"広田・越水・大社","name":"城ケ堀町","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74129860258442,"lon":135.3392588813788,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":129,"area":"広田・越水・大社","name":"城ケ堀町北","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74184156884147,"lon":135.3392013350323,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":130,"area":"広田・越水・大社","name":"越水阪急高架下","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74339702748666,"lon":135.3391045331955,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":131,"area":"広田・越水・大社","name":"越水","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74416769097348,"lon":135.3390607237816,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":132,"area":"広田・越水・大社","name":"越水町東","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.745012,"lon":135.3403282,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":133,"area":"広田・越水・大社","name":"室川町","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74586841479148,"lon":135.3424340486527,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":134,"area":"広田・越水・大社","name":"青木","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74692262558296,"lon":135.3444045782089,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":135,"area":"広田・越水・大社","name":"河原町","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2024/12","svLabel":"","lat":34.74832136254713,"lon":135.3469160199166,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":136,"area":"広田・越水・大社","name":"御手洗川橋","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.74900456054218,"lon":135.348129272461,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":137,"area":"広田・越水・大社","name":"能登町","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.75087781637634,"lon":135.3515410423279,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":138,"area":"広田・越水・大社","name":"丸橋町","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.7517218695316,"lon":135.352632701397,"lat2":34.75182985482201,"lon2":135.3527641296387,"positionState":"複数地点"},{"no":139,"area":"広田・越水・大社","name":"中前田町南","sign":"","note":"","currentCheck":"N","svMonth":"2025/5","svLabel":"","lat":34.7419608,"lon":135.3426557,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":140,"area":"広田・越水・大社","name":"西宮警察署北","sign":"","note":"","currentCheck":"N","svMonth":"2025/5","svLabel":"","lat":34.7420289,"lon":135.3446027,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":141,"area":"門戸・甲東園・仁川","name":"門戸陸橋西","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/05","svLabel":"","lat":34.75365015703717,"lon":135.3550708293915,"lat2":34.7535222,"lon2":135.3549648,"positionState":"複数地点"},{"no":142,"area":"門戸・甲東園・仁川","name":"門戸陸橋東","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/06","svLabel":"","lat":34.75789002744035,"lon":135.3608268499375,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":143,"area":"門戸・甲東園・仁川","name":"若山町","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2024/12","svLabel":"","lat":34.7594325458202,"lon":135.3629279136658,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":144,"area":"門戸・甲東園・仁川","name":"上大市4西","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/5","svLabel":"","lat":34.7616963,"lon":135.3659822,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":145,"area":"門戸・甲東園・仁川","name":"上大市4","sign":"あり","note":"2026/9/19","currentCheck":"N","svMonth":"2025/5","svLabel":"","lat":34.76218550224588,"lon":135.3666087985039,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":146,"area":"門戸・甲東園・仁川","name":"上大市5","sign":"あり","note":"2026/9/19","currentCheck":"M","svMonth":"2025/5","svLabel":"","lat":34.76433448063511,"lon":135.3695257927045,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":147,"area":"門戸・甲東園・仁川","name":"門戸厄神駅前","sign":"","note":"","currentCheck":"📷","svMonth":"2025/5","svLabel":"","lat":34.757912,"lon":135.358078,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":148,"area":"門戸・甲東園・仁川","name":"甲武橋","sign":"あり","note":"2026/9/19","currentCheck":"M","svMonth":"2025/5","svLabel":"","lat":34.76471435116915,"lon":135.3721752762794,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":149,"area":"門戸・甲東園・仁川","name":"甲東小学校東","sign":"あり","note":"","currentCheck":"M","svMonth":"2025/6","svLabel":"","lat":null,"lon":null,"lat2":null,"lon2":null,"positionState":"位置未登録"},{"no":150,"area":"門戸・甲東園・仁川","name":"甲武橋南？","sign":"※","note":"Street Viewでは看板なし。現地確認待ち","currentCheck":"","svMonth":"","svLabel":"看板なし","lat":null,"lon":null,"lat2":null,"lon2":null,"positionState":"保留（現地確認待ち）"},{"no":151,"area":"門戸・甲東園・仁川","name":"甲武橋北","sign":"","note":"","currentCheck":"M","svMonth":"2025/11","svLabel":"","lat":34.7665,"lon":135.372425,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":152,"area":"門戸・甲東園・仁川","name":"樋ノ口町バス停前","sign":"","note":"","currentCheck":"M","svMonth":"2025/1","svLabel":"","lat":34.75912222527962,"lon":135.371935878678,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":153,"area":"門戸・甲東園・仁川","name":"新田バス停前","sign":"","note":"","currentCheck":"M","svMonth":"2025/1","svLabel":"","lat":34.75351793304606,"lon":135.3726929426194,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":154,"area":"門戸・甲東園・仁川","name":"仁川橋","sign":"","note":"","currentCheck":"M","svMonth":"2025/6","svLabel":"","lat":34.77450584047422,"lon":135.3585335612297,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":155,"area":"門戸・甲東園・仁川","name":"仁川町2丁目","sign":"","note":"","currentCheck":"M","svMonth":"2025/6","svLabel":"","lat":34.77347254506032,"lon":135.3590485453606,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":156,"area":"門戸・甲東園・仁川","name":"仁川霊園前","sign":"","note":"","currentCheck":"M","svMonth":"2025/11","svLabel":"","lat":34.775105,"lon":135.371892,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":157,"area":"門戸・甲東園・仁川","name":"仁川北1丁目","sign":"","note":"","currentCheck":"M","svMonth":"2025/11","svLabel":"","lat":34.77450310193672,"lon":135.371082915383,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":158,"area":"門戸・甲東園・仁川","name":"仁川口橋","sign":"","note":"","currentCheck":"M","svMonth":"2025/11","svLabel":"","lat":34.77420180180254,"lon":135.3707054257393,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":159,"area":"生瀬","name":"生瀬","sign":"","note":"","currentCheck":"N","svMonth":"2025/1","svLabel":"","lat":34.81495722251408,"lon":135.3354531526566,"lat2":34.81485592612214,"lon2":135.3355148434639,"positionState":"複数地点"},{"no":160,"area":"生瀬","name":"生瀬北","sign":"","note":"","currentCheck":"N","svMonth":"2025/6","svLabel":"","lat":34.816624,"lon":135.334555,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":161,"area":"生瀬","name":"生瀬橋東詰","sign":"","note":"","currentCheck":"MN","svMonth":"2022/7","svLabel":"","lat":34.817968,"lon":135.333815,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":162,"area":"生瀬","name":"生瀬橋西詰","sign":"","note":"","currentCheck":"N","svMonth":"2025/6","svLabel":"","lat":34.81783310724597,"lon":135.3323605656624,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":163,"area":"生瀬","name":"生瀬1","sign":"","note":"","currentCheck":"N","svMonth":"2025/6","svLabel":"","lat":34.82084467780002,"lon":135.326524078846,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":164,"area":"生瀬","name":"西宝橋南詰","sign":"","note":"","currentCheck":"N","svMonth":"","svLabel":"","lat":34.81863463762828,"lon":135.3226152062416,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":165,"area":"生瀬","name":"大多田橋","sign":"※","note":"工事中箇所の旧道にあった可能性","currentCheck":"","svMonth":"","svLabel":"","lat":null,"lon":null,"lat2":null,"lon2":null,"positionState":"保留（現存未確認）"},{"no":166,"area":"生瀬","name":"木ノ元バス停前","sign":"","note":"","currentCheck":"MN","svMonth":"2026/7","svLabel":"","lat":34.8245379769205,"lon":135.3171783685684,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":167,"area":"名塩","name":"尼子谷","sign":"","note":"","currentCheck":"N","svMonth":"2026/7","svLabel":"","lat":34.824014,"lon":135.310364,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":168,"area":"名塩","name":"名塩南","sign":"","note":"","currentCheck":"N","svMonth":"2026/7","svLabel":"","lat":34.827862,"lon":135.305235,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":169,"area":"名塩","name":"名塩東口","sign":"","note":"","currentCheck":"N","svMonth":"2026/7","svLabel":"","lat":34.82895694728823,"lon":135.3047981858253,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":170,"area":"名塩","name":"名塩（西）","sign":"","note":"同名交差点の西側","currentCheck":"N","svMonth":"2022/11","svLabel":"","lat":34.82963145615242,"lon":135.3000534918194,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":171,"area":"名塩","name":"名塩（東）","sign":"","note":"同名交差点の東側","currentCheck":"N","svMonth":"2022/12","svLabel":"","lat":null,"lon":null,"lat2":null,"lon2":null,"positionState":"位置未登録"},{"no":172,"area":"名塩","name":"名塩幼稚園前","sign":"","note":"","currentCheck":"N","svMonth":"2022/11","svLabel":"","lat":34.830996,"lon":135.296891,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":173,"area":"名塩","name":"名塩西ノ口","sign":"","note":"","currentCheck":"N","svMonth":"","svLabel":"","lat":34.830285,"lon":135.294526,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":174,"area":"名塩","name":"名塩山荘バス停前","sign":"","note":"","currentCheck":"MN","svMonth":"2025/3","svLabel":"","lat":34.830304,"lon":135.29111,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":175,"area":"名塩","name":"名塩茶園町","sign":"","note":"","currentCheck":"MN","svMonth":"2025/3","svLabel":"","lat":34.8335408005049,"lon":135.2844232320786,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":176,"area":"名塩","name":"さくら台入口","sign":"","note":"","currentCheck":"N","svMonth":"2026/7","svLabel":"","lat":34.83378444358153,"lon":135.2826762199402,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":177,"area":"名塩","name":"赤坂峠","sign":"","note":"","currentCheck":"MN","svMonth":"2026/7","svLabel":"","lat":34.835313,"lon":135.268955,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":178,"area":"名塩","name":"赤坂峠西","sign":"","note":"","currentCheck":"MN","svMonth":"2026/7","svLabel":"","lat":34.83467461531955,"lon":135.2645552158356,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":179,"area":"山口・北六甲台","name":"西宮山口東ランプ","sign":"","note":"","currentCheck":"N","svMonth":"2026/7","svLabel":"","lat":34.834479,"lon":135.260974,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":180,"area":"山口・北六甲台","name":"丸山ダム北","sign":"","note":"","currentCheck":"N","svMonth":"2026/7","svLabel":"","lat":34.831703,"lon":135.254981,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":181,"area":"山口・北六甲台","name":"有馬病院前","sign":"","note":"","currentCheck":"N","svMonth":"","svLabel":"","lat":34.83315772167945,"lon":135.2554589509964,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":182,"area":"山口・北六甲台","name":"北六甲台4丁目","sign":"","note":"","currentCheck":"MN","svMonth":"2024/12","svLabel":"","lat":34.82869861174966,"lon":135.2494391798973,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":183,"area":"山口・北六甲台","name":"北六甲台4西","sign":"","note":"","currentCheck":"MN","svMonth":"2024/12","svLabel":"","lat":34.828464,"lon":135.247088,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":184,"area":"山口・北六甲台","name":"明治橋東詰","sign":"","note":"","currentCheck":"MN","svMonth":"2026/7","svLabel":"","lat":34.831159,"lon":135.242702,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":185,"area":"山口・北六甲台","name":"新明治橋","sign":"","note":"","currentCheck":"MN","svMonth":"2025/3","svLabel":"","lat":34.83252585788331,"lon":135.2412647008896,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":186,"area":"山口・北六甲台","name":"新天上橋西詰","sign":"","note":"","currentCheck":"N","svMonth":"2025/3","svLabel":"","lat":34.833946,"lon":135.240284,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":187,"area":"山口・北六甲台","name":"天上橋","sign":"","note":"","currentCheck":"MN","svMonth":"2026/7","svLabel":"","lat":34.83482414694566,"lon":135.2398800078055,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":188,"area":"山口・北六甲台","name":"天上橋北","sign":"","note":"","currentCheck":"N","svMonth":"2026/7","svLabel":"","lat":34.8366773,"lon":135.2394479,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":189,"area":"山口・北六甲台","name":"名来2丁目","sign":"","note":"","currentCheck":"N","svMonth":"2022/11","svLabel":"","lat":34.83948102571357,"lon":135.2388358352767,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":190,"area":"山口・北六甲台","name":"名来","sign":"","note":"","currentCheck":"N","svMonth":"2022/11","svLabel":"","lat":34.84153221091553,"lon":135.2384001016617,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":191,"area":"山口・北六甲台","name":"名来1丁目","sign":"","note":"","currentCheck":"N","svMonth":"2023/5","svLabel":"","lat":34.8444458,"lon":135.2377505,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":192,"area":"山口・北六甲台","name":"天上橋西","sign":"","note":"","currentCheck":"N","svMonth":"2025/3","svLabel":"","lat":34.8347469,"lon":135.2393608,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":193,"area":"山口・北六甲台","name":"流通センター東","sign":"","note":"","currentCheck":"N","svMonth":"2025/3","svLabel":"","lat":34.8344302,"lon":135.23688,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":194,"area":"山口・北六甲台","name":"流通センター前","sign":"","note":"","currentCheck":"N","svMonth":"2023/4","svLabel":"","lat":34.8342662,"lon":135.2357445,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":195,"area":"山口・北六甲台","name":"西宮明治橋","sign":"","note":"","currentCheck":"MN","svMonth":"2025/3","svLabel":"","lat":34.830552,"lon":135.240663,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":196,"area":"山口・北六甲台","name":"山口交番前","sign":"","note":"","currentCheck":"N","svMonth":"2025/3","svLabel":"","lat":34.82801460578517,"lon":135.2407121658325,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":197,"area":"山口・北六甲台","name":"松栄橋","sign":"","note":"","currentCheck":"N","svMonth":"2024/12","svLabel":"","lat":34.82473531213474,"lon":135.2441622762307,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":198,"area":"山口・北六甲台","name":"上山口","sign":"","note":"","currentCheck":"N","svMonth":"2025/3","svLabel":"","lat":34.8209058,"lon":135.2465261,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":199,"area":"山口・北六甲台","name":"金仙寺湖西","sign":"","note":"","currentCheck":"N","svMonth":"2025/3","svLabel":"","lat":34.82214464710217,"lon":135.2516827181949,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":200,"area":"山口・北六甲台","name":"山口町中野","sign":"","note":"","currentCheck":"N","svMonth":"2025/3","svLabel":"","lat":34.8194228671706,"lon":135.2488983587813,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":201,"area":"盤滝・船坂","name":"盤滝トンネル東","sign":"","note":"","currentCheck":"N","svMonth":"2025/03","svLabel":"","lat":34.784002,"lon":135.298667,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":202,"area":"盤滝・船坂","name":"船坂","sign":"","note":"","currentCheck":"N","svMonth":"2025/03","svLabel":"","lat":34.80453038121546,"lon":135.2783185243607,"lat2":null,"lon2":null,"positionState":"位置確認済み"},{"no":203,"area":"盤滝・船坂","name":"船坂小学校前","sign":"","note":"","currentCheck":"N","svMonth":"2025/03","svLabel":"","lat":34.805067,"lon":135.28243,"lat2":null,"lon2":null,"positionState":"位置確認済み"}];
+const STORAGE_KEY = 'nishinomiyaIntersectionAuditV080';
+const map = L.map('map', {zoomControl:true}).setView([34.742, 135.337], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+const markerLayer = L.layerGroup().addTo(map);
+const lineLayer = L.layerGroup().addTo(map);
+const listEl = document.getElementById('list');
+const searchEl = document.getElementById('search');
+const areaEl = document.getElementById('areaFilter');
+const resultCount = document.getElementById('resultCount');
+const selectionInfo = document.getElementById('selectionInfo');
+const editBox = document.getElementById('editBox');
+const editInfo = document.getElementById('editInfo');
+const confirmPosBtn = document.getElementById('confirmPosBtn');
+let selectedNo = null;
+let reviewOnly = false;
+let nearMode = false;
+let userLocation = null;
+let auditMode = false;
+let auditTargetNo = null;
+let stagedPoint = null;
+let multiMode = false;
+let tempMarker = null;
+let audit = loadAudit();
+applySavedAudit();
+const markers = new Map();
+const secondaryMarkers = new Map();
 
-  const map = L.map('map').setView([34.78, 135.32], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  const normalIcon = L.divIcon({
-    className: '',
-    html: '<div style="width:12px;height:12px;border-radius:50%;background:#1f5fa8;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,.4);"></div>',
-    iconSize: [12,12],
-    iconAnchor: [6,6]
-  });
-  const warnIcon = L.divIcon({
-    className: '',
-    html: '<div style="width:18px;height:18px;border-radius:50%;background:#e07b2a;border:3px solid white;box-shadow:0 0 0 2px #9b4b16,0 1px 5px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:white;font:bold 11px sans-serif;">!</div>',
-    iconSize: [18,18],
-    iconAnchor: [9,9]
-  });
-
-  // Ver.0.7: 異なる名称なのに同一座標の地点を自動抽出し、優先監査対象にする。
-  const coordGroups = new Map();
-  points.forEach((p,i)=>{ const k=`${p.lat.toFixed(6)},${p.lon.toFixed(6)}`; if(!coordGroups.has(k))coordGroups.set(k,[]); coordGroups.get(k).push(i); });
-  const coordReviewIndexes = new Set();
-  coordGroups.forEach(idxs=>{ if(idxs.length>1 && new Set(idxs.map(i=>points[i].name)).size>1) idxs.forEach(i=>coordReviewIndexes.add(i)); });
-  points.forEach((p,i)=>{ p.coordReview=coordReviewIndexes.has(i); });
-
-  // Ver.0.7.4: 元の推定判定は保持しつつ、位置監査で確定した地点は推定から卒業させる。
-  points.forEach(p=>{ p.originalConf=p.conf; });
-  const markers = points.map(p => {
-    const m = L.marker([p.lat, p.lon], {icon: p.conf === 'low' ? warnIcon : normalIcon});
-    const status = p.coordReview ? '⚠ 同一座標に別名称あり（優先確認）' : (p.conf === 'low' ? '⚠ 推定位置（要確認）' : (p.conf === 'high' ? '位置精度：高' : '位置精度：中'));
-    m.bindPopup(`<strong>${p.no}. ${p.name}</strong><br><span class="popup-meta">${status}<br>緯度 ${p.lat.toFixed(6)} / 経度 ${p.lon.toFixed(6)}</span>`);
-    m.addTo(map);
-    return {marker: m, data: p};
-  });
-
-  const listEl = document.getElementById('list');
-  let selectedMarker = null;
-  let selectedHalo = null;
-  function selectPoint(marker, data, listItem) {
-    if (selectedHalo) map.removeLayer(selectedHalo);
-    selectedMarker = marker;
-    selectedHalo = L.circleMarker([data.lat, data.lon], {
-      radius: 15, weight: 4, color: '#ffcc00', fillColor: '#ffeb80', fillOpacity: .25, interactive: false
-    }).addTo(map);
-    document.querySelectorAll('.item.selected').forEach(el => el.classList.remove('selected'));
-    if (listItem) { listItem.classList.add('selected'); listItem.scrollIntoView({block:'nearest'}); }
-    marker.openPopup();
-  }
-
-  markers.forEach(({marker, data}, idx) => {
-    const div = document.createElement('div');
-    div.className = 'item' + ((data.conf === 'low' || data.coordReview) ? ' warn' : '');
-    div.dataset.name = data.name;
-    div.dataset.idx = idx;
-    div.innerHTML = `<span class="no">${data.no}</span><span class="name">${data.coordReview?'⚠ ':data.flag}${data.name}</span>`;
-    div.addEventListener('click', () => {
-      map.setView([data.lat, data.lon], 17);
-      selectPoint(marker, data, div);
-    });
-    marker.on('click', () => selectPoint(marker, data, div));
-    listEl.appendChild(div);
-  });
-
-  const searchEl = document.getElementById('search');
-  const warnBtn = document.getElementById('warnOnlyBtn');
-  const resultCount = document.getElementById('resultCount');
-  let warnOnly = false;
-  function applyFilter() {
-    const q = searchEl.value.trim();
-    let shown = 0;
-    document.querySelectorAll('.item').forEach((el, i) => {
-      const d = markers[i].data;
-      const hide = (q && !d.name.includes(q)) || (warnOnly && !isEstimated(i));
-      el.classList.toggle('hidden', hide);
-      const marker = markers[i].marker;
-      if (hide) { if (map.hasLayer(marker)) map.removeLayer(marker); }
-      else { if (!map.hasLayer(marker)) marker.addTo(map); shown++; }
-    });
-    resultCount.textContent = `表示 ${shown}件 / 全${points.length}件`;
-  }
-  searchEl.addEventListener('input', applyFilter);
-  warnBtn.addEventListener('click', () => { warnOnly = !warnOnly; warnBtn.classList.toggle('active', warnOnly); applyFilter(); });
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    searchEl.value=''; warnOnly=false; warnBtn.classList.remove('active'); document.getElementById('nearBtn').classList.remove('active'); [...listEl.querySelectorAll('.item')].sort((a,b)=>+a.dataset.idx-+b.dataset.idx).forEach(el=>listEl.appendChild(el)); if(selectedHalo){map.removeLayer(selectedHalo);selectedHalo=null;} document.querySelectorAll('.item.selected').forEach(el=>el.classList.remove('selected')); applyFilter(); map.setView([34.78,135.32],12);
-  });
-
-  let userMarker = null;
-  let userLatLng = null;
-  function distanceMeters(aLat,aLon,bLat,bLon) {
-    const R=6371000, rad=Math.PI/180;
-    const dLat=(bLat-aLat)*rad, dLon=(bLon-aLon)*rad;
-    const x=Math.sin(dLat/2)**2 + Math.cos(aLat*rad)*Math.cos(bLat*rad)*Math.sin(dLon/2)**2;
-    return 2*R*Math.asin(Math.sqrt(x));
-  }
-  function sortByDistance() {
-    if (!userLatLng) { alert('先に「◎ 現在地」を押してください。'); return; }
-    const items=[...listEl.querySelectorAll('.item')];
-    items.sort((a,b) => {
-      const da=markers[+a.dataset.idx].data, db=markers[+b.dataset.idx].data;
-      return distanceMeters(userLatLng.lat,userLatLng.lng,da.lat,da.lon)-distanceMeters(userLatLng.lat,userLatLng.lng,db.lat,db.lon);
-    });
-    items.forEach(el => listEl.appendChild(el));
-    document.getElementById('nearBtn').classList.add('active');
-  }
-  document.getElementById('nearBtn').addEventListener('click', sortByDistance);
-
-  // ---- Ver.0.7.4 全197件 位置監査・進捗保存モード ----
-  const editBtn=document.getElementById('editBtn');
-  const editBox=document.getElementById('editBox');
-  const editTitle=document.getElementById('editTitle');
-  const editInfo=document.getElementById('editInfo');
-  const acceptCurrentBtn=document.getElementById('acceptCurrentBtn');
-  const multiPosBtn=document.getElementById('multiPosBtn');
-  const confirmPosBtn=document.getElementById('confirmPosBtn');
-  const holdPosBtn=document.getElementById('holdPosBtn');
-  const skipPosBtn=document.getElementById('skipPosBtn');
-  const exportBtn=document.getElementById('exportBtn');
-  const exitEditBtn=document.getElementById('exitEditBtn');
-  const auditIndexes=markers.map((x,i)=>i);
-  const priorityIndexes=markers.map((x,i)=>(x.data.coordReview||x.data.conf==='low')?i:null).filter(i=>i!==null);
-  let editMode=false, editCursor=0, proposedLatLng=null, proposedMarker=null, multiMode=false, secondLatLng=null, secondMarker=null, holdReviewMode=false;
-
-  // 9/17に一巡して得られた23件を「現在の基準座標」として読み込む。
-  // Ver.0.7ではこれらを基準座標として保持しつつ、197件すべてを監査できる。
-  const baselineByNo={
-    3:[34.73327267757251,135.3739365935326],5:[34.73374512584608,135.37160128355026],6:[34.73405666102156,135.370109975338],7:[34.73434835680757,135.3687670826912],8:[34.73457098539228,135.3672364354134],12:[34.73129615395535,135.37029951810842],17:[34.72633112387454,135.36405891180038],33:[34.72391646986631,135.35904586315158],83:[34.72970975749782,135.35023748874667],90:[34.737720784955826,135.32913118600848],113:[34.74423527980195,135.35505652427676],118:[34.7456,135.365292],124:[34.74129860258442,135.33925888137875],125:[34.74184156884147,135.3392013350323],126:[34.74339702748666,135.3391045331955],140:[34.76433448063511,135.3695257927045],146:[34.75912222527962,135.371935878678],147:[34.75351793304606,135.37269294261935],152:[34.77450310193672,135.37108291538303],158:[34.82084467780002,135.32652407884598],165:[34.82963145615242,135.3000534918194],171:[34.835313,135.268955],191:[34.82473531213474,135.24416227623067],193:[34.82214464710217,135.25168271819493]
-  };
-  markers.forEach(({marker,data})=>{ const b=baselineByNo[data.no]; if(b){ data.lat=b[0]; data.lon=b[1]; marker.setLatLng(b); } });
-
-  // 9/17再確認で複数地点と確認した交差点。地点1を代表ピン、地点2を補助点として表示する。
-  const reviewedMultiByNo={
-    3:[[34.73327267757251,135.3739365935326],[34.73321757067731,135.37373542785647]],
-    7:[[34.73434835680757,135.3687670826912],[34.734269003899726,135.3686597943306]],
-    33:[[34.72391646986631,135.35904586315158],[34.723806243563075,135.358946621418]],
-    83:[[34.72970975749782,135.35023748874667],[34.729908150568725,135.35037159919742]],
-    126:[[34.74339702748666,135.3391045331955],[34.74321629887901,135.3391233086586]],
-    140:[[34.76433448063511,135.3695257927045],[34.76422739035001,135.3693750500679]],
-    158:[[34.82084467780002,135.32652407884598],[34.82074559058633,135.3265455365181]]
-  };
-  const reviewedMultiLayers=[];
-  Object.entries(reviewedMultiByNo).forEach(([no,pts])=>{
-    const p=points.find(x=>x.no===+no); if(!p) return;
-    const line=L.polyline(pts,{weight:3,opacity:.7,dashArray:'5,5'}).addTo(map);
-    const dot=L.circleMarker(pts[1],{radius:7,weight:2,fillOpacity:.9}).addTo(map).bindPopup(`<strong>${p.name}</strong><br><span class="popup-meta">複数地点・地点2</span>`);
-    reviewedMultiLayers.push(line,dot);
-  });
-
-
-  // Ver.0.7.4: 監査進捗を保存し、一周するまでは確認済み地点を再出題しない。
-  const storageKey='nishinomiyaIntersectionAuditV074';
-  const previousStorageKeys=['nishinomiyaIntersectionAuditV073','nishinomiyaIntersectionAuditV071'];
-  const seedCorrections=[{"no":1,"name":"武庫大橋西詰","method":"座標修正","points":[{"point":1,"lat":34.732135998576254,"lng":135.37860274314883}],"updatedAt":"2026-09-17T08:10:37.667Z"},{"no":2,"name":"戸崎町","method":"座標修正","points":[{"point":1,"lat":34.73260624905507,"lng":135.37649095058444}],"updatedAt":"2026-09-17T08:10:45.409Z"},{"no":3,"name":"上甲子園","method":"現在位置でOK","points":[{"point":1,"lat":34.73327267757251,"lng":135.3739365935326}],"updatedAt":"2026-09-17T07:17:01.429Z"},{"no":4,"name":"上甲子園交番前","method":"現在位置でOK","points":[{"point":1,"lat":34.733459305984645,"lng":135.3728646039963}],"updatedAt":"2026-09-17T07:17:06.844Z"},{"no":5,"name":"甲子園口3丁目","method":"現在位置でOK","points":[{"point":1,"lat":34.73374512584608,"lng":135.37160128355026}],"updatedAt":"2026-09-17T07:17:11.967Z"},{"no":6,"name":"甲子園口4","method":"現在位置でOK","points":[{"point":1,"lat":34.73405666102156,"lng":135.370109975338}],"updatedAt":"2026-09-17T07:17:17.894Z"},{"no":7,"name":"上甲子園1","method":"現在位置でOK","points":[{"point":1,"lat":34.73431382360703,"lng":135.36868661642075}],"updatedAt":"2026-09-17T07:17:24.672Z"},{"no":8,"name":"瓦木東","method":"現在位置でOK","points":[{"point":1,"lat":34.73457098539228,"lng":135.3672364354134}],"updatedAt":"2026-09-17T07:17:29.865Z"},{"no":9,"name":"瓦木","method":"現在位置でOK","points":[{"point":1,"lat":34.73482667688819,"lng":135.36582380533218}],"updatedAt":"2026-09-17T07:17:34.843Z"},{"no":10,"name":"瓦木郵便局前","method":"現在位置でOK","points":[{"point":1,"lat":34.73502652716175,"lng":135.36471068859103}],"updatedAt":"2026-09-17T07:17:41.872Z"},{"no":11,"name":"甲子園二番町","method":"現在位置でOK","points":[{"point":1,"lat":34.73223298795654,"lng":135.37194550037384}],"updatedAt":"2026-09-17T07:17:53.640Z"},{"no":12,"name":"甲子園二番町南","method":"現在位置でOK","points":[{"point":1,"lat":34.73129615395535,"lng":135.37029951810842}],"updatedAt":"2026-09-17T07:17:59.394Z"},{"no":13,"name":"甲子園三番町","method":"現在位置でOK","points":[{"point":1,"lat":34.73045336166656,"lng":135.3688305616379}],"updatedAt":"2026-09-17T07:18:04.856Z"},{"no":14,"name":"甲子園三保町","method":"現在位置でOK","points":[{"point":1,"lat":34.72949960728112,"lng":135.36715328693393}],"updatedAt":"2026-09-17T07:18:16.991Z"},{"no":15,"name":"甲子園四番町","method":"現在位置でOK","points":[{"point":1,"lat":34.728639896285365,"lng":135.36585688591003}],"updatedAt":"2026-09-17T07:18:22.530Z"},{"no":16,"name":"甲子園五番町北","method":"現在位置でOK","points":[{"point":1,"lat":34.727596474346896,"lng":135.36500573158267}],"updatedAt":"2026-09-17T07:18:29.125Z"},{"no":17,"name":"甲子園五番町","method":"現在位置でOK","points":[{"point":1,"lat":34.72633112387454,"lng":135.36405891180038}],"updatedAt":"2026-09-17T07:18:34.785Z"},{"no":18,"name":"甲子園六番町","method":"現在位置でOK","points":[{"point":1,"lat":34.724763737810555,"lng":135.36342948675156}],"updatedAt":"2026-09-17T07:18:48.686Z"},{"no":19,"name":"阪神甲子園駅北","method":"現在位置でOK","points":[{"point":1,"lat":34.72415749753733,"lng":135.36327034235003}],"updatedAt":"2026-09-17T07:18:55.042Z"},{"no":20,"name":"阪神甲子園駅前","method":"現在位置でOK","points":[{"point":1,"lat":34.72334035209814,"lng":135.36316037178042}],"updatedAt":"2026-09-17T07:19:06.478Z"},{"no":21,"name":"甲子園球場前","method":"複数地点","points":[{"point":1,"lat":34.72228584042675,"lng":135.36329001188278},{"point":2,"lat":34.7218978355349,"lng":135.36330610513687}],"updatedAt":"2026-09-17T07:20:25.887Z"},{"no":22,"name":"甲子園球場南","method":"現在位置でOK","points":[{"point":1,"lat":34.72013782836191,"lng":135.36261677742004}],"updatedAt":"2026-09-17T07:20:34.965Z"},{"no":23,"name":"甲子園九番町","method":"座標修正","points":[{"point":1,"lat":34.71755396707925,"lng":135.36113619804385}],"updatedAt":"2026-09-17T07:21:08.355Z"},{"no":24,"name":"甲子園九番町南","method":"座標修正","points":[{"point":1,"lat":34.715595440500095,"lng":135.36001056432727}],"updatedAt":"2026-09-17T07:22:45.445Z"},{"no":25,"name":"浜甲子園1丁目北","method":"現在位置でOK","points":[{"point":1,"lat":34.7145806,"lng":135.3594173}],"updatedAt":"2026-09-17T07:22:57.083Z"},{"no":26,"name":"浜甲子園1丁目","method":"座標修正","points":[{"point":1,"lat":34.713095220221255,"lng":135.3585720062256}],"updatedAt":"2026-09-17T07:24:01.364Z"},{"no":27,"name":"鳴尾浜公園前","method":"現在位置でOK","points":[{"point":1,"lat":34.7109842,"lng":135.3574097}],"updatedAt":"2026-09-17T07:24:09.870Z"},{"no":28,"name":"中津交番前","method":"現在位置でOK","points":[{"point":1,"lat":34.7184489,"lng":135.3595307}],"updatedAt":"2026-09-17T07:24:18.543Z"},{"no":29,"name":"中津交番西","method":"現在位置でOK","points":[{"point":1,"lat":34.7193562,"lng":135.3579406}],"updatedAt":"2026-09-17T07:24:28.694Z"},{"no":30,"name":"南甲子園東","method":"現在位置でOK","points":[{"point":1,"lat":34.7201187,"lng":135.3565888}],"updatedAt":"2026-09-17T07:24:40.517Z"},{"no":31,"name":"南甲子園","method":"座標修正","points":[{"point":1,"lat":34.72068383877103,"lng":135.35557597875595}],"updatedAt":"2026-09-17T07:24:57.211Z"},{"no":32,"name":"網引公園西","method":"現在位置でOK","points":[{"point":1,"lat":34.7211637,"lng":135.3549502}],"updatedAt":"2026-09-17T07:25:35.428Z"},{"no":33,"name":"高潮","method":"現在位置でOK","points":[{"point":1,"lat":34.72391646986631,"lng":135.35904586315158}],"updatedAt":"2026-09-17T07:26:17.242Z"},{"no":34,"name":"鳴尾","method":"複数地点","points":[{"point":1,"lat":34.71812718559575,"lng":135.37452042102814},{"point":2,"lat":34.71791333146005,"lng":135.37443995475772}],"updatedAt":"2026-09-17T07:27:07.754Z"},{"no":35,"name":"本郷","method":"座標修正","points":[{"point":1,"lat":34.719513917033616,"lng":135.36918461322787}],"updatedAt":"2026-09-17T07:27:35.668Z"},{"no":36,"name":"笠屋町","method":"座標修正","points":[{"point":1,"lat":34.71302834086306,"lng":135.37272691726687}],"updatedAt":"2026-09-17T07:27:49.680Z"},{"no":37,"name":"笠屋町東","method":"現在位置でOK","points":[{"point":1,"lat":34.7126689,"lng":135.374429}],"updatedAt":"2026-09-17T07:28:19.708Z"},{"no":38,"name":"東鳴尾町西","method":"現在位置でOK","points":[{"point":1,"lat":34.7122755,"lng":135.3761128}],"updatedAt":"2026-09-17T07:29:09.727Z"},{"no":39,"name":"東鳴尾町","method":"座標修正","points":[{"point":1,"lat":34.71197810736552,"lng":135.3773841261864}],"updatedAt":"2026-09-17T07:29:32.440Z"},{"no":40,"name":"南武橋西詰","method":"座標修正","points":[{"point":1,"lat":34.71164958512174,"lng":135.37915974855423}],"updatedAt":"2026-09-17T07:29:48.086Z"},{"no":41,"name":"高須東","method":"現在位置でOK","points":[{"point":1,"lat":34.7033547,"lng":135.3736541}],"updatedAt":"2026-09-17T07:29:59.902Z"},{"no":42,"name":"高須小学校前","method":"現在位置でOK","points":[{"point":1,"lat":34.7013296,"lng":135.3701227}],"updatedAt":"2026-09-17T07:30:29.060Z"},{"no":43,"name":"鳴尾町2丁目","method":"座標修正","points":[{"point":1,"lat":34.713401688676335,"lng":135.3711694478989}],"updatedAt":"2026-09-17T07:31:05.460Z"},{"no":44,"name":"鳴尾町4丁目","method":"座標修正","points":[{"point":1,"lat":34.7143321111292,"lng":135.3687554597855}],"updatedAt":"2026-09-17T07:31:22.786Z"},{"no":45,"name":"鳴尾浜","method":"複数地点","points":[{"point":1,"lat":34.69797102454194,"lng":135.36326944828036},{"point":2,"lat":34.697741681736325,"lng":135.36294221878055}],"updatedAt":"2026-09-17T07:32:09.873Z"},{"no":46,"name":"古川町","method":"座標修正","points":[{"point":1,"lat":34.715259583440734,"lng":135.36660075187686}],"updatedAt":"2026-09-17T07:32:32.475Z"},{"no":47,"name":"枝川一の橋","method":"現在位置でOK","points":[{"point":1,"lat":34.7158047,"lng":135.3652558}],"updatedAt":"2026-09-17T07:32:44.140Z"},{"no":48,"name":"甲子園浜1丁目","method":"複数地点","points":[{"point":1,"lat":34.71247272564262,"lng":135.3459942340851},{"point":2,"lat":34.71215522955509,"lng":135.34568309783938}],"updatedAt":"2026-09-17T07:35:03.061Z"},{"no":49,"name":"西長五郎橋","method":"座標修正","points":[{"point":1,"lat":34.72688811560951,"lng":135.34715831279757}],"updatedAt":"2026-09-17T07:35:24.419Z"},{"no":50,"name":"今津出在家町","method":"座標修正","points":[{"point":1,"lat":34.72630760962901,"lng":135.34809172153476}],"updatedAt":"2026-09-17T07:35:50.503Z"},{"no":51,"name":"今津巽町","method":"座標修正","points":[{"point":1,"lat":34.722457061703366,"lng":135.3532147407532}],"updatedAt":"2026-09-17T07:36:14.087Z"},{"no":52,"name":"今津港町","method":"座標修正","points":[{"point":1,"lat":34.72399436303196,"lng":135.35117089748385}],"updatedAt":"2026-09-17T07:36:24.241Z"},{"no":53,"name":"社前交番前","method":"現在位置でOK","points":[{"point":1,"lat":34.7254749,"lng":135.3532693}],"updatedAt":"2026-09-17T07:36:40.379Z"},{"no":54,"name":"今津曙町","method":"座標修正","points":[{"point":1,"lat":34.72889634092848,"lng":135.35732388496402}],"updatedAt":"2026-09-17T07:37:01.009Z"},{"no":55,"name":"西宮消防署前","method":"現在位置でOK","points":[{"point":1,"lat":34.737446,"lng":135.3497769}],"updatedAt":"2026-09-17T07:37:29.469Z"},{"no":56,"name":"津門稲荷町","method":"座標修正","points":[{"point":1,"lat":34.73726011497874,"lng":135.35129427909854}],"updatedAt":"2026-09-17T07:37:53.235Z"},{"no":57,"name":"津門大塚町","method":"座標修正","points":[{"point":1,"lat":34.73697504200001,"lng":135.35373598337173}],"updatedAt":"2026-09-17T07:39:25.252Z"},{"no":58,"name":"北今津","method":"現在位置でOK","points":[{"point":1,"lat":34.737115,"lng":135.352513}],"updatedAt":"2026-09-17T07:39:32.592Z"},{"no":59,"name":"津門飯田町","method":"座標修正","points":[{"point":1,"lat":34.735661342471815,"lng":135.36109328269958}],"updatedAt":"2026-09-17T07:40:03.014Z"},{"no":60,"name":"津門","method":"座標修正","points":[{"point":1,"lat":34.73596111467308,"lng":135.35933017730716}],"updatedAt":"2026-09-17T07:40:14.465Z"},{"no":61,"name":"津門西","method":"現在位置でOK","points":[{"point":1,"lat":34.736366,"lng":135.357182}],"updatedAt":"2026-09-17T07:41:35.293Z"},{"no":62,"name":"津門大箇町","method":"座標修正","points":[{"point":1,"lat":34.73418303816358,"lng":135.359243452549}],"updatedAt":"2026-09-17T07:42:20.753Z"},{"no":63,"name":"今津山中町","method":"複数地点","points":[{"point":1,"lat":34.73214187672376,"lng":135.35836815834048},{"point":2,"lat":34.732115425056726,"lng":135.3585183620453}],"updatedAt":"2026-09-17T07:43:35.051Z"},{"no":64,"name":"西宮インター北","method":"座標修正","points":[{"point":1,"lat":34.72706667549,"lng":135.35548120737076}],"updatedAt":"2026-09-17T07:44:01.564Z"},{"no":65,"name":"西宮インター","method":"複数地点","points":[{"point":1,"lat":34.726695593824736,"lng":135.35503774881366},{"point":2,"lat":34.726561122235836,"lng":135.3548312187195}],"updatedAt":"2026-09-17T07:44:26.816Z"},{"no":66,"name":"JR西宮駅前","method":"現在位置でOK","points":[{"point":1,"lat":34.737735,"lng":135.347348}],"updatedAt":"2026-09-17T07:44:52.048Z"},{"no":67,"name":"東川","method":"複数地点","points":[{"point":1,"lat":34.738096225414004,"lng":135.34430623054507},{"point":2,"lat":34.738052142474054,"lng":135.34459590911868}],"updatedAt":"2026-09-17T07:45:30.882Z"},{"no":68,"name":"西宮市役所前","method":"座標修正","points":[{"point":1,"lat":34.7383107620528,"lng":135.342373251915}],"updatedAt":"2026-09-17T07:45:50.170Z"},{"no":69,"name":"上天神橋","method":"座標修正","points":[{"point":1,"lat":34.73623,"lng":135.343836}],"updatedAt":"2026-09-17T07:46:16.805Z"},{"no":70,"name":"与古道公園前","method":"現在位置でOK","points":[{"point":1,"lat":34.735543,"lng":135.343638}],"updatedAt":"2026-09-17T07:46:23.364Z"},{"no":71,"name":"札場筋","method":"現在位置でOK","points":[{"point":1,"lat":34.738612,"lng":135.339409}],"updatedAt":"2026-09-17T07:46:32.352Z"},{"no":72,"name":"西宮郵便局前","method":"現在位置でOK","points":[{"point":1,"lat":34.738602,"lng":135.337712}],"updatedAt":"2026-09-17T07:46:48.412Z"},{"no":73,"name":"産所町","method":"現在位置でOK","points":[{"point":1,"lat":34.73807,"lng":135.335185}],"updatedAt":"2026-09-17T07:47:13.790Z"},{"no":74,"name":"産所町西","method":"現在位置でOK","points":[{"point":1,"lat":34.738603,"lng":135.334792}],"updatedAt":"2026-09-17T07:47:20.183Z"},{"no":75,"name":"和上町","method":"座標修正","points":[{"point":1,"lat":34.73750477734378,"lng":135.33616214990616}],"updatedAt":"2026-09-17T07:48:14.922Z"},{"no":76,"name":"田中町北","method":"現在位置でOK","points":[{"point":1,"lat":34.736261,"lng":135.336134}],"updatedAt":"2026-09-17T07:48:26.570Z"},{"no":77,"name":"田中町","method":"座標修正","points":[{"point":1,"lat":34.735833270779054,"lng":135.3361237049103}],"updatedAt":"2026-09-17T07:48:33.748Z"},{"no":78,"name":"西宮本町","method":"複数地点","points":[{"point":1,"lat":34.73367605892643,"lng":135.33945679664615},{"point":2,"lat":34.73350853466878,"lng":135.33944070339206}],"updatedAt":"2026-09-17T07:49:19.151Z"},{"no":79,"name":"石在町","method":"座標修正","points":[{"point":1,"lat":34.733467388307915,"lng":135.34137189388278}],"updatedAt":"2026-09-17T07:50:08.848Z"},{"no":80,"name":"用海","method":"座標修正","points":[{"point":1,"lat":34.733345418617915,"lng":135.3431296348572}],"updatedAt":"2026-09-17T07:50:26.724Z"},{"no":81,"name":"用海東","method":"現在位置でOK","points":[{"point":1,"lat":34.7297934,"lng":135.3457346}],"updatedAt":"2026-09-17T07:50:46.477Z"},{"no":82,"name":"染殿","method":"座標修正","points":[{"point":1,"lat":34.73256363271567,"lng":135.34595131874087}],"updatedAt":"2026-09-17T07:51:12.960Z"},{"no":83,"name":"今津","method":"現在位置でOK","points":[{"point":1,"lat":34.72970975749782,"lng":135.35023748874667}],"updatedAt":"2026-09-17T07:51:31.185Z"},{"no":84,"name":"戎前","method":"座標修正","points":[{"point":1,"lat":34.7338127232009,"lng":135.33586621284488}],"updatedAt":"2026-09-17T07:51:48.213Z"},{"no":85,"name":"浜町","method":"座標修正","points":[{"point":1,"lat":34.7308369177232,"lng":135.33578574657443}],"updatedAt":"2026-09-17T07:52:21.151Z"},{"no":86,"name":"前浜町","method":"複数地点","points":[{"point":1,"lat":34.72845031778556,"lng":135.33578574657443},{"point":2,"lat":34.728441500170334,"lng":135.33609688282016}],"updatedAt":"2026-09-17T07:53:00.334Z"},{"no":87,"name":"建石","method":"座標修正","points":[{"point":1,"lat":34.7338597474151,"lng":135.33159255981448}],"updatedAt":"2026-09-17T07:53:25.814Z"},{"no":88,"name":"神楽町","method":"座標修正","points":[{"point":1,"lat":34.738288720642984,"lng":135.3314566612244}],"updatedAt":"2026-09-17T07:53:55.524Z"}];
-  let savedCorrections={};
-  try{ savedCorrections=JSON.parse(localStorage.getItem(storageKey)||'{}'); }catch(e){ savedCorrections={}; }
-  // 旧版の監査結果が同じブラウザにあれば引き継ぐ。なければ受領CSV（No.1〜88）を初期進捗にする。
-  if(!Object.keys(savedCorrections).length){
-    for(const k of previousStorageKeys){
-      try{ const old=JSON.parse(localStorage.getItem(k)||'{}'); if(Object.keys(old).length){savedCorrections=old;break;} }catch(e){}
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function hasPosition(p) { return Number.isFinite(p.lat) && Number.isFinite(p.lon); }
+function isReview(p) { return !hasPosition(p) || /保留|未登録|未確認/.test(p.positionState + ' ' + p.note); }
+function displaySign(p) { return p.sign || '記載なし'; }
+function popupHtml(p) {
+  const rows = [
+    ['地区', p.area], ['青看板', displaySign(p)], ['位置状態', p.positionState || (hasPosition(p) ? '位置登録済み' : '位置未登録')],
+    ['現在の確認', p.currentCheck], ['Street View', [p.svMonth, p.svLabel].filter(Boolean).join(' / ')]
+  ].filter(([,v]) => v);
+  return `<div class="popup-title">${esc(p.name)}</div><div class="popup-meta">No.${p.no}<br>${rows.map(([k,v]) => `${esc(k)}：${esc(v)}`).join('<br>')}${p.note ? `<div class="popup-note">備考：${esc(p.note)}</div>` : ''}</div>`;
+}
+function markerStyle(p, secondary=false) {
+  const multi = Number.isFinite(p.lat2) && Number.isFinite(p.lon2);
+  return {radius:secondary ? 5 : 7, color:multi ? '#4f32a6' : '#134f91', weight:2, fillColor:multi ? '#7656d6' : '#1f78c1', fillOpacity:.9};
+}
+function rebuildMarkers() {
+  markerLayer.clearLayers(); lineLayer.clearLayers(); markers.clear(); secondaryMarkers.clear();
+  points.forEach(p => {
+    if (!hasPosition(p)) return;
+    const marker = L.circleMarker([p.lat,p.lon], markerStyle(p)).bindPopup(popupHtml(p)).addTo(markerLayer);
+    marker.on('click', () => selectPoint(p.no, false));
+    markers.set(p.no, marker);
+    if (Number.isFinite(p.lat2) && Number.isFinite(p.lon2)) {
+      const second = L.circleMarker([p.lat2,p.lon2], markerStyle(p,true)).bindPopup(popupHtml(p) + '<div class="popup-meta">複数地点の2地点目</div>').addTo(markerLayer);
+      second.on('click', () => selectPoint(p.no, false));
+      secondaryMarkers.set(p.no, second);
+      L.polyline([[p.lat,p.lon],[p.lat2,p.lon2]], {color:'#7656d6',weight:2,dashArray:'5 5',opacity:.7}).addTo(lineLayer);
     }
-  }
-  if(!Object.keys(savedCorrections).length){
-    seedCorrections.forEach(c=>{ const idx=markers.findIndex(m=>m.data.no===c.no); if(idx>=0) savedCorrections[idx]=c; });
-  }
-  // Ver.0.7.4: 実地・地図確認で該当交差点が見当たらない3候補を保留として初期登録。
-  const initialHolds={92:'郷免町（森具とみられる）',148:'上武庫橋（西宮側は上武庫橋西詰）',162:'名塩八幡（神社名等との混同候補）'};
-  Object.entries(initialHolds).forEach(([no,note])=>{
-    const idx=markers.findIndex(m=>m.data.no===+no);
-    if(idx>=0) savedCorrections[idx]={no:+no,name:markers[idx].data.name,method:'該当なし・保留',points:[],note,updatedAt:new Date().toISOString()};
   });
-  localStorage.setItem(storageKey,JSON.stringify(savedCorrections));
-  function saveCorrections(){ localStorage.setItem(storageKey,JSON.stringify(savedCorrections)); }
-  function isHold(i){ return savedCorrections[i]?.method==='該当なし・保留'; }
-  function isDone(i){ return !!savedCorrections[i] && !isHold(i); }
-  function isProcessed(i){ return !!savedCorrections[i]; }
-  function doneCount(){ return auditIndexes.filter(isDone).length; }
-  function holdCount(){ return auditIndexes.filter(isHold).length; }
-  function processedCount(){ return auditIndexes.filter(isProcessed).length; }
-  function isEstimated(i){ return markers[i].data.originalConf==='low' && !isProcessed(i); }
-  function estimatedCount(){ return auditIndexes.filter(isEstimated).length; }
-  function needsPriorityReview(i){ return !isProcessed(i) && (markers[i].data.coordReview || markers[i].data.originalConf==='low'); }
-  function refreshReviewState(i){
-    const x=markers[i], d=x.data, done=isDone(i), hold=isHold(i), estimated=isEstimated(i);
-    x.marker.setIcon(estimated?warnIcon:normalIcon);
-    const status=hold?'？ 該当なし・保留':(done?'✓ 位置確認済み':(d.coordReview?'⚠ 同一座標に別名称あり（優先確認）':(estimated?'⚠ 推定位置（要確認）':(d.originalConf==='high'?'位置精度：高':'位置精度：中'))));
-    x.marker.setPopupContent(`<strong>${d.no}. ${d.name}</strong><br><span class="popup-meta">${status}<br>緯度 ${d.lat.toFixed(6)} / 経度 ${d.lon.toFixed(6)}</span>`);
-    const el=document.querySelector(`.item[data-idx="${i}"]`);
-    if(el){
-      el.classList.toggle('corrected',done);
-      el.style.opacity=hold?'.58':'';
-      el.classList.toggle('warn',!done && (estimated||d.coordReview));
-      const nameEl=el.querySelector('.name'); if(nameEl) nameEl.textContent=`${hold?'？ ':(!done&&d.coordReview?'⚠ ':(!done&&estimated?'⚠ ':''))}${d.name}`;
+}
+function loadAudit() {
+  try { const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY)); return parsed && typeof parsed === 'object' ? parsed : {}; }
+  catch (_) { return {}; }
+}
+function applySavedAudit() {
+  for (const p of points) {
+    const saved=audit[p.no];
+    if (!saved || saved.status==='hold' || !Array.isArray(saved.coords) || !saved.coords.length) continue;
+    const first=saved.coords[0];
+    if (Array.isArray(first) && Number.isFinite(first[0]) && Number.isFinite(first[1])) { p.lat=first[0]; p.lon=first[1]; }
+    const second=saved.coords[1];
+    if (Array.isArray(second) && Number.isFinite(second[0]) && Number.isFinite(second[1])) { p.lat2=second[0]; p.lon2=second[1]; }
+  }
+}
+function saveAudit() { localStorage.setItem(STORAGE_KEY, JSON.stringify(audit)); }
+function auditState(p) { return audit[p.no]?.status || (hasPosition(p) ? 'confirmed' : 'hold'); }
+function areas() { return [...new Set(points.map(p => p.area))]; }
+areas().forEach(area => { const opt=document.createElement('option'); opt.value=area; opt.textContent=area; areaEl.appendChild(opt); });
+
+function filteredPoints() {
+  const q = searchEl.value.trim().toLocaleLowerCase('ja');
+  let items = points.filter(p => (!q || `${p.name} ${p.area} ${p.note} ${p.svLabel}`.toLocaleLowerCase('ja').includes(q)) && (!areaEl.value || p.area === areaEl.value) && (!reviewOnly || isReview(p)));
+  if (nearMode && userLocation) items = [...items].sort((a,b) => distanceTo(a)-distanceTo(b));
+  return items;
+}
+function distanceTo(p) {
+  if (!userLocation || !hasPosition(p)) return Infinity;
+  return map.distance(userLocation, L.latLng(p.lat,p.lon));
+}
+function renderList() {
+  const items = filteredPoints();
+  listEl.replaceChildren();
+  let lastArea = null;
+  for (const p of items) {
+    if (!nearMode && p.area !== lastArea) {
+      const heading=document.createElement('div'); heading.className='area-heading'; heading.textContent=p.area; listEl.appendChild(heading); lastArea=p.area;
     }
+    const item=document.createElement('div');
+    item.className=`item${!hasPosition(p)?' no-location':''}${selectedNo===p.no?' selected':''}${audit[p.no]?.status==='confirmed'?' corrected':''}`;
+    item.dataset.no=String(p.no);
+    const no=document.createElement('span'); no.className='no'; no.textContent=String(p.no);
+    const body=document.createElement('div'); body.className='item-body';
+    const name=document.createElement('div'); name.className='name'; name.textContent=(hasPosition(p)?'':'？ ')+p.name;
+    const meta=document.createElement('div'); meta.className='item-meta';
+    const parts=[];
+    if (nearMode && Number.isFinite(distanceTo(p))) parts.push(distanceTo(p)<1000 ? `${Math.round(distanceTo(p))}m` : `${(distanceTo(p)/1000).toFixed(1)}km`);
+    if (nearMode) parts.push(p.area);
+    if (p.sign) parts.push(`看板:${p.sign}`);
+    if (!hasPosition(p)) parts.push(p.positionState || '位置未登録');
+    else if (Number.isFinite(p.lat2) && Number.isFinite(p.lon2)) parts.push('複数地点');
+    meta.textContent=parts.join(' / ');
+    body.append(name,meta); item.append(no,body); item.addEventListener('click',()=>selectPoint(p.no,true)); listEl.appendChild(item);
   }
-  function refreshAllReviewStates(){ auditIndexes.forEach(refreshReviewState); warnBtn.textContent=`⚠ 推定位置のみ（${estimatedCount()}件）`; applyFilter(); }
-  function updateProgress(){
-    const el=document.getElementById('auditProgress'); if(el) el.textContent=`✓ ${doneCount()}件確認済み　？ ${holdCount()}件保留　○ ${auditIndexes.length-processedCount()}件未確認　（全${auditIndexes.length}件）　⚠ 推定位置 ${estimatedCount()}件`;
+  const mapped=items.filter(hasPosition).length;
+  resultCount.textContent=`表示 ${items.length}件 / 全${points.length}件（地図${mapped}件）`;
+}
+function selectPoint(no, pan=true) {
+  selectedNo=no; const p=points.find(x=>x.no===no); if(!p)return;
+  if (auditMode) setAuditTarget(no);
+  if (hasPosition(p)) {
+    selectionInfo.style.display='none';
+    if (pan) map.setView([p.lat,p.lon], Math.max(map.getZoom(),16));
+    markers.get(no)?.openPopup();
+  } else {
+    selectionInfo.style.display='block';
+    selectionInfo.textContent=`${p.name}：${p.positionState || '位置未登録'}。${p.note || '位置監査モードで位置を登録できます。'}`;
   }
-  function nextUndone(from=0){
-    for(let k=0;k<auditIndexes.length;k++){ const pos=(from+k)%auditIndexes.length; if(!isProcessed(auditIndexes[pos])) return pos; }
-    return -1;
-  }
-  function editTarget(){ return editCursor<0?undefined:auditIndexes[editCursor]; }
-  function clearProposal(){
-    if(proposedMarker){map.removeLayer(proposedMarker); proposedMarker=null;}
-    if(secondMarker){map.removeLayer(secondMarker); secondMarker=null;}
-    proposedLatLng=null; secondLatLng=null; multiMode=false; confirmPosBtn.disabled=true; multiPosBtn.classList.remove('active'); multiPosBtn.textContent='＋ 複数地点にする';
-  }
-  function showEditTarget(){
-    if(!editMode) return; clearProposal(); updateProgress();
-    if(!holdReviewMode && processedCount()>=auditIndexes.length){ editCursor=-1; editTitle.textContent='🎉 全197件の位置監査 完了'; editInfo.innerHTML=`<strong>197件を一巡しました。</strong><br>位置確認済み ${doneCount()}件／保留 ${holdCount()}件<br>CSVを書き出して保存してください。`; return; }
-    if(holdReviewMode){
-      const hs=auditIndexes.filter(isHold);
-      if(!hs.length){ editCursor=-1; editTitle.textContent='？ 保留はありません'; editInfo.innerHTML='現在、該当なし・保留の地点はありません。'; return; }
-      if(editCursor<0 || !isHold(auditIndexes[editCursor])) editCursor=auditIndexes.indexOf(hs[0]);
-    } else if(editCursor<0 || isProcessed(auditIndexes[editCursor])) editCursor=nextUndone(Math.max(0,editCursor));
-    const i=editTarget(); if(i===undefined) return;
-    const d=markers[i].data;
-    editTitle.textContent=`${d.coordReview?'⚠ ':''}${d.name}　No.${d.no}`;
-    editInfo.innerHTML=`現在座標：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}<br><span class="crosshair-note">そのままで正しければ「現在位置でOK」。違えば地図上の正しい位置をタップしてください。${d.coordReview?'<br><strong>⚠ 別名称と同一座標のため優先確認対象です。</strong>':''}</span>`;
-    map.setView(markers[i].marker.getLatLng(),18);
-    const el=document.querySelector(`.item[data-idx="${i}"]`); selectPoint(markers[i].marker,d,el);
-  }
-  function startEdit(){
-    holdReviewMode=false; holdReviewMode=false; editMode=true; editBtn.classList.add('active'); editBox.classList.add('active'); warnOnly=false; warnBtn.classList.remove('active'); applyFilter();
-    editCursor=nextUndone(0); showEditTarget();
-  }
-  function exitEdit(){ holdReviewMode=false; editMode=false; editBtn.classList.remove('active'); editBox.classList.remove('active'); clearProposal(); updateProgress(); }
-  editBtn.addEventListener('click',()=> editMode?exitEdit():startEdit());
-  document.getElementById('priorityBtn').addEventListener('click',()=>{
-    editMode=true; editBtn.classList.add('active'); editBox.classList.add('active'); warnOnly=false; warnBtn.classList.remove('active'); applyFilter();
-    const p=priorityIndexes.find(i=>!isDone(i)); editCursor=p===undefined?nextUndone(0):auditIndexes.indexOf(p); showEditTarget();
-  });
-  document.getElementById('holdOnlyBtn').addEventListener('click',()=>{
-    holdReviewMode=true; editMode=true; editBtn.classList.add('active'); editBox.classList.add('active'); warnOnly=false; warnBtn.classList.remove('active'); applyFilter();
-    const hs=auditIndexes.filter(isHold); editCursor=hs.length?auditIndexes.indexOf(hs[0]):-1; showEditTarget();
-  });
-  exitEditBtn.addEventListener('click',exitEdit);
-  document.getElementById('newRoundBtn').addEventListener('click',()=>{
-    if(!confirm('現在の一周の「確認済み」記録をクリアして、全197件を最初から確認しますか？\n先にCSVを書き出しておくことをおすすめします。')) return;
-    savedCorrections={}; Object.entries(initialHolds).forEach(([no,note])=>{ const idx=markers.findIndex(m=>m.data.no===+no); if(idx>=0) savedCorrections[idx]={no:+no,name:markers[idx].data.name,method:'該当なし・保留',points:[],note,updatedAt:new Date().toISOString()}; }); saveCorrections(); refreshAllReviewStates(); editCursor=0; updateProgress(); showEditTarget();
-  });
+  renderList();
+  listEl.querySelector(`[data-no="${no}"]`)?.scrollIntoView({block:'nearest'});
+}
+function fitAll() {
+  const coords=points.filter(hasPosition).flatMap(p=>[[p.lat,p.lon],...(Number.isFinite(p.lat2)&&Number.isFinite(p.lon2)?[[p.lat2,p.lon2]]:[])]);
+  map.fitBounds(coords,{padding:[24,24]});
+}
 
-  function recordCurrent(pointsArr,method){
-    const i=editTarget(), d=markers[i].data;
-    savedCorrections[i]={no:d.no,name:d.name,points:pointsArr.map((p,n)=>({point:n+1,lat:p.lat,lng:p.lng})),method,updatedAt:new Date().toISOString()};
-    saveCorrections();
-    if(pointsArr[0]){ d.lat=pointsArr[0].lat; d.lon=pointsArr[0].lng; markers[i].marker.setLatLng(pointsArr[0]); }
-    refreshReviewState(i); updateProgress();
-    warnBtn.textContent=`⚠ 推定位置のみ（${estimatedCount()}件）`;
-    if(holdReviewMode){ const hs=auditIndexes.filter(isHold); editCursor=hs.length?auditIndexes.indexOf(hs[0]):-1; }
-    else editCursor=nextUndone(editCursor+1);
-    showEditTarget();
-  }
-  acceptCurrentBtn.addEventListener('click',()=>{ if(!editMode)return; const i=editTarget(); if(i===undefined)return; const ll=markers[i].marker.getLatLng(); recordCurrent([{lat:ll.lat,lng:ll.lng}],'現在位置でOK'); });
-  multiPosBtn.addEventListener('click',()=>{
-    if(!editMode)return; multiMode=!multiMode; secondLatLng=null; if(secondMarker){map.removeLayer(secondMarker);secondMarker=null;}
-    multiPosBtn.classList.toggle('active',multiMode); multiPosBtn.textContent=multiMode?'複数地点：ON（2地点をタップ）':'＋ 複数地点にする'; proposedLatLng=null;
-    if(proposedMarker){map.removeLayer(proposedMarker);proposedMarker=null;} confirmPosBtn.disabled=true;
-    if(multiMode) editInfo.insertAdjacentHTML('beforeend','<br><strong>地点1、地点2の順に地図をタップしてください。</strong>');
-  });
-  function proposalDot(ll,label){ const m=L.circleMarker(ll,{radius:10,weight:3,color:'#c2410c',fillColor:'#fde68a',fillOpacity:.85,interactive:false}).addTo(map); m.bindTooltip(label,{permanent:true,direction:'top',offset:[0,-8]}); return m; }
-  function proposePosition(latlng){
-    if(!editMode)return; const ll=L.latLng(latlng.lat,latlng.lng);
-    if(multiMode){
-      if(!proposedLatLng){ proposedLatLng=ll; if(proposedMarker)map.removeLayer(proposedMarker); proposedMarker=proposalDot(ll,'地点1'); confirmPosBtn.disabled=true; }
-      else { secondLatLng=ll; if(secondMarker)map.removeLayer(secondMarker); secondMarker=proposalDot(ll,'地点2'); confirmPosBtn.disabled=false; }
-      const p1=proposedLatLng?`${proposedLatLng.lat.toFixed(6)}, ${proposedLatLng.lng.toFixed(6)}`:'未選択'; const p2=secondLatLng?`${secondLatLng.lat.toFixed(6)}, ${secondLatLng.lng.toFixed(6)}`:'未選択';
-      editInfo.innerHTML=`<strong>複数地点</strong><br>地点1：${p1}<br>地点2：${p2}<br><span class="crosshair-note">2地点そろったら「この位置に修正」</span>`;
-    } else {
-      proposedLatLng=ll; if(proposedMarker)map.removeLayer(proposedMarker); proposedMarker=proposalDot(ll,'新位置'); const i=editTarget(),d=markers[i].data;
-      editInfo.innerHTML=`現在：${d.lat.toFixed(6)}, ${d.lon.toFixed(6)}<br>新：<strong>${ll.lat.toFixed(6)}, ${ll.lng.toFixed(6)}</strong><br><span class="crosshair-note">位置がよければ「この位置に修正」</span>`; confirmPosBtn.disabled=false;
-    }
-  }
-  map.on('click',e=>proposePosition(e.latlng)); markers.forEach(({marker},idx)=>marker.on('click',()=>{ if(editMode&&idx===editTarget()) proposePosition(marker.getLatLng()); }));
-  confirmPosBtn.addEventListener('click',()=>{ if(!editMode||!proposedLatLng)return; if(multiMode){if(!secondLatLng)return;recordCurrent([proposedLatLng,secondLatLng],'複数地点');}else recordCurrent([proposedLatLng],'座標修正'); });
-  holdPosBtn.addEventListener('click',()=>{
-    if(!editMode)return; const i=editTarget(); if(i===undefined)return; const d=markers[i].data;
-    savedCorrections[i]={no:d.no,name:d.name,method:'該当なし・保留',points:[],note:'該当する交差点名・看板を確認できず',updatedAt:new Date().toISOString()};
-    saveCorrections(); refreshReviewState(i); updateProgress(); warnBtn.textContent=`⚠ 推定位置のみ（${estimatedCount()}件）`;
-    if(holdReviewMode){ const hs=auditIndexes.filter(j=>isHold(j)&&j!==i); editCursor=hs.length?auditIndexes.indexOf(hs[0]):-1; }
-    else editCursor=nextUndone(editCursor+1);
-    showEditTarget();
-  });
-  // 「次へ」は状態を確定せず、その場では次の未確認地点へ進む。
-  skipPosBtn.addEventListener('click',()=>{ if(!editMode)return; if(holdReviewMode){ const hs=auditIndexes.filter(isHold); if(hs.length){ const cur=editTarget(); const pos=hs.indexOf(cur); editCursor=auditIndexes.indexOf(hs[(pos+1)%hs.length]); } } else editCursor=nextUndone(editCursor+1); showEditTarget(); });
-  exportBtn.addEventListener('click',()=>{
-    const vals=Object.values(savedCorrections); if(!vals.length){alert('まだ今回の確認データがありません。');return;}
-    const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"'; const lines=[['No','交差点名','確認方法','地点','緯度','経度','確認日時','備考'].map(esc).join(',')];
-    vals.sort((a,b)=>a.no-b.no).forEach(c=>{ if(c.points?.length) c.points.forEach(p=>lines.push([c.no,c.name,c.method,p.point,p.lat,p.lng,c.updatedAt,c.note||''].map(esc).join(','))); else lines.push([c.no,c.name,c.method,'','','',c.updatedAt,c.note||''].map(esc).join(',')); });
-    const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='nishinomiya-intersection-audit-v0.7.4.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
-  });
-  Object.entries(savedCorrections).forEach(([idx,c])=>{ const i=+idx,p=c.points?.[0]; if(markers[i]&&p){markers[i].data.lat=p.lat;markers[i].data.lon=p.lng;markers[i].marker.setLatLng([p.lat,p.lng]);} });
-  refreshAllReviewStates();
-  updateProgress();
+searchEl.addEventListener('input',renderList); areaEl.addEventListener('change',renderList);
+document.getElementById('reviewOnlyBtn').addEventListener('click',e=>{reviewOnly=!reviewOnly;e.currentTarget.classList.toggle('active',reviewOnly);renderList();});
+document.getElementById('nearBtn').addEventListener('click',e=>{ if(!userLocation){locate(()=>{nearMode=true;e.currentTarget.classList.add('active');renderList();});}else{nearMode=!nearMode;e.currentTarget.classList.toggle('active',nearMode);renderList();} });
+document.getElementById('resetBtn').addEventListener('click',()=>{searchEl.value='';areaEl.value='';reviewOnly=false;nearMode=false;document.getElementById('reviewOnlyBtn').classList.remove('active');document.getElementById('nearBtn').classList.remove('active');renderList();fitAll();});
+function locate(done) {
+  if (!navigator.geolocation) { alert('このブラウザでは現在地を取得できません。'); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{userLocation=L.latLng(pos.coords.latitude,pos.coords.longitude); L.circleMarker(userLocation,{radius:8,color:'#137333',fillColor:'#2ca25f',fillOpacity:.9}).addTo(map).bindPopup('現在地').openPopup(); map.setView(userLocation,15); if(done)done();},()=>alert('現在地を取得できませんでした。位置情報の利用許可を確認してください。'),{enableHighAccuracy:true,timeout:10000});
+}
+document.getElementById('locateBtn').addEventListener('click',()=>locate());
+document.getElementById('mapExpandBtn').addEventListener('click',e=>{document.body.classList.toggle('map-expanded');const on=document.body.classList.contains('map-expanded');e.currentTarget.classList.toggle('active',on);e.currentTarget.textContent=on?'× 元に戻す':'⛶ 地図を大きく';setTimeout(()=>map.invalidateSize(),100);});
 
-  // 地図をほぼ全画面に拡大。データ仕様ではなく表示領域だけを切り替える。
-  const mapExpandBtn=document.getElementById('mapExpandBtn');
-  function setMapExpanded(on){
-    document.body.classList.toggle('map-expanded',on);
-    mapExpandBtn.classList.toggle('active',on);
-    mapExpandBtn.textContent=on?'× 地図を戻す':'⛶ 地図を大きく';
-    setTimeout(()=>map.invalidateSize(),80);
-  }
-  mapExpandBtn.addEventListener('click',()=>setMapExpanded(!document.body.classList.contains('map-expanded')));
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('map-expanded'))setMapExpanded(false);});
+function updateAuditProgress() {
+  const confirmed=points.filter(p=>auditState(p)==='confirmed').length;
+  const holds=points.filter(p=>auditState(p)==='hold').length;
+  document.getElementById('auditProgress').textContent=`確認済み ${confirmed}件 / 保留 ${holds}件 / 未確認 ${points.length-confirmed-holds}件`;
+}
+function setAuditTarget(no) {
+  auditTargetNo=no; stagedPoint=null; multiMode=false; confirmPosBtn.disabled=true; clearTemp();
+  const p=points.find(x=>x.no===no); if(!p)return;
+  const state=hasPosition(p)?`現在位置 ${p.lat.toFixed(6)}, ${p.lon.toFixed(6)}`:'位置未登録';
+  editInfo.innerHTML=`<strong>No.${p.no} ${esc(p.name)}</strong><br>${esc(p.area)} / ${esc(state)}<br><span>${hasPosition(p)?'地図をタップすると修正候補を置けます。':'地図をタップして位置を登録してください。'}</span>`;
+  document.getElementById('acceptCurrentBtn').disabled=!hasPosition(p);
+  document.getElementById('multiPosBtn').disabled=!hasPosition(p);
+}
+function nextAuditTarget() {
+  const start=Math.max(0,points.findIndex(p=>p.no===auditTargetNo));
+  for(let step=1;step<=points.length;step++){const p=points[(start+step)%points.length];if(auditState(p)==='pending'){selectPoint(p.no,true);return;}}
+  const hold=points.find(p=>auditState(p)==='hold'); if(hold){selectPoint(hold.no,hasPosition(hold));return;}
+  alert('全件を確認済みです。');
+}
+function clearTemp(){if(tempMarker){map.removeLayer(tempMarker);tempMarker=null;}}
+function record(status, method, coords) {
+  const p=points.find(x=>x.no===auditTargetNo); if(!p)return;
+  audit[p.no]={status,method,coords,updatedAt:new Date().toISOString(),name:p.name,area:p.area}; saveAudit(); updateAuditProgress(); renderList();
+}
+document.getElementById('editBtn').addEventListener('click',()=>{auditMode=true;editBox.classList.add('active');document.getElementById('editBtn').classList.add('active');updateAuditProgress();const target=points.find(p=>isReview(p))||points[0];selectPoint(target.no,hasPosition(target));});
+document.getElementById('exitEditBtn').addEventListener('click',()=>{auditMode=false;editBox.classList.remove('active');document.getElementById('editBtn').classList.remove('active');clearTemp();});
+document.getElementById('acceptCurrentBtn').addEventListener('click',()=>{const p=points.find(x=>x.no===auditTargetNo);if(!p||!hasPosition(p))return;record('confirmed','現在位置でOK',[[p.lat,p.lon],...(Number.isFinite(p.lat2)&&Number.isFinite(p.lon2)?[[p.lat2,p.lon2]]:[])]);nextAuditTarget();});
+document.getElementById('holdPosBtn').addEventListener('click',()=>{record('hold','該当なし・保留',[]);nextAuditTarget();});
+document.getElementById('skipPosBtn').addEventListener('click',nextAuditTarget);
+document.getElementById('multiPosBtn').addEventListener('click',()=>{multiMode=true;stagedPoint=null;confirmPosBtn.disabled=true;editInfo.insertAdjacentHTML('beforeend','<br><strong>2地点目を地図上でタップしてください。</strong>');});
+map.on('click',e=>{if(!auditMode||!auditTargetNo)return;stagedPoint=e.latlng;clearTemp();tempMarker=L.circleMarker(e.latlng,{radius:9,color:'#9a4d00',weight:3,fillColor:'#f59e0b',fillOpacity:.75}).addTo(map);confirmPosBtn.disabled=false;});
+confirmPosBtn.addEventListener('click',()=>{if(!stagedPoint)return;const p=points.find(x=>x.no===auditTargetNo);if(!p)return;if(multiMode&&hasPosition(p)){p.lat2=stagedPoint.lat;p.lon2=stagedPoint.lng;record('confirmed','複数地点',[[p.lat,p.lon],[p.lat2,p.lon2]]);}else{p.lat=stagedPoint.lat;p.lon=stagedPoint.lng;record('confirmed','位置修正',[[p.lat,p.lon]]);}rebuildMarkers();clearTemp();nextAuditTarget();});
+document.getElementById('newRoundBtn').addEventListener('click',()=>{if(!confirm('確認状況を新しい一周に切り替えます。位置修正データは残し、確認済み状態だけを解除します。'))return;const next={};for(const p of points){if(!hasPosition(p))next[p.no]={status:'hold',method:'該当なし・保留',coords:[],name:p.name,area:p.area};else{const coords=[[p.lat,p.lon],...(Number.isFinite(p.lat2)&&Number.isFinite(p.lon2)?[[p.lat2,p.lon2]]:[])];next[p.no]={...(audit[p.no]||{}),status:'pending',method:audit[p.no]?.method||'現在位置でOK',coords,name:p.name,area:p.area};}}audit=next;saveAudit();updateAuditProgress();renderList();selectPoint(points[0].no,true);});
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const quote=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const header=['No.','地区','交差点名','状態','方法','緯度1','経度1','緯度2','経度2','更新日時'];
+  const lines=[header.map(quote).join(',')];
+  for(const p of points){const a=audit[p.no]||{};const c=a.coords||[];lines.push([p.no,p.area,p.name,auditState(p),a.method||'',c[0]?.[0]??p.lat??'',c[0]?.[1]??p.lon??'',c[1]?.[0]??p.lat2??'',c[1]?.[1]??p.lon2??'',a.updatedAt||''].map(quote).join(','));}
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nishinomiya-intersection-audit-v0.8.0.csv';a.click();URL.revokeObjectURL(url);
+});
 
-  document.getElementById('locateBtn').addEventListener('click', () => {
-    if (!navigator.geolocation) { alert('この端末では現在地を取得できません。'); return; }
-    navigator.geolocation.getCurrentPosition(pos => {
-      const ll=[pos.coords.latitude,pos.coords.longitude];
-      userLatLng={lat:ll[0],lng:ll[1]};
-      if (userMarker) map.removeLayer(userMarker);
-      let nearest=null, nearestDist=Infinity;
-      markers.forEach(({data}) => { const d=distanceMeters(ll[0],ll[1],data.lat,data.lon); if(d<nearestDist){nearestDist=d;nearest=data;} });
-      const nearText=nearest ? `<br><span class="popup-meta">最寄り登録地点：${nearest.name}（約${Math.round(nearestDist)}m）</span>` : '';
-      userMarker=L.circleMarker(ll,{radius:8,weight:3,color:'#1677ff',fillColor:'#fff',fillOpacity:1}).addTo(map).bindPopup(`<strong>現在地</strong>${nearText}`).openPopup();
-      map.setView(ll,17);
-    }, () => alert('現在地を取得できませんでした。Safariの位置情報許可をご確認ください。'), {enableHighAccuracy:true,timeout:10000});
-  });
-  applyFilter();
+rebuildMarkers(); renderList(); fitAll();
 </script>
 </body>
 </html>
