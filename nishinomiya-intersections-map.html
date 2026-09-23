@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href="https://kussoon.com/nishinomiya/nishinomiya-intersections-map.html">
 <meta name="description" content="西宮市の交差点看板203件を地区別・地図上で確認できる試作版リスト">
 <title>西宮市 交差点看板リスト 試作版 Ver.0.8.1</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -16,6 +17,8 @@
   h1 { font-size:1.05rem; font-weight:700; margin:0; }
   .meta { font-size:.8rem; color:var(--sub); }
   .trial { padding:8px 20px; background:#fff7e6; color:#7a4a00; border-bottom:1px solid #f0d59a; font-size:.82rem; line-height:1.45; }
+  .site-links { padding:5px 20px; border-bottom:1px solid var(--line); background:#fff; color:var(--sub); font-size:.7rem; line-height:1.4; }
+  .site-links a { margin-right:12px; color:#365f8d; }
   #wrap { flex:1; display:flex; min-height:0; }
   #map { flex:1; min-width:0; }
   #panel { width:310px; flex:0 0 310px; border-left:1px solid var(--line); background:var(--card); display:flex; flex-direction:column; overflow:hidden; }
@@ -61,6 +64,7 @@
     header { padding:10px 12px; }
     h1 { font-size:.98rem; }
     .trial { padding:7px 12px; font-size:.76rem; }
+    .site-links { padding:5px 12px; }
     body { overflow-y:auto; }
     #wrap { flex-direction:column; flex:none; min-height:auto; }
     #map { flex:0 0 auto; height:450px; min-height:450px; }
@@ -77,6 +81,7 @@
   <span class="meta">全203件（地図位置監査済み）</span>
 </header>
 <div class="trial"><strong>試作版・トライアルデータ</strong>　看板一覧 Ver.0.9.4と位置監査結果を反映。現地確認状況は各地点の吹き出しに表示します。位置修正内容はこの端末のブラウザ内に保存されます。</div>
+<nav class="site-links" aria-label="サイト共通案内"><a href="/nishinomiya/">西宮市トップ</a><a href="/about/">このサイトについて</a><a href="/privacy/">プライバシー</a><a href="/sources/">調査方法・データ出典</a><a href="/terms/">利用上の注意</a></nav>
 <div id="wrap">
   <div id="map"></div>
   <aside id="panel">
