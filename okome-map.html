@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#174f3b">
+  <title>西宮市 おこめ券取扱店舗マップ</title>
+  <meta name="description" content="西宮市内のおこめ券取扱店舗164店を地図で確認できます。">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <style>
+    :root {
+      --ink: #18342c;
+      --deep: #174f3b;
+      --deep-2: #0e3f2e;
+      --pin: #1769e0;
+      --paper: #fffdf7;
+      --line: #dce6e0;
+      --muted: #61736d;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+    }
+    header {
+      z-index: 1000;
+      padding: max(10px, env(safe-area-inset-top)) 12px 10px;
+      color: white;
+      background: linear-gradient(120deg, var(--deep-2), var(--deep));
+      box-shadow: 0 2px 14px rgb(15 52 40 / .24);
+    }
+    .topline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 1100px;
+      margin: 0 auto 8px;
+    }
+    h1 { flex: 1; margin: 0; font-size: clamp(1rem, 4.3vw, 1.4rem); line-height: 1.25; }
+    .count { white-space: nowrap; color: #f9e4ab; font-size: .88rem; font-weight: 700; }
+    .intro {
+      max-width: 1100px;
+      margin: 0 auto 9px;
+      padding: 9px 11px;
+      border: 1px solid rgb(255 255 255 / .2);
+      border-radius: 10px;
+      background: rgb(255 255 255 / .1);
+      font-size: .8rem;
+      line-height: 1.55;
+    }
+    .intro p { margin: 0; }
+    .intro strong { color: #ffe299; }
+    .source-links { display: flex; flex-wrap: wrap; gap: 5px 14px; margin-top: 5px; }
+    .source-links a { color: #fff1c9; font-weight: 700; }
+    .controls { display: flex; gap: 8px; max-width: 1100px; margin: auto; }
+    .search-wrap { position: relative; flex: 1; min-width: 0; }
+    input, button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 10px;
+      font: inherit;
+    }
+    input {
+      width: 100%;
+      padding: 0 14px;
+      color: var(--ink);
+      background: white;
+      outline: none;
+    }
+    input:focus { box-shadow: 0 0 0 3px rgb(241 201 109 / .6); }
+    button {
+      padding: 0 13px;
+      color: white;
+      background: #25785b;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:active { transform: translateY(1px); }
+    #results {
+      position: absolute;
+      top: 48px;
+      right: 0;
+      left: 0;
+      z-index: 1100;
+      max-height: min(44vh, 360px);
+      overflow: auto;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 8px 28px rgb(10 35 28 / .28);
+    }
+    #results:empty { display: none; }
+    .result {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 0;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      color: var(--ink);
+      background: white;
+      font-weight: 600;
+    }
+    .result small { display: block; margin-top: 3px; color: var(--muted); font-weight: 400; }
+    main, #map { min-height: 0; height: 100%; }
+    .store-pin {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border: 3px solid white;
+      border-radius: 50% 50% 50% 5px;
+      color: white;
+      background: var(--pin);
+      box-shadow: 0 2px 7px rgb(0 0 0 / .35);
+      font-size: 11px;
+      font-weight: 800;
+      transform: rotate(-45deg);
+    }
+    .store-pin span { transform: rotate(45deg); }
+    .leaflet-popup-content-wrapper { border-radius: 12px; }
+    .leaflet-popup-content { width: min(260px, 68vw) !important; margin: 13px 15px; }
+    .popup-title { margin: 0 0 8px; font-size: 1rem; line-height: 1.4; }
+    .popup-store + .popup-store { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .address { margin: 3px 0 8px; color: var(--muted); line-height: 1.45; }
+    .condition {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 999px;
+      color: #254338;
+      background: #f7e7b9;
+      font-size: .78rem;
+      font-weight: 700;
+    }
+    .route { display: inline-block; margin-top: 8px; color: #116b51; font-weight: 700; text-decoration: none; }
+    .map-note {
+      padding: 8px 10px;
+      border-radius: 9px;
+      color: #28473c;
+      background: rgb(255 253 247 / .95);
+      box-shadow: 0 2px 10px rgb(0 0 0 / .18);
+      font-size: .76rem;
+      line-height: 1.45;
+    }
+    .map-note a { color: #12664e; }
+    @media (min-width: 720px) {
+      header { padding-inline: 20px; }
+      .controls { max-width: 760px; margin-left: calc((100% - min(1100px, 100%)) / 2); }
+      .search-wrap { max-width: 560px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topline">
+      <h1>西宮市 おこめ券取扱店舗マップ</h1>
+      <span class="count" id="count">164店</span>
+    </div>
+    <div class="intro">
+      <p>西宮市は物価高騰による市民生活への影響を軽減するため、対象世帯に1世帯当たり4,400円分（440円×10枚）のおこめ券を配布しました。<strong>有効期限は2026年9月30日です。</strong>この地図は、市が2026年4月21日時点で公表した市内取扱店舗164店を表示しています。利用条件は店舗ごとに異なるため、詳しくは各店舗でご確認ください。</p>
+      <div class="source-links">
+        <a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.html" target="_blank" rel="noopener">西宮市の制度説明</a>
+        <a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.files/tenpo0421.pdf" target="_blank" rel="noopener">公式店舗一覧</a>
+        <a href="index.html">町名記憶ゲームへ戻る</a>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="店名・住所を検索" autocomplete="off" aria-label="店名・住所を検索">
+        <div id="results" role="listbox"></div>
+      </div>
+      <button id="locate" type="button">現在地</button>
+    </div>
+  </header>
+  <main><div id="map" aria-label="おこめ券取扱店舗の地図"></div></main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const CONDITIONS = {
+      1: '全商品購入可能',
+      2: 'お米以外は店舗ルールあり',
+      3: 'お米のみ購入可能'
+    };
+    const map = L.map('map', { zoomControl: false }).setView([34.7468, 135.3405], 13);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+      attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
+      maxZoom: 18
+    }).addTo(map);
+
+    const note = L.control({ position: 'bottomleft' });
+    note.onAdd = () => {
+      const div = L.DomUtil.create('div', 'map-note');
+      div.innerHTML = '2026年4月21日現在<br><a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.files/tenpo0421.pdf" target="_blank" rel="noopener">西宮市公式一覧</a>';
+      return div;
+    };
+    note.addTo(map);
+
+    const markerIcon = count => L.divIcon({
+      className: '',
+      html: `<div class="store-pin"><span>${count > 1 ? count : '米'}</span></div>`,
+      iconSize: [27, 27],
+      iconAnchor: [8, 25],
+      popupAnchor: [5, -24]
+    });
+
+    let stores = [];
+    const markerByStore = new Map();
+    const escapeHtml = value => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+    function popupHtml(group) {
+      return group.map(store => `
+        <section class="popup-store">
+          <h2 class="popup-title">${escapeHtml(store.name)}</h2>
+          <div class="address">西宮市${escapeHtml(store.address)}</div>
+          <span class="condition">${CONDITIONS[store.condition]}</span><br>
+          <a class="route" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('兵庫県西宮市' + store.address)}" target="_blank" rel="noopener">Googleマップで開く</a>
+        </section>`).join('');
+    }
+
+    function showStore(store) {
+      const marker = markerByStore.get(store.id);
+      map.flyTo([store.lat, store.lon], 17, { duration: .7 });
+      setTimeout(() => marker.openPopup(), 600);
+      document.getElementById('results').replaceChildren();
+      document.getElementById('search').blur();
+    }
+
+    fetch('okome-stores.json').then(r => {
+      if (!r.ok) throw new Error('店舗データを読み込めませんでした');
+      return r.json();
+    }).then(data => {
+      stores = data.filter(s => Number.isFinite(s.lat) && Number.isFinite(s.lon));
+      document.getElementById('count').textContent = `${stores.length}店`;
+      const groups = new Map();
+      stores.forEach(store => {
+        const key = `${store.lat},${store.lon}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(store);
+      });
+      groups.forEach(group => {
+        const marker = L.marker([group[0].lat, group[0].lon], { icon: markerIcon(group.length) })
+          .bindPopup(popupHtml(group), { maxHeight: 330 })
+          .addTo(map);
+        group.forEach(store => markerByStore.set(store.id, marker));
+      });
+      map.fitBounds(L.latLngBounds(stores.map(store => [store.lat, store.lon])), {
+        padding: [24, 24]
+      });
+    }).catch(error => {
+      document.getElementById('count').textContent = '読込エラー';
+      alert(error.message);
+    });
+
+    const search = document.getElementById('search');
+    const results = document.getElementById('results');
+    search.addEventListener('input', () => {
+      const query = search.value.trim().toLowerCase();
+      results.replaceChildren();
+      if (!query) return;
+      stores.filter(s => `${s.name} ${s.address}`.toLowerCase().includes(query)).slice(0, 12).forEach(store => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'result';
+        button.innerHTML = `${escapeHtml(store.name)}<small>西宮市${escapeHtml(store.address)}</small>`;
+        button.addEventListener('click', () => showStore(store));
+        results.append(button);
+      });
+    });
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.search-wrap')) results.replaceChildren();
+    });
+    document.getElementById('locate').addEventListener('click', () => {
+      map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true });
+    });
+    map.on('locationfound', event => {
+      L.circleMarker(event.latlng, { radius: 8, color: '#fff', weight: 3, fillColor: '#1877d2', fillOpacity: 1 })
+        .bindPopup('現在地').addTo(map).openPopup();
+    });
+    map.on('locationerror', () => alert('現在地を取得できませんでした。端末の位置情報設定をご確認ください。'));
+  </script>
+</body>
+</html>
