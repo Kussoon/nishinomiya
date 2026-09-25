@@ -8,181 +8,19 @@
 <meta name="theme-color" content="#f4f1ff">
 <title>西宮市 町名記憶ゲーム</title>
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;background:#f4f1ff;color:#27324a;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
-body{display:flex;justify-content:center}
-a{-webkit-tap-highlight-color:transparent}
-.wrap{width:min(100%,640px);min-height:100dvh;padding:max(16px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#f4f1ff 0%,#ffffff 100%)}
-header{text-align:center}
-h1{margin:5px 0 7px;color:#49347c;font-size:clamp(27px,7.5vw,38px);line-height:1.15}
-.tagline{margin:0;color:#59637a;font-size:15px;font-weight:800}
-.character{display:block;width:112px;max-width:28vw;height:auto;margin:12px auto 4px;border-radius:18px}
-.menu{display:grid;gap:14px}
-.menu-section{display:grid;gap:8px}
-.section-head{display:flex;align-items:center;gap:8px;margin:2px 2px 0;color:#5b4b82;font-size:14px;font-weight:900}
-.section-head .badge{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:999px;background:#e7ddff;color:#553a91;font-size:11px}
-.group-grid{display:grid;gap:10px}
-.card{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;min-height:76px;padding:10px 12px;border:2px solid #9f82e5;border-radius:17px;background:#fff;color:#33405c;text-decoration:none;box-shadow:0 4px 14px #49347c12}
-.card:active{transform:translateY(1px)}
-.icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#eee9ff;font-size:27px}
-.text strong{display:block;color:#4d397e;font-size:18px;line-height:1.3}
-.text small{display:block;margin-top:3px;color:#6f7788;font-size:12px;font-weight:750;line-height:1.4}
-.arrow{color:#8c80aa;font-size:22px;font-weight:900}
-.card.recommended{border:2px solid #9f82e5;background:linear-gradient(135deg,#fff,#f3eeff);box-shadow:0 6px 18px #49347c1a}
-.card.recommended .icon{background:#ded2ff}
-.card.advanced{border-color:#9f82e5;background:linear-gradient(135deg,#fff,#f7f3ff)}
-.card.advanced .icon{background:#e8e0ff}
-.menu .card{border-width:2px}
-.note{margin:15px 4px 0;padding:11px;border-radius:13px;background:#f8f6ff;color:#747b8c;font-size:11px;line-height:1.55;text-align:center}
-.version{margin:13px 0 2px;text-align:center;color:#8b90a0;font-size:11px}
-footer{text-align:center;color:#73798a;font-size:11px}
-@media (min-width:560px){
-  .group-grid.two{grid-template-columns:1fr 1fr}
-  .group-grid.two .card{grid-template-columns:42px 1fr auto;min-height:86px}
-  .group-grid.two .icon{width:42px;height:42px;font-size:24px}
-  .group-grid.two .text strong{font-size:16px}
-}
-</style>
-</head>
-<body>
-<main class="wrap">
-<header>
-  <h1>西宮市 町名記憶ゲーム</h1>
-  <p class="tagline">西宮市の町を楽しく覚えよう！</p>
-  <img class="character" src="images/guide-character.png" alt="案内キャラクター">
-</header>
-
+*{box-sizing:border-box}html,body{margin:0;background:#f4f1ff;color:#27324a;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}body{display:flex;justify-content:center}a{-webkit-tap-highlight-color:transparent}.wrap{width:min(100%,640px);min-height:100dvh;padding:max(16px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));background:linear-gradient(180deg,#f4f1ff 0%,#fff 100%)}header{text-align:center}h1{margin:5px 0 7px;color:#49347c;font-size:clamp(27px,7.5vw,38px);line-height:1.15}.tagline{margin:0;color:#59637a;font-size:15px;font-weight:800}.character{display:block;width:112px;max-width:28vw;height:auto;margin:12px auto 4px;border-radius:18px}.menu{display:grid;gap:14px}.menu-section{display:grid;gap:8px}.section-head{display:flex;align-items:center;gap:8px;margin:2px 2px 0;color:#5b4b82;font-size:14px;font-weight:900}.section-head .badge{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:999px;background:#e7ddff;color:#553a91;font-size:11px}.group-grid{display:grid;gap:10px}.card{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:10px;min-height:76px;padding:10px 12px;border:2px solid #9f82e5;border-radius:17px;background:#fff;color:#33405c;text-decoration:none;box-shadow:0 4px 14px #49347c12}.card:active{transform:translateY(1px)}.icon{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#eee9ff;font-size:27px}.text strong{display:block;color:#4d397e;font-size:18px;line-height:1.3}.text small{display:block;margin-top:3px;color:#6f7788;font-size:12px;font-weight:750;line-height:1.4}.arrow{color:#8c80aa;font-size:22px;font-weight:900}.card.recommended{border:2px solid #9f82e5;background:linear-gradient(135deg,#fff,#f3eeff);box-shadow:0 6px 18px #49347c1a}.card.recommended .icon{background:#ded2ff}.card.advanced{border-color:#9f82e5;background:linear-gradient(135deg,#fff,#f7f3ff)}.card.advanced .icon{background:#e8e0ff}.menu .card{border-width:2px}.note{margin:15px 4px 0;padding:11px;border-radius:13px;background:#f8f6ff;color:#747b8c;font-size:11px;line-height:1.55;text-align:center}.version{margin:13px 0 2px;text-align:center;color:#8b90a0;font-size:11px}footer{text-align:center;color:#73798a;font-size:11px}@media (min-width:560px){.group-grid.two{grid-template-columns:1fr 1fr}.group-grid.two .card{grid-template-columns:42px 1fr auto;min-height:86px}.group-grid.two .icon{width:42px;height:42px;font-size:24px}.group-grid.two .text strong{font-size:16px}}
+</style></head><body><main class="wrap">
+<header><h1>西宮市 町名記憶ゲーム</h1><p class="tagline">西宮市の町を楽しく覚えよう！</p><img class="character" src="images/guide-character.png" alt="案内キャラクター"></header>
 <nav class="menu" aria-label="学習メニュー">
-  <section class="menu-section" aria-labelledby="map-intro-title">
-    <div class="section-head" id="map-intro-title">
-      <span class="badge">おすすめ</span>
-      <span>まずは地図で確認</span>
-    </div>
-    <a class="card recommended" href="all-area-labeled.html">
-      <span class="icon">🗺️</span>
-      <span class="text">
-        <strong>町名入り全域図</strong>
-        <small>西宮市全域の町名を一度に確認</small>
-      </span>
-      <span class="arrow">›</span>
-    </a>
-  </section>
-
-  <section class="menu-section" aria-labelledby="learn-title">
-    <div class="section-head" id="learn-title">通常モード｜地域から覚える</div>
-    <div class="group-grid">
-      <a class="card" href="community-map-quiz.html">
-        <span class="icon">🧭</span>
-        <span class="text">
-          <strong>26コミュニティの場所を覚える</strong>
-          <small>名前と大まかな位置を全域図で確認</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-      <a class="card" href="community-select.html">
-        <span class="icon">🏠</span>
-        <span class="text">
-          <strong>コミュニティごとに町名を覚える</strong>
-          <small>26コミュニティから選んで町名を学習</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-    </div>
-  </section>
-
-  <section class="menu-section" aria-labelledby="challenge-title">
-    <div class="section-head" id="challenge-title">通常モード｜全域クイズ</div>
-    <div class="group-grid two">
-      <a class="card" href="full-location-quiz.html">
-        <span class="icon">📍</span>
-        <span class="text">
-          <strong>町名から場所を当てる</strong>
-          <small>西宮市全域の町名を地図で回答</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-      <a class="card" href="full-name-quiz.html">
-        <span class="icon">✨</span>
-        <span class="text">
-          <strong>光った町名を当てる</strong>
-          <small>強調された町名を近隣の4択から回答</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-    </div>
-  </section>
-
-  <section class="menu-section" aria-labelledby="detail-title">
-    <div class="section-head" id="detail-title">マニアックモード｜もっと詳しく</div>
-    <div class="group-grid">
-      <a class="card advanced" href="maniac/">
-        <span class="icon">🔥</span>
-        <span class="text">
-          <strong>丁目まで詳しく学ぶ</strong>
-          <small>丁目まで区別して学習・クイズに挑戦</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-    </div>
-  </section>
-
-  <section class="menu-section" aria-labelledby="map-title">
-    <div class="section-head" id="map-title">地図で確認｜ほかの見方</div>
-    <div class="group-grid two">
-      <a class="card" href="town-search.html">
-        <span class="icon">🔍</span>
-        <span class="text">
-          <strong>町名から場所を探す</strong>
-          <small>漢字・読み仮名で検索して地図上の位置を確認</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-      <a class="card" href="all-area-transport.html">
-        <span class="icon">🛣️</span>
-        <span class="text">
-          <strong>交通入り全域図</strong>
-          <small>町名と主な鉄道・道路を一度に確認</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-      <a class="card" href="all-area.html?v=6.5.189">
-        <span class="icon">⬜</span>
-        <span class="text">
-          <strong>白地図で町名を確認</strong>
-          <small>気になる場所をタップして町名と区域を確認</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-    </div>
-  </section>
-
-  <section class="menu-section" aria-labelledby="life-map-title">
-    <div class="section-head" id="life-map-title">暮らしの地図</div>
-    <div class="group-grid two">
-      <a class="card" href="okome-map.html">
-        <span class="icon">🍚</span>
-        <span class="text">
-          <strong>おこめ券取扱店舗マップ</strong>
-          <small>西宮市内でおこめ券を使える店舗を地図で確認</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-      <a class="card" href="sweets/">
-        <span class="icon">🍰</span>
-        <span class="text">
-          <strong>西宮お菓子マップ</strong>
-          <small>市内の和菓子店・洋菓子店を地図と一覧から探す</small>
-        </span>
-        <span class="arrow">›</span>
-      </a>
-    </div>
-  </section>
-</nav>
-
-<p class="note">通常モードでは、一丁目・二丁目などは同じ町名としてまとめています。</p>
-<p class="version">Version 6.5.234</p>
-<footer>© KUSSOON 2026 All Rights Reserved.</footer>
-</main>
-<script src="/nishinomiya/site-identity.js"></script>
-</body>
-</html>
+<section class="menu-section"><div class="section-head"><span class="badge">おすすめ</span><span>まずは地図で確認</span></div><a class="card recommended" href="all-area-labeled.html"><span class="icon">🗺️</span><span class="text"><strong>町名入り全域図</strong><small>西宮市全域の町名を一度に確認</small></span><span class="arrow">›</span></a></section>
+<section class="menu-section"><div class="section-head">通常モード｜地域から覚える</div><div class="group-grid"><a class="card" href="community-map-quiz.html"><span class="icon">🧭</span><span class="text"><strong>26コミュニティの場所を覚える</strong><small>名前と大まかな位置を全域図で確認</small></span><span class="arrow">›</span></a><a class="card" href="community-select.html"><span class="icon">🏠</span><span class="text"><strong>コミュニティごとに町名を覚える</strong><small>26コミュニティから選んで町名を学習</small></span><span class="arrow">›</span></a></div></section>
+<section class="menu-section"><div class="section-head">通常モード｜全域クイズ</div><div class="group-grid two"><a class="card" href="full-location-quiz.html"><span class="icon">📍</span><span class="text"><strong>町名から場所を当てる</strong><small>西宮市全域の町名を地図で回答</small></span><span class="arrow">›</span></a><a class="card" href="full-name-quiz.html"><span class="icon">✨</span><span class="text"><strong>光った町名を当てる</strong><small>強調された町名を近隣の4択から回答</small></span><span class="arrow">›</span></a></div></section>
+<section class="menu-section"><div class="section-head">マニアックモード｜もっと詳しく</div><div class="group-grid"><a class="card advanced" href="maniac/"><span class="icon">🔥</span><span class="text"><strong>丁目まで詳しく学ぶ</strong><small>丁目まで区別して学習・クイズに挑戦</small></span><span class="arrow">›</span></a></div></section>
+<section class="menu-section"><div class="section-head">地図で確認｜ほかの見方</div><div class="group-grid two"><a class="card" href="town-search.html"><span class="icon">🔍</span><span class="text"><strong>町名から場所を探す</strong><small>漢字・読み仮名で検索して地図上の位置を確認</small></span><span class="arrow">›</span></a><a class="card" href="all-area-transport.html"><span class="icon">🛣️</span><span class="text"><strong>交通入り全域図</strong><small>町名と主な鉄道・道路を一度に確認</small></span><span class="arrow">›</span></a><a class="card" href="all-area.html?v=6.5.189"><span class="icon">⬜</span><span class="text"><strong>白地図で町名を確認</strong><small>気になる場所をタップして町名と区域を確認</small></span><span class="arrow">›</span></a></div></section>
+<section class="menu-section"><div class="section-head">暮らしの地図</div><div class="group-grid two">
+<a class="card" href="okome-map.html"><span class="icon">🍚</span><span class="text"><strong>おこめ券取扱店舗マップ</strong><small>西宮市内でおこめ券を使える店舗を地図で確認</small></span><span class="arrow">›</span></a>
+<a class="card" href="sweets/"><span class="icon">🍰</span><span class="text"><strong>西宮お菓子マップ</strong><small>市内の和菓子店・洋菓子店を地図と一覧から探す</small></span><span class="arrow">›</span></a>
+<a class="card" href="bakeries/nishinomiya-bread-map.html"><span class="icon">🥐</span><span class="text"><strong>西宮ベーカリーマップ</strong><small>市内のパン屋・ベーカリーを地図と一覧から探す</small></span><span class="arrow">›</span></a>
+</div></section></nav>
+<p class="note">通常モードでは、一丁目・二丁目などは同じ町名としてまとめています。</p><p class="version">Version 6.5.235</p><footer>© KUSSOON 2026 All Rights Reserved.</footer>
+</main><script src="/nishinomiya/site-identity.js"></script></body></html>
