@@ -57,6 +57,7 @@
     .intro strong { color: #ffe299; }
     .source-links { display: flex; flex-wrap: wrap; gap: 5px 14px; margin-top: 5px; }
     .source-links a { color: #fff1c9; font-weight: 700; }
+    .privacy-note { margin-top: 6px !important; color: #e4f3ed; font-size: .76rem; }
     .controls { display: flex; gap: 8px; max-width: 1100px; margin: auto; }
     .search-wrap { position: relative; flex: 1; min-width: 0; }
     input, button {
@@ -171,6 +172,7 @@
         <a href="/sources/">データ出典</a>
         <a href="/terms/">利用上の注意</a>
       </div>
+      <p class="privacy-note">「現在地」ボタンで取得した位置情報は端末上の地図表示にのみ使用し、本サイト運営者は収集・保存しません。</p>
     </div>
     <div class="controls">
       <div class="search-wrap">
@@ -199,7 +201,7 @@
     const note = L.control({ position: 'bottomleft' });
     note.onAdd = () => {
       const div = L.DomUtil.create('div', 'map-note');
-      div.innerHTML = '2026年4月21日現在<br><a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.files/tenpo0421.pdf" target="_blank" rel="noopener">西宮市公式一覧</a>';
+      div.innerHTML = '2026年4月21日現在<br><a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.files/tenpo0421.pdf" target="_blank" rel="noopener">西宮市公式一覧</a><br>© 2026 Kussoon. All rights reserved.';
       return div;
     };
     note.addTo(map);
