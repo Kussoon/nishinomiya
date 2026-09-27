@@ -17,7 +17,6 @@
       font-size:10px;line-height:1.5;text-align:center
     }
     .city-global-links a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-    .city-global-copyright{flex-basis:100%;margin-top:2px;color:#777f8d}
     .city-global-links--standalone{padding-bottom:max(12px,env(safe-area-inset-bottom))}
   `;
   document.head.append(style);
@@ -36,12 +35,6 @@
     nav.className = 'city-global-links';
     nav.setAttribute('aria-label', 'サイト共通案内');
     nav.innerHTML = '<a href="/about/">このサイトについて</a><a href="/privacy/">プライバシー</a><a href="/sources/">データ出典</a><a href="/terms/">利用上の注意</a>';
-    if (!document.body.textContent.includes('© 2026 Kussoon')) {
-      const copyright = document.createElement('span');
-      copyright.className = 'city-global-copyright';
-      copyright.textContent = '© 2026 Kussoon. All rights reserved.';
-      nav.append(copyright);
-    }
     return nav;
   };
 
