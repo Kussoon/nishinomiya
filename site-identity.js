@@ -21,12 +21,12 @@
   `;
   document.head.append(style);
 
-  if (!/^\/nishinomiya\/(?:index\.html)?$/.test(location.pathname)) {
+  if (!/^\/nishinomiya\/(?:index\.html)?$/.test(location.pathname) && !document.querySelector('.city-site-identity')) {
     const badge = document.createElement('a');
     badge.className = 'city-site-identity';
     badge.href = '/nishinomiya/';
     badge.setAttribute('aria-label', '西宮市トップへ');
-    badge.textContent = '西宮市 町名記憶ゲーム';
+    badge.textContent = '西宮市トップへ';
     document.body.append(badge);
   }
 
@@ -38,14 +38,29 @@
     return nav;
   };
 
-  const footers = [...document.querySelectorAll('footer')];
-  if (footers.length) {
-    footers.forEach(footer => footer.prepend(createGlobalLinks()));
-  } else {
-    const host = document.querySelector('main') || document.querySelector('.app') || document.body;
+  // Keep an existing complete site-information navigation instead of adding a second one.
+  const hasGlobalLinks = root => [...root.querySelectorAll('nav')].some(nav => {
+    const paths = [...nav.querySelectorAll('a[href]')].map(anchor => {
+      try {
+        const url = new URL(anchor.getAttribute('href'), location.href);
+        return url.origin === location.origin ? url.pathname.replace(/\/?$/, '/') : '';
+      } catch (_) {
+        return '';
+      }
+    });
+    return ['/about/', '/privacy/', '/sources/', '/terms/'].every(path => paths.includes(path));
+  });
+
+  if (!hasGlobalLinks(document)) {
+    const footer = document.querySelector('footer');
     const nav = createGlobalLinks();
-    nav.classList.add('city-global-links--standalone');
-    host.append(nav);
+    if (footer) {
+      footer.prepend(nav);
+    } else {
+      const host = document.querySelector('main') || document.querySelector('.app') || document.body;
+      nav.classList.add('city-global-links--standalone');
+      host.append(nav);
+    }
   }
 
   document.querySelectorAll('a,button').forEach(element => {
