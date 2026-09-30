@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="canonical" href="https://kussoon.com/nishinomiya/okome-map.html">
   <meta name="theme-color" content="#174f3b">
-  <title>西宮市 おこめ券取扱店舗マップ</title>
-  <meta name="description" content="西宮市内のおこめ券取扱店舗164店を地図で確認できます。">
+  <title>西宮市 おこめ券取扱店舗の記録｜Kussoon</title>
+  <meta name="description" content="西宮市が2026年4月21日時点で公表したおこめ券取扱店舗164店の記録です。配布されたおこめ券は2026年9月30日をもって期限切れとなりました。">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
     :root {
@@ -154,15 +154,33 @@
       .search-wrap { max-width: 560px; }
     }
   </style>
+<style id="okome-expiry-notice-style">
+    .okome-expiry-notice {
+      box-sizing: border-box;
+      max-width: 1100px;
+      margin: 0 auto 12px;
+      padding: 14px 16px;
+      border: 2px solid #b91c1c;
+      border-radius: 10px;
+      background: #fff;
+      color: #b91c1c;
+      font-size: clamp(1.25rem, 4.7vw, 1.75rem);
+      font-weight: 800;
+      line-height: 1.55;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+  </style>
 </head>
 <body>
   <header>
+    <p class="okome-expiry-notice"><strong>西宮市で配布されたおこめ券は、2026年9月30日をもって期限切れとなりました</strong></p>
     <div class="topline">
-      <h1>西宮市 おこめ券取扱店舗マップ</h1>
+      <h1>西宮市 おこめ券取扱店舗の記録</h1>
       <span class="count" id="count">164店</span>
     </div>
     <div class="intro">
-      <p>西宮市は物価高騰による市民生活への影響を軽減するため、対象世帯に1世帯当たり4,400円分（440円×10枚）のおこめ券を配布しました。<strong>有効期限は2026年9月30日です。</strong>この地図は、市が2026年4月21日時点で公表した市内取扱店舗164店を表示しています。利用条件は店舗ごとに異なるため、詳しくは各店舗でご確認ください。</p>
+      <p>西宮市は物価高騰による市民生活への影響を軽減するため、対象世帯に1世帯当たり4,400円分（440円×10枚）のおこめ券を配布しました。有効期限は2026年9月30日でした。この地図は、市が2026年4月21日時点で公表した市内取扱店舗164店の記録として残しています。現在利用できることを示す案内ではありません。</p>
       <div class="source-links">
         <a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.html" target="_blank" rel="noopener">西宮市の制度説明</a>
         <a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.files/tenpo0421.pdf" target="_blank" rel="noopener">公式店舗一覧</a>
