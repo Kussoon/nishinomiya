@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
+<!-- Label position fix 6.5.243 / 2026-10-02 -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="canonical" href="https://kussoon.com/nishinomiya/community-map-quiz.html">
@@ -125,7 +126,7 @@
     zoomSnap:.1,minZoom:8,maxZoom:18
   });
   const baseOverviewLabelFontSize=Math.min(10,Math.max(7,window.innerWidth*.018));
-  let initialOverviewLabelZoom;
+  let initialOverviewLabelZoom,uegaharaOverviewTooltip;
   function updateOverviewLabelScale(){
     if(initialOverviewLabelZoom===undefined)return;
     const scale=Math.min(3.5,Math.max(.72,Math.pow(1.35,overviewMap.getZoom()-initialOverviewLabelZoom)));
@@ -277,12 +278,32 @@
       },
       onEachFeature(feature,shape){
         if(feature.properties.community==='岡田山')return;
-        const offset=feature.properties.community==='上ヶ原'?L.point(15,10):L.point(0,0);
-        shape.bindTooltip(feature.properties.community,{permanent:true,direction:'center',offset,className:'community-label',interactive:false});
+        shape.bindTooltip(feature.properties.community,{permanent:true,direction:'center',offset:L.point(0,0),className:'community-label',interactive:false});
+        if(feature.properties.community==='上ヶ原')uegaharaOverviewTooltip=shape.getTooltip();
       }
     }).addTo(overviewMap);
     overviewMap.fitBounds(overviewLayer.getBounds(),{padding:[5,5],animate:false});
     initialOverviewLabelZoom=overviewMap.getZoom();
+    // community-select と同じく、補正した地図上の位置を固定する。
+    // tooltip のピクセル offset では拡大時に境界との位置関係が変わる。
+    if(uegaharaOverviewTooltip?.getLatLng()){
+      // 地図枠の大きさが異なっても community-select の初期縮尺を基準にする。
+      const referenceWidth=Math.min(document.documentElement.clientWidth,520)-46;
+      const heightProbe=document.createElement('div');
+      heightProbe.style.cssText='position:fixed;visibility:hidden;pointer-events:none;width:0;height:min(72dvh,720px);min-height:520px';
+      document.body.append(heightProbe);
+      const referenceHeight=heightProbe.getBoundingClientRect().height;
+      heightProbe.remove();
+      const referenceBounds=overviewLayer.getBounds();
+      const span=overviewMap.project(referenceBounds.getNorthEast(),0).subtract(overviewMap.project(referenceBounds.getSouthWest(),0));
+      const referenceScale=Math.min((referenceWidth-10)/Math.abs(span.x),(referenceHeight-10)/Math.abs(span.y));
+      const snap=overviewMap.options.zoomSnap;
+      let referenceZoom=overviewMap.options.crs.zoom(referenceScale*overviewMap.options.crs.scale(0));
+      referenceZoom=Math.round(referenceZoom/(snap/100))*(snap/100);
+      referenceZoom=Math.floor(referenceZoom/snap)*snap;
+      const fixedPoint=overviewMap.project(uegaharaOverviewTooltip.getLatLng(),referenceZoom).add(L.point(15,10));
+      uegaharaOverviewTooltip.setLatLng(overviewMap.unproject(fixedPoint,referenceZoom));
+    }
     updateOverviewLabelScale();
     setTimeout(()=>overviewMap.invalidateSize({animate:false}),0);
 
