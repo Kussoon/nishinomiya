@@ -183,7 +183,6 @@
       <p>西宮市は物価高騰による市民生活への影響を軽減するため、対象世帯に1世帯当たり4,400円分（440円×10枚）のおこめ券を配布しました。有効期限は2026年9月30日でした。この地図は、市が2026年4月21日時点で公表した市内取扱店舗164店の記録として残しています。現在利用できることを示す案内ではありません。</p>
       <div class="source-links">
         <a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.html" target="_blank" rel="noopener">西宮市の制度説明</a>
-        <a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.files/tenpo0421.pdf" target="_blank" rel="noopener">公式店舗一覧</a>
         <a href="index.html">西宮市トップへ戻る</a>
         <a href="/about/">このサイトについて</a>
         <a href="/privacy/">プライバシー</a>
@@ -219,7 +218,7 @@
     const note = L.control({ position: 'bottomleft' });
     note.onAdd = () => {
       const div = L.DomUtil.create('div', 'map-note');
-      div.innerHTML = '2026年4月21日現在<br><a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.files/tenpo0421.pdf" target="_blank" rel="noopener">西宮市公式一覧</a><br>© 2026 Kussoon. All rights reserved.';
+      div.innerHTML = '2026年4月21日現在<br>© 2026 Kussoon. All rights reserved.';
       return div;
     };
     note.addTo(map);
