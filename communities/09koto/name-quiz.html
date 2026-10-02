@@ -14,7 +14,7 @@
 .mapwrap>.feedbackrow .feedback{display:block;min-height:0;height:auto;margin:0;padding:10px 12px;border:1px solid #bdddea;border-radius:24px;background:#ffffffed;box-shadow:0 3px 12px #15324a22;text-align:center;font-size:14px;line-height:1.45}
 #quiz>.controls{min-height:44px;flex:none}
 #quiz .next[hidden]{display:block!important;visibility:hidden}
-</style><style id="name-quiz-layout-v249">.mapwrap{height:auto}.prompt{font-size:clamp(19px,5.5vw,25px)}.choice{min-height:48px;font-size:16px}.feedbackrow .feedback.good{font-size:14px;min-height:0}.mapwrap>.feedbackrow .feedback{font-size:14px;min-height:0}#map{height:clamp(240px,calc(100dvh - 320px),620px)}</style></head><body><main class="app">
+</style><style id="name-quiz-layout-v249">.mapwrap{height:auto}.prompt{font-size:clamp(19px,5.5vw,25px)}.choice{min-height:48px;font-size:16px}.feedbackrow .feedback.good{font-size:14px;min-height:0}.mapwrap>.feedbackrow .feedback{font-size:14px;min-height:0}#map{height:clamp(240px,calc(100dvh - 320px),620px)}</style><style id="name-question-font-v250">.question{padding:12px 8px}.question .prompt{font-size:clamp(25px,7vw,36px);font-weight:950;line-height:1.4}</style></head><body><main class="app">
 <section id="quiz" class="screen"><div class="topbar"><button id="quitBtn" class="smallbtn" type="button">ここでやめる</button><h1 class="stage">甲東・町名4択</h1><div class="stats"><span id="progress">1 / 18</span><br>得点 <span id="scoreNow">18</span></div></div><div class="question"><div class="prompt">光っている場所の町名は？</div></div><div class="mapwrap"><div id="map" aria-label="甲東コミュニティ町名4択地図"></div></div><div id="choices" class="choices" aria-label="町名の選択肢"></div><div class="feedbackrow"><div id="feedback" class="feedback">答えを選んでください。</div></div><nav class="links"><a href="index.html">甲東トップ</a><a href="../../community-select.html">コミュニティ選択</a><a href="../../index.html">トップページ</a></nav><p class="map-credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p></section>
 <section id="result" class="screen hidden"><div class="resulthead">甲東・町名4択　結果</div><div class="resultcontent"><img id="resultCharacter" src="../../images/kisaragi-correct.png" alt="大きな笑顔で喜ぶ如月ちゃん"><div class="resultcard"><div id="resultTotal" class="outof">18問中</div><div id="finalScore" class="score">18点</div><div id="mistakes" class="mistakes">間違い 0回</div><p id="comment" class="comment"></p></div></div><div class="actions"><button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button><button id="retryBtn" class="action" type="button">全18問をもう一度</button><a class="action secondary" href="index.html">甲東トップ</a><a class="action secondary" href="../../community-select.html">コミュニティ選択</a><a class="action secondary" href="../../index.html">トップページ</a></div></section>
 </main><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script><script>
@@ -29,7 +29,7 @@ function finish(){const rate=order.length?score/order.length:0,c=byId('resultCha
 Promise.all([fetch('../../data/nishinomiya-towns.topojson').then(r=>r.json()),fetch('../../data/community-town-map.json').then(r=>r.json())]).then(([topology,mapping])=>{const members=topology.objects.town.geometries.filter(g=>mapping.towns[g.properties.S_NAME]?.community==='甲東');const groupName=name=>name.replace(/[一二三四五六七八九十]+丁目$/,'');const names=[...new Set(members.map(g=>groupName(g.properties.S_NAME)))];const features=names.map(name=>{const merged=topojson.merge(topology,members.filter(g=>groupName(g.properties.S_NAME)===name));merged.properties={S_NAME:name};return merged});const group=L.geoJSON({type:'FeatureCollection',features},{interactive:false,style:base,onEachFeature(f,layer){layers.push({name:f.properties.S_NAME,layer})}}).addTo(map);allBounds=group.getBounds();start()}).catch(()=>{byId('feedback').textContent='地図を読み込めませんでした。'});
 byId('retryBtn').addEventListener('click',()=>start());byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
 </script><script>
-/* Name quiz layout 6.5.249 */
+/* Name quiz layout 6.5.250 */
 (() => {
  const quiz=document.getElementById('quiz'), result=document.getElementById('result');
  const feedback=document.getElementById('feedback'), row=feedback.closest('.feedbackrow');
@@ -56,7 +56,7 @@ byId('retryBtn').addEventListener('click',()=>start());byId('mistakeRetryBtn').a
  map.options.zoomSnap=.05;
  let pending;
  const resize=new ResizeObserver(()=>{cancelAnimationFrame(pending);pending=requestAnimationFrame(()=>{if(quiz.classList.contains('hidden'))return;map.stop();map.invalidateSize({pan:false});if(allBounds&&!locked)map.fitBounds(allBounds,{padding:[8,8],animate:false});});});resize.observe(document.getElementById('map'));
- for(const screen of [quiz,result]){const version=document.createElement('p');version.className='quiz-version';version.textContent='Version 6.5.249';screen.append(version);}
+ for(const screen of [quiz,result]){const version=document.createElement('p');version.className='quiz-version';version.textContent='Version 6.5.250';screen.append(version);}
 })();
 
 </script><script src="/nishinomiya/site-identity.js"></script>
