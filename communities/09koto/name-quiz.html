@@ -20,6 +20,12 @@
 .choice.wrong{background:#d64545;color:#fff;border-color:#b12e2e}
 #quiz .next{background:#174b80;color:#fff;border:1px solid #123e6b;box-shadow:0 2px 5px #174b8026}
 .choice:focus-visible,#quiz .next:focus-visible{outline:3px solid #dc9800;outline-offset:3px}
+</style><style id="map-controls-v252">
+.mapwrap>.feedbackrow{left:14px;right:68px}
+.leaflet-control-zoom.leaflet-bar{display:flex;flex-direction:column;gap:8px;border:0!important;box-shadow:none!important;background:transparent}
+.leaflet-control-zoom a,.leaflet-control-zoom .map-fit-all{display:flex;align-items:center;justify-content:center;width:42px!important;height:42px!important;margin:0;padding:0;border:1px solid #aebfce!important;border-radius:12px!important;background:#fffffff2;color:#15324a;box-shadow:0 2px 6px #15324a22;line-height:1;cursor:pointer}
+.leaflet-control-zoom a{font-size:25px}.leaflet-control-zoom .map-fit-all{font:850 12px -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+.leaflet-control-zoom a:hover,.leaflet-control-zoom .map-fit-all:hover{background:#eef5fa}.leaflet-control-zoom .map-fit-all:focus-visible{outline:3px solid #dc9800;outline-offset:2px}
 </style></head><body><main class="app">
 <section id="quiz" class="screen"><div class="topbar"><button id="quitBtn" class="smallbtn" type="button">ここでやめる</button><h1 class="stage">甲東・町名4択</h1><div class="stats"><span id="progress">1 / 18</span><br>得点 <span id="scoreNow">18</span></div></div><div class="question"><div class="prompt">光っている場所の町名は？</div></div><div class="mapwrap"><div id="map" aria-label="甲東コミュニティ町名4択地図"></div></div><div id="choices" class="choices" aria-label="町名の選択肢"></div><div class="feedbackrow"><div id="feedback" class="feedback">答えを選んでください。</div></div><nav class="links"><a href="index.html">甲東トップ</a><a href="../../community-select.html">コミュニティ選択</a><a href="../../index.html">トップページ</a></nav><p class="map-credit">地図境界データ：『国勢調査町丁・字等別境界データセット』（CODH作成）「令和2年国勢調査町丁・字等別境界データ」（e-Stat）を加工。CC BY 4.0／doi:10.20676/00000450<br>コミュニティ区分：平成15年度西宮市市民自然調査結果報告「コミュニティ町名一覧」を参考に独自作成。</p></section>
 <section id="result" class="screen hidden"><div class="resulthead">甲東・町名4択　結果</div><div class="resultcontent"><img id="resultCharacter" src="../../images/kisaragi-correct.png" alt="大きな笑顔で喜ぶ如月ちゃん"><div class="resultcard"><div id="resultTotal" class="outof">18問中</div><div id="finalScore" class="score">18点</div><div id="mistakes" class="mistakes">間違い 0回</div><p id="comment" class="comment"></p></div></div><div class="actions"><button id="mistakeRetryBtn" class="action" type="button">間違えた問題だけもう一度</button><button id="retryBtn" class="action" type="button">全18問をもう一度</button><a class="action secondary" href="index.html">甲東トップ</a><a class="action secondary" href="../../community-select.html">コミュニティ選択</a><a class="action secondary" href="../../index.html">トップページ</a></div></section>
@@ -35,7 +41,7 @@ function finish(){const rate=order.length?score/order.length:0,c=byId('resultCha
 Promise.all([fetch('../../data/nishinomiya-towns.topojson').then(r=>r.json()),fetch('../../data/community-town-map.json').then(r=>r.json())]).then(([topology,mapping])=>{const members=topology.objects.town.geometries.filter(g=>mapping.towns[g.properties.S_NAME]?.community==='甲東');const groupName=name=>name.replace(/[一二三四五六七八九十]+丁目$/,'');const names=[...new Set(members.map(g=>groupName(g.properties.S_NAME)))];const features=names.map(name=>{const merged=topojson.merge(topology,members.filter(g=>groupName(g.properties.S_NAME)===name));merged.properties={S_NAME:name};return merged});const group=L.geoJSON({type:'FeatureCollection',features},{interactive:false,style:base,onEachFeature(f,layer){layers.push({name:f.properties.S_NAME,layer})}}).addTo(map);allBounds=group.getBounds();start()}).catch(()=>{byId('feedback').textContent='地図を読み込めませんでした。'});
 byId('retryBtn').addEventListener('click',()=>start());byId('mistakeRetryBtn').addEventListener('click',()=>start([...missed]));
 </script><script>
-/* Name quiz layout 6.5.251 */
+/* Name quiz layout 6.5.252 */
 (() => {
  const quiz=document.getElementById('quiz'), result=document.getElementById('result');
  const feedback=document.getElementById('feedback'), row=feedback.closest('.feedbackrow');
@@ -62,8 +68,16 @@ byId('retryBtn').addEventListener('click',()=>start());byId('mistakeRetryBtn').a
  map.options.zoomSnap=.05;
  let pending;
  const resize=new ResizeObserver(()=>{cancelAnimationFrame(pending);pending=requestAnimationFrame(()=>{if(quiz.classList.contains('hidden'))return;map.stop();map.invalidateSize({pan:false});if(allBounds&&!locked)map.fitBounds(allBounds,{padding:[8,8],animate:false});});});resize.observe(document.getElementById('map'));
- for(const screen of [quiz,result]){const version=document.createElement('p');version.className='quiz-version';version.textContent='Version 6.5.251';screen.append(version);}
+ for(const screen of [quiz,result]){const version=document.createElement('p');version.className='quiz-version';version.textContent='Version 6.5.252';screen.append(version);}
 })();
 
+</script><script>
+(() => {
+ map.zoomControl.setPosition('topright');
+ const button=document.createElement('button');button.type='button';button.className='map-fit-all';button.textContent='全体';button.setAttribute('aria-label','甲東全体を表示');button.title='甲東全体を表示';
+ map.zoomControl.getContainer().append(button);
+ L.DomEvent.disableClickPropagation(button);L.DomEvent.disableScrollPropagation(button);
+ button.addEventListener('click',()=>{if(!allBounds)return;map.stop();map.invalidateSize({pan:false});map.fitBounds(allBounds,{padding:[8,8],animate:false});});
+})();
 </script><script src="/nishinomiya/site-identity.js"></script>
 </body></html>
