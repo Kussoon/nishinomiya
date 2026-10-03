@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="canonical" href="https://kussoon.com/nishinomiya/nishinomiya-intersections-map.html">
 <meta name="description" content="西宮市の交差点看板204件を地区別・道路別・地図上で確認できる試作版リスト">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.8.6</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.8.7</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -77,11 +77,15 @@
     #search, #areaFilter, #roadFilter { font-size:16px; }
     .item { padding:9px 8px; }
   }
+  .leaflet-control-zoom a { width:44px; height:44px; line-height:44px; }
+  .map-fit-button { display:block; width:44px; height:44px; padding:0; border:0; border-top:1px solid #ccc; border-radius:0 0 2px 2px; background:#fff; color:#222; font-family:inherit; font-size:14px; line-height:44px; cursor:pointer; }
+  .map-fit-button:hover { background:#f4f4f4; }
+  .map-fit-button:focus-visible { outline:3px solid #236aa6; outline-offset:-3px; }
 </style>
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.8.6</h1>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.8.7</h1>
   <span class="meta">全204件（地図203件・位置未登録1件）｜更新 2026/10/03</span>
 </header>
 <div class="trial"><strong>試作版・トライアルデータ</strong>　看板一覧 Ver.0.9.10を反映。公開対象は西宮市内のみです。既存203件の監査済み位置を維持し、甲子園口北町は地図情報から位置を登録、鳴尾町4丁目東は座標未登録のため一覧のみ掲載しています。現地確認状況は各地点の吹き出しに表示します。交差点名・位置は、現地確認、現地画像、複数の公開地図を照合して独自に整理しており、各サービスの地図画像やスクリーンショットは転載していません。位置修正内容はこの端末のブラウザ内に保存されます。「現在地」は、ボタンを押して許可した場合に限り端末内で利用し、運営者へ送信しません。</div>
@@ -132,6 +136,17 @@ const archivedPoints = allPoints.filter(p => archivedPointNos.has(p.no));
 const points = allPoints.filter(p => !archivedPointNos.has(p.no));
 const STORAGE_KEY = 'nishinomiyaIntersectionAuditV081';
 const map = L.map('map', {zoomControl:true}).setView([34.742, 135.337], 12);
+map.zoomControl.setPosition('topright');
+const mapFitButton = document.createElement('button');
+mapFitButton.type = 'button';
+mapFitButton.className = 'map-fit-button';
+mapFitButton.textContent = '全体';
+mapFitButton.title = '表示中の地点全体を表示';
+mapFitButton.setAttribute('aria-label', '表示中の地点全体を表示');
+mapFitButton.addEventListener('click', () => { map.closePopup(); fitAll(); });
+map.zoomControl.getContainer().appendChild(mapFitButton);
+L.DomEvent.disableClickPropagation(mapFitButton);
+L.DomEvent.disableScrollPropagation(mapFitButton);
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 const lineLayer = L.layerGroup().addTo(map);
@@ -181,8 +196,8 @@ function popupHtml(p) {
   const rows = [
     ['地区', p.area],
     ['接続道路', p.roads.join('、')],
-    ['現地確認日', displayMonth(p.fieldCheckDate || p.fieldCheckMonth)],
-    ['ストリートビュー写真での撮影年月', displayMonth(p.svMonth)]
+    ['現地確認', displayMonth(p.fieldCheckDate || p.fieldCheckMonth)],
+    ['ストリートビュー', displayMonth(p.svMonth)]
   ].filter(([,v]) => v);
   return `<div class="popup-title">${esc(p.name)}</div><div class="popup-meta">${rows.map(([k,v]) => `${esc(k)}：${esc(v)}`).join('<br>')}${p.note ? `<div class="popup-note">備考：${esc(p.note)}</div>` : ''}</div>`;
 }
@@ -351,7 +366,7 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   const header=['No.','地区','交差点名','状態','方法','緯度1','経度1','緯度2','経度2','更新日時'];
   const lines=[header.map(quote).join(',')];
   for(const p of points){const a=audit[p.no]||{};const c=a.coords||[];lines.push([p.no,p.area,p.name,auditState(p),a.method||'',c[0]?.[0]??p.lat??'',c[0]?.[1]??p.lon??'',c[1]?.[0]??p.lat2??'',c[1]?.[1]??p.lon2??'',a.updatedAt||''].map(quote).join(','));}
-  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nishinomiya-intersection-audit-v0.8.6.csv';a.click();URL.revokeObjectURL(url);
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nishinomiya-intersection-audit-v0.8.7.csv';a.click();URL.revokeObjectURL(url);
 });
 
 rebuildMarkers(); renderList(); fitAll();
