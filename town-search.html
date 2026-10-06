@@ -611,10 +611,17 @@
       listItem.append(button);
       results.append(listItem);
     });
+    return matched;
   }
 
+  const initialQuery = new URLSearchParams(location.search).get('q');
+  if (initialQuery) searchInput.value = initialQuery;
   status.textContent = '町名・読み仮名は1文字以上、郵便番号は3桁以上入力してください。';
-  renderResults();
+  const initialMatches = renderResults();
+  if (initialMatches?.length === 1) {
+    showTown(initialMatches[0]);
+    results.replaceChildren();
+  }
 
   Promise.all([
     fetch('data/nishinomiya-towns.topojson').then(response => {
