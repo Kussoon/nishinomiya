@@ -48,6 +48,11 @@
     #map{height:min(58vh,620px);min-height:420px;background:#dfeaf1;--transport-label-font-size:6.4px;--transport-label-pad-y:.7px;--transport-label-pad-x:1.5px;--transport-label-radius:2.5px;--station-label-font-size:5.8px}
     .tools{position:absolute;z-index:500;right:8px;top:8px}
     .tools button{border:0;border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:9px 11px;box-shadow:0 2px 8px #16365c33;cursor:pointer}
+    .town-route-popup{min-width:190px;color:var(--ink);line-height:1.5;text-align:left}
+    .town-route-popup strong{display:block;color:var(--navy);font-size:18px}
+    .town-route-address{margin:2px 0 8px;color:#607384;font-size:12px;font-weight:700}
+    .town-route-link{display:inline-flex;align-items:center;min-height:38px;padding:7px 11px;border-radius:10px;background:#e8f7ff;color:#12679a!important;font-size:14px;font-weight:900;text-decoration:none}
+    .town-route-link:focus-visible{outline:3px solid #2f75b5;outline-offset:2px}
     .transport-label{border:0!important;border-radius:var(--transport-label-radius)!important;padding:var(--transport-label-pad-y) var(--transport-label-pad-x)!important;background:#fffef0e8!important;color:#6f4310!important;font-size:var(--transport-label-font-size)!important;font-weight:900!important;line-height:1!important;white-space:nowrap!important;box-shadow:0 .5px 1.5px #26384966!important;pointer-events:none!important}
     .transport-label:before{display:none!important}
     .transport-label.rail-label{background:#fff5f6e8!important;color:#6c1833!important}
@@ -227,6 +232,7 @@
   let transportGroup = null;
   let transportVisible = false;
   let initialMapZoom;
+  let routePopup = null;
 
   const TRANSPORT_LABELS = [
     {name:'中国自動車道',kind:'expressway',anchor:'west',direction:'left'},
@@ -381,6 +387,38 @@
       map.removeLayer(highlightLayer);
       highlightLayer = null;
     }
+    if (routePopup) {
+      map.closePopup(routePopup);
+      routePopup = null;
+    }
+  }
+
+  function openRoutePopup(item,layer) {
+    const address = `兵庫県西宮市${item.name}`;
+    const content = document.createElement('div');
+    content.className = 'town-route-popup';
+
+    const name = document.createElement('strong');
+    name.textContent = item.name;
+    content.append(name);
+
+    const destination = document.createElement('div');
+    destination.className = 'town-route-address';
+    destination.textContent = `目的地：${address}`;
+    content.append(destination);
+
+    const link = document.createElement('a');
+    link.className = 'town-route-link';
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+    link.textContent = 'ここまでの経路を開く';
+    content.append(link);
+
+    routePopup = L.popup({maxWidth:280,autoPan:true})
+      .setLatLng(layer.getBounds().getCenter())
+      .setContent(content)
+      .openOn(map);
   }
 
   function startFlashing(layer) {
@@ -416,6 +454,7 @@
     map.fitBounds(allBounds, {padding:[8,8],animate:false});
     status.textContent = `${item.name}を地図に表示しています。`;
     startFlashing(item.layer);
+    openRoutePopup(item,item.layer);
   }
 
   async function toggleTransport() {
