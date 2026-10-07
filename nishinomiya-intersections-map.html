@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="canonical" href="https://kussoon.com/nishinomiya/nishinomiya-intersections-map.html">
 <meta name="description" content="西宮市の交差点看板202件を地区別・道路別・地図上で確認できる試作版リスト">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.8.38</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.8.39</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -85,10 +85,10 @@
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.8.38</h1>
-  <span class="meta">全202件（地図202件・工事中保留2件を含む）｜更新 2026/10/07</span>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.8.39</h1>
+  <span class="meta">全202件（地図202件・工事中保留2件を含む）｜更新 2026/10/08</span>
 </header>
-<div class="trial"><strong>試作版・トライアルデータ</strong>　看板一覧 Ver.0.9.51を反映。交差点名を覚えたり場所を確認したりするための補助マップです。道路の絞り込みは国道・県道・愛称のある道路を対象とし、管理番号だけの市道は掲載していません。接続道路欄は、確認できた対象道路のみを表示します。公開対象は西宮市内のみです。鳴尾町4丁目東は登録削除、津門西・甲武橋南？は履歴のみ保持。甲子園口北町はユーザー位置確認済みです。工事中の西宝橋南詰・大多田橋は、現在看板なしの保留地点として残しています。現地確認状況は各地点の吹き出しに表示します。交差点名・位置は、現地確認、現地画像、複数の公開地図を照合して独自に整理しており、各サービスの地図画像やスクリーンショットは転載していません。位置修正内容はこの端末のブラウザ内に保存されます。「現在地」は、ボタンを押して許可した場合に限り端末内で利用し、運営者へ送信しません。</div>
+<div class="trial"><strong>試作版・トライアルデータ</strong>　看板一覧 Ver.0.9.51を反映。交差点名を覚えたり場所を確認したりするための補助マップです。同じ区間の愛称と県道番号は「愛称（県道番号）」で表示します。道路の絞り込みは国道・県道・愛称のある道路を対象とし、管理番号だけの市道は掲載していません。接続道路欄は、確認できた対象道路のみを表示します。公開対象は西宮市内のみです。鳴尾町4丁目東は登録削除、津門西・甲武橋南？は履歴のみ保持。甲子園口北町はユーザー位置確認済みです。工事中の西宝橋南詰・大多田橋は、現在看板なしの保留地点として残しています。現地確認状況は各地点の吹き出しに表示します。交差点名・位置は、現地確認、現地画像、複数の公開地図を照合して独自に整理しており、各サービスの地図画像やスクリーンショットは転載していません。位置修正内容はこの端末のブラウザ内に保存されます。「現在地」は、ボタンを押して許可した場合に限り端末内で利用し、運営者へ送信しません。</div>
 <nav class="site-links" aria-label="サイト共通案内"><a href="/nishinomiya/">西宮市トップ</a><a href="/about/">このサイトについて</a><a href="/privacy/">プライバシー</a><a href="/sources/">調査方法・データ出典</a><a href="/terms/">利用上の注意</a><span class="site-copyright">© KUSSOON 2026 All Rights Reserved.</span></nav>
 <div id="wrap">
   <div id="map"></div>
@@ -193,16 +193,25 @@ function displayMonth(value) {
   }
   return '未確定';
 }
-const roadDisplayPairs = [["甲子園筋", "県道340号線"], ["えべっさん筋", "県道193号線"], ["臨港線", "県道342号線"]];
+// 愛称と県道番号は、同一区間と確認された組み合わせだけを括弧表示する。
+// 臨港線は区間によって341号・342号。道路タグは検索用の元データとして保持。
+const roadDisplayPairs = [["甲子園筋", "県道340号線"], ["えべっさん筋", "県道193号線"], ["臨港線", "県道341号線"], ["臨港線", "県道342号線"]];
 function displayRoads(roads) {
   const pairedNumbers = new Set();
   const aliases = new Map();
   for (const [alias, number] of roadDisplayPairs) {
-    if (roads.includes(alias) && roads.includes(number)) { aliases.set(alias, number); pairedNumbers.add(number); }
+    if (roads.includes(alias) && roads.includes(number)) {
+      const numbers = aliases.get(alias) || [];
+      if (!numbers.includes(number)) numbers.push(number);
+      aliases.set(alias, numbers);
+      pairedNumbers.add(number);
+    }
   }
+  const numberOf = road => Number(road.match(/\d+/)?.[0]);
   const order = road => road.startsWith('国道') ? 0 : road.startsWith('県道') ? 2 : 1;
-  return [...roads].filter(road => !pairedNumbers.has(road)).sort((a,b) => order(a)-order(b) || (order(a)===1 ? 0 : Number(a.match(/\d+/)?.[0])-Number(b.match(/\d+/)?.[0])))
-    .map(road => aliases.has(road) ? `${road}（${aliases.get(road)}）` : road).join('、');
+  return [...new Set(roads)].filter(road => !pairedNumbers.has(road))
+    .sort((a,b) => order(a)-order(b) || (order(a)===1 ? 0 : numberOf(a)-numberOf(b)))
+    .map(road => aliases.has(road) ? `${road}（${aliases.get(road).sort((a,b)=>numberOf(a)-numberOf(b)).join('・')}）` : road).join('、');
 }
 function displayNote(p) {
   if (p.no===102) return '一部の地図では旧名称「夙川学院前」と表示されています。';
@@ -395,7 +404,7 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   const header=['No.','地区','交差点名','状態','方法','緯度1','経度1','緯度2','経度2','更新日時'];
   const lines=[header.map(quote).join(',')];
   for(const p of points){const a=audit[p.no]||{};const c=a.coords||[];lines.push([p.no,p.area,p.name,auditState(p),a.method||'',c[0]?.[0]??p.lat??'',c[0]?.[1]??p.lon??'',c[1]?.[0]??p.lat2??'',c[1]?.[1]??p.lon2??'',a.updatedAt||''].map(quote).join(','));}
-  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nishinomiya-intersection-audit-v0.8.38.csv';a.click();URL.revokeObjectURL(url);
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='nishinomiya-intersection-audit-v0.8.39.csv';a.click();URL.revokeObjectURL(url);
 });
 
 rebuildMarkers(); renderList(); fitAll();
