@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="西宮市内の神社・寺院109件を地図で確認できます。">
+  <title>西宮市 神社・寺院マップ｜109件</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <nav class="crumbs" aria-label="パンくずリスト">
+        <a href="/">Kussoonトップへ</a>
+        <span aria-hidden="true">›</span>
+        <a href="/nishinomiya/">西宮市トップへ</a>
+      </nav>
+      <p class="eyebrow">NISHINOMIYA SHRINES &amp; TEMPLES MAP</p>
+      <h1>西宮市 神社・寺院マップ</h1>
+      <p class="lead">西宮市内の神社・寺院を地図で確認できます。所在地や公開情報をもとに作成しています。</p>
+      <p class="version">公開版 Ver.1.0.0　全109件　神社35件　寺院74件　更新 2026年10月9日</p>
+      <nav class="jump-links" aria-label="ページ内リンク">
+        <a href="#mapSection">地図を見る</a>
+        <a href="#listSection">寺社一覧を見る</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <details class="about-card">
+      <summary>この地図について・収録基準</summary>
+      <div class="about-body">
+        <p>正本Excelで確認済となった109件を掲載しています。名称・実在・住所または信頼できる所在地・寺社敷地との対応を確認しています。</p>
+        <p>寺社の位置は一般利用者が所在地を確認するための代表点であり、本殿・拝殿・本堂等の厳密な中心位置を示すものではありません。</p>
+      </div>
+    </details>
+
+    <section id="mapSection" class="map-section" aria-labelledby="mapTitle">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">MAP</p>
+          <h2 id="mapTitle">寺社地図</h2>
+        </div>
+        <div class="legend" aria-label="凡例">
+          <span><i class="legend-dot shrine"></i>神社 35件</span>
+          <span><i class="legend-dot temple"></i>寺院 74件</span>
+        </div>
+      </div>
+      <div id="map" role="application" aria-label="西宮市の神社・寺院地図"></div>
+      <div class="map-actions" aria-label="地図操作">
+        <button type="button" id="locate">◎ 現在地</button>
+        <button type="button" id="fit">全体表示</button>
+        <span id="locationStatus" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section id="listSection" class="list-section" aria-labelledby="listTitle">
+      <div class="section-heading list-heading">
+        <div>
+          <p class="section-kicker">LIST</p>
+          <h2 id="listTitle">寺社一覧</h2>
+        </div>
+        <strong id="count" class="count">109件</strong>
+      </div>
+      <div class="filters">
+        <label>
+          <span>寺社検索</span>
+          <input id="search" type="search" placeholder="名称・住所で検索">
+        </label>
+        <label>
+          <span>種別</span>
+          <select id="category">
+            <option value="all">すべて</option>
+            <option value="神社">神社</option>
+            <option value="寺院">寺院</option>
+          </select>
+        </label>
+        <label>
+          <span>並び順</span>
+          <select id="sort">
+            <option value="id">ID順</option>
+            <option value="name">名称順</option>
+            <option value="distance">現在地から近い順</option>
+          </select>
+        </label>
+        <button type="button" id="reset" class="reset">条件をリセット</button>
+      </div>
+      <div id="siteList" class="site-list" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>掲載情報は2026年10月9日時点。背景地図：<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a> ／ 地図表示：<a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a></p>
+    <nav aria-label="サイト共通案内">
+      <a href="/nishinomiya/">西宮市トップへ戻る</a>
+      <a href="/about/">このサイトについて</a>
+      <a href="/privacy/">プライバシー</a>
+      <a href="/sources/">データ出典</a>
+      <a href="/terms/">利用上の注意</a>
+    </nav>
+    <p>© 2026 Kussoon. All rights reserved.</p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="data/sites.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
