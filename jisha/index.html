@@ -10,6 +10,22 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
   <link rel="stylesheet" href="assets/style.css">
+<!-- Kussoon: Umami analytics (query values are not collected) -->
+<script>
+window.kussoonUmamiBeforeSend = function (type, payload) {
+  ['url', 'referrer'].forEach(function (key) {
+    if (typeof payload[key] === 'string') {
+      payload[key] = payload[key].split(/[?#]/)[0];
+    }
+  });
+  return payload;
+};
+</script>
+<script defer src="https://cloud.umami.is/script.js"
+        data-website-id="8beb23a4-a36f-4aff-b082-bec86e01a2f7"
+        data-domains="kussoon.com,www.kussoon.com"
+        data-exclude-search="true" data-exclude-hash="true"
+        data-before-send="kussoonUmamiBeforeSend"></script>
 </head>
 <body>
   <header class="site-header">
@@ -22,7 +38,7 @@
       <p class="eyebrow">NISHINOMIYA SHRINES &amp; TEMPLES MAP</p>
       <h1>西宮市 神社・寺院マップ</h1>
       <p class="lead">西宮市内の神社・寺院を地図で確認できます。所在地や公開情報をもとに作成しています。</p>
-      <p class="version">公開版 Ver.1.0.0　全109件　神社35件　寺院74件　更新 2026年10月9日</p>
+      <p class="version">公開版 Ver.1.0.1　全109件　神社35件　寺院74件　更新 2026年10月9日</p>
       <nav class="jump-links" aria-label="ページ内リンク">
         <a href="#mapSection">地図を見る</a>
         <a href="#listSection">寺社一覧を見る</a>
