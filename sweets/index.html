@@ -20,10 +20,26 @@ header{padding:18px max(18px,calc((100vw - 1420px)/2));background:linear-gradien
 .leaflet-popup-content{line-height:1.5;max-height:330px;overflow:auto}.leaflet-popup-content b{font-size:1.03rem}.popup-shop{padding:7px 0;border-top:1px solid #e0e6eb}.popup-shop:first-of-type{border-top:0}.popup-facility{font-weight:800;margin-bottom:3px}.links{margin-top:4px;display:flex;flex-wrap:wrap;gap:8px}.links a{color:#075fa7;font-weight:700;text-decoration:none}.note{font-size:.75rem;color:#697786;margin-top:5px}
 footer{padding:14px 16px 84px;text-align:center;color:var(--muted);font-size:.76rem;line-height:1.6}footer a{color:var(--accent)}.site-links{display:flex;justify-content:center;flex-wrap:wrap;gap:7px 14px;margin:11px auto 7px;padding:0 8px;font-size:.76rem;line-height:1.5}.mobile-nav{display:none}
 @media(max-width:780px){body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}header{padding:14px 13px 16px}h1{font-size:1.35rem}.summary{gap:5px}.chip{font-size:.72rem}.quick-links a{flex:1;justify-content:center}.about{margin:8px}.layout{display:flex;flex-direction:column;height:auto;min-height:0;padding:8px}.map-wrap{height:57vh;min-height:400px;scroll-margin-top:8px}#map{min-height:400px}.panel{max-height:none;scroll-margin-top:8px}.panel #list{max-height:62vh}.controls{grid-template-columns:1fr 1fr}.map-actions{top:8px;right:8px}.btn{padding:8px 9px}.mobile-nav{position:fixed;display:grid;grid-template-columns:1fr 1fr;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:1100;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 24px #1c2b3660;overflow:hidden}.mobile-nav a{min-height:48px;display:flex;align-items:center;justify-content:center;color:var(--ink);text-decoration:none;font-size:.79rem;font-weight:850;border-right:1px solid var(--line)}.mobile-nav a:last-child{border:0;color:#fff;background:var(--accent)}footer{padding-bottom:16px}}
-</style></head><body>
-<header><div class="eyebrow">NISHINOMIYA SWEETS MAP</div><h1>西宮お菓子マップ</h1><p>西宮市内の和菓子店・洋菓子店を、地図と店舗一覧から探せます。店名を選ぶと地図上の位置が開きます。同じ屋号の複数店舗は一覧で続けて表示します。</p><div class="summary"><span class="chip">公開版 Ver.1.2.0</span><span class="chip">全148店</span><span class="chip">洋菓子113店</span><span class="chip">和菓子35店</span><span class="chip">更新 2026年10月1日</span></div><nav class="quick-links" aria-label="ページ内リンク"><a href="#mapSection">地図を見る</a><a class="secondary" href="#listSection">店舗一覧を見る</a></nav></header>
+</style><!-- Kussoon: Umami analytics (query values are not collected) -->
+<script>
+window.kussoonUmamiBeforeSend = function (type, payload) {
+  ['url', 'referrer'].forEach(function (key) {
+    if (typeof payload[key] === 'string') {
+      payload[key] = payload[key].split(/[?#]/)[0];
+    }
+  });
+  return payload;
+};
+</script>
+<script defer src="https://cloud.umami.is/script.js"
+        data-website-id="8beb23a4-a36f-4aff-b082-bec86e01a2f7"
+        data-domains="kussoon.com,www.kussoon.com"
+        data-exclude-search="true" data-exclude-hash="true"
+        data-before-send="kussoonUmamiBeforeSend"></script>
+</head><body>
+<header><div class="eyebrow">NISHINOMIYA SWEETS MAP</div><h1>西宮お菓子マップ</h1><p>西宮市内の和菓子店・洋菓子店を、地図と店舗一覧から探せます。店名を選ぶと地図上の位置が開きます。同じ屋号の複数店舗は一覧で続けて表示します。</p><div class="summary"><span class="chip">公開版 Ver.1.2.1</span><span class="chip">全148店</span><span class="chip">洋菓子113店</span><span class="chip">和菓子35店</span><span class="chip">更新 2026年10月1日</span></div><nav class="quick-links" aria-label="ページ内リンク"><a href="#mapSection">地図を見る</a><a class="secondary" href="#listSection">店舗一覧を見る</a></nav></header>
 <details class="about"><summary>この地図について・収録基準</summary><div class="about-content"><p>西宮市内の菓子専門店と、主要商業施設・駅ナカに常設されている菓子店を、確認できた範囲で収録しています。菓子販売を主目的としない一般のカフェ・パン店、期間限定の催事店は原則として対象外です。</p><p>住所と店舗情報は公式サイト、商業施設の店舗案内、地域情報などを照合しています。移転・閉店・営業時間変更などが反映されていない場合がありますので、訪問前に各店の公式情報をご確認ください。ピンは住所から取得した位置で、施設内の正確な区画を示さない場合があります。</p></div></details>
-<main class="layout"><section class="map-wrap" id="mapSection" aria-label="店舗地図"><div id="map"></div><div class="map-actions"><button class="btn" id="locate">◎ 現在地</button><button class="btn" id="fit">全体表示</button></div></section>
+<main class="layout"><section class="map-wrap" id="mapSection" aria-label="店舗地図"><div id="map"></div><div class="map-actions"><button class="btn" id="locate" data-umami-event="nishinomiya-sweets-locate-click">◎ 現在地</button><button class="btn" id="fit">全体表示</button></div></section>
 <aside class="panel" id="listSection" aria-label="店舗一覧"><div class="controls"><input id="search" aria-label="店舗検索" placeholder="店名・屋号・住所・施設名で検索…"><select id="category" aria-label="和洋の絞り込み"><option value="">和洋すべて</option><option>洋菓子</option><option>和菓子</option></select><select id="sort" aria-label="並び順"><option value="brand">屋号順</option><option value="name">店名順</option><option value="near">現在地から近い順</option></select></div><div class="status"><span id="count"></span><span class="legend"><span><i class="dot w"></i>洋菓子</span><span><i class="dot j"></i>和菓子</span></span></div><div id="list"></div></aside></main>
 <footer>掲載情報は2026年10月1日時点。店舗情報の正確性・完全性を保証するものではありません。<br>背景地図：<a href="https://maps.gsi.go.jp/development/ichiran.html" rel="noopener noreferrer">地理院タイル</a>／地図表示：<a href="https://leafletjs.com/" rel="noopener noreferrer">Leaflet</a><nav class="site-links" aria-label="サイト共通案内"><a href="https://kussoon.com/nishinomiya/">西宮市トップへ戻る</a><a href="https://kussoon.com/about/">このサイトについて</a><a href="https://kussoon.com/privacy/">プライバシー</a><a href="https://kussoon.com/sources/">データ出典</a><a href="https://kussoon.com/terms/">利用上の注意</a></nav><strong>© 2026 Kussoon. All rights reserved.</strong></footer><nav class="mobile-nav" aria-label="スマートフォン用ナビ"><a href="#mapSection">地図</a><a href="#listSection">店舗一覧</a></nav>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
