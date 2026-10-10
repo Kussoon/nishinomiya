@@ -50,6 +50,22 @@ a:focus-visible,summary:focus-visible{outline:3px solid #317951;outline-offset:3
 .hero-intro{margin-bottom:18px}
 @media(max-width:480px){.hero-intro{margin-bottom:16px}.city-landscape{margin-bottom:20px}}
 </style>
+<!-- Kussoon: Umami analytics (query values are not collected) -->
+<script>
+window.kussoonUmamiBeforeSend = function (type, payload) {
+  ['url', 'referrer'].forEach(function (key) {
+    if (typeof payload[key] === 'string') {
+      payload[key] = payload[key].split(/[?#]/)[0];
+    }
+  });
+  return payload;
+};
+</script>
+<script defer src="https://cloud.umami.is/script.js"
+        data-website-id="8beb23a4-a36f-4aff-b082-bec86e01a2f7"
+        data-domains="kussoon.com,www.kussoon.com"
+        data-exclude-search="true" data-exclude-hash="true"
+        data-before-send="kussoonUmamiBeforeSend"></script>
 </head><body><main class="wrap">
 <header><nav class="kussoon-category-nav" aria-label="Kussoonのカテゴリ案内"><a href="/">← Kussoonトップへ</a><a href="/games/">学ぶ・遊ぶ</a><a href="/local/">地域を調べる</a></nav>
 
@@ -58,18 +74,46 @@ a:focus-visible,summary:focus-visible{outline:3px solid #317951;outline-offset:3
 <p class="tagline">町を知る。地図で探す。</p><p class="hero-intro">町名・地域を学び、暮らしのお店を見つけよう。</p>
 <div class="city-landscape"><img src="images/nishinomiya-landscape.svg?v=6.5.242" width="1800" height="240" alt="甲山・神社・宮水・酒蔵・球場・海とヨットの風景"></div></header>
 <nav class="menu" aria-label="西宮市の学習と暮らしの地図">
-<section class="menu-section"><div class="section-head"><span class="badge">おすすめ</span><span>まずは地図で確認</span></div><a class="card recommended" href="all-area-labeled.html"><span class="icon">🗺️</span><span class="text"><strong>町名入り全域図</strong><small>西宮市全域の町名を一度に確認</small></span><span class="arrow">›</span></a></section>
-<section class="menu-section"><div class="section-head">町名をすぐ検索</div><form class="quick-search-card" action="town-search.html" method="get"><label class="quick-search-title" for="topTownSearch">町名・読み仮名・郵便番号から探す</label><span class="quick-search-help" id="topTownSearchHelp">入力した町を検索ページの地図で表示します</span><div class="quick-search-row"><input class="quick-search-input" id="topTownSearch" name="q" type="search" inputmode="search" autocomplete="off" enterkeyhint="search" required placeholder="例：高、こま、662-0911" aria-describedby="topTownSearchHelp"><button class="quick-search-button" type="submit">検索する</button></div></form></section>
+<section class="menu-section"><div class="section-head"><span class="badge">おすすめ</span><span>まずは地図で確認</span></div><a class="card recommended" href="all-area-labeled.html" data-umami-event="nishinomiya-labeled-map-click"><span class="icon">🗺️</span><span class="text"><strong>町名入り全域図</strong><small>西宮市全域の町名を一度に確認</small></span><span class="arrow">›</span></a></section>
+<section class="menu-section"><div class="section-head">町名をすぐ検索</div><form class="quick-search-card" action="town-search.html" method="get" data-kussoon-search-event="nishinomiya-town-search-submit"><label class="quick-search-title" for="topTownSearch">町名・読み仮名・郵便番号から探す</label><span class="quick-search-help" id="topTownSearchHelp">入力した町を検索ページの地図で表示します</span><div class="quick-search-row"><input class="quick-search-input" id="topTownSearch" name="q" type="search" inputmode="search" autocomplete="off" enterkeyhint="search" required placeholder="例：高、こま、662-0911" aria-describedby="topTownSearchHelp"><button class="quick-search-button" type="submit">検索する</button></div></form></section>
 <section class="menu-section"><div class="section-head">通常モード｜地域から覚える</div><div class="group-grid"><a class="card" href="community-map-quiz.html"><span class="icon">🧭</span><span class="text"><strong>26コミュニティの場所を覚える</strong><small>名前と大まかな位置を全域図で確認</small></span><span class="arrow">›</span></a><a class="card" href="community-select.html"><span class="icon">🏠</span><span class="text"><strong>コミュニティごとに町名を覚える</strong><small>26コミュニティから選んで町名を学習</small></span><span class="arrow">›</span></a></div></section>
 <section class="menu-section"><div class="section-head">通常モード｜全域クイズ</div><div class="group-grid two"><a class="card" href="full-location-quiz.html"><span class="icon">📍</span><span class="text"><strong>町名から場所を当てる</strong><small>西宮市全域の町名を地図で回答</small></span><span class="arrow">›</span></a><a class="card" href="full-name-quiz.html"><span class="icon">✨</span><span class="text"><strong>光った町名を当てる</strong><small>強調された町名を近隣の4択から回答</small></span><span class="arrow">›</span></a></div></section>
 <section class="menu-section"><div class="section-head">マニアックモード｜もっと詳しく</div><div class="group-grid"><a class="card advanced" href="maniac/"><span class="icon">🔥</span><span class="text"><strong>丁目まで詳しく学ぶ</strong><small>丁目まで区別して学習・クイズに挑戦</small></span><span class="arrow">›</span></a></div></section>
-<section class="menu-section"><div class="section-head">地図で確認｜ほかの見方</div><div class="group-grid two"><a class="card" href="town-search.html"><span class="icon">🔍</span><span class="text"><strong>町名から場所を探す</strong><small>町名・読み仮名・郵便番号で検索して位置を確認</small></span><span class="arrow">›</span></a><a class="card" href="all-area-transport.html"><span class="icon">🛣️</span><span class="text"><strong>交通入り全域図</strong><small>町名と主な鉄道・道路を一度に確認</small></span><span class="arrow">›</span></a><a class="card" href="all-area.html?v=6.5.189"><span class="icon">⬜</span><span class="text"><strong>白地図で町名を確認</strong><small>気になる場所をタップして町名と区域を確認</small></span><span class="arrow">›</span></a></div></section>
+<section class="menu-section"><div class="section-head">地図で確認｜ほかの見方</div><div class="group-grid two"><a class="card" href="town-search.html" data-umami-event="nishinomiya-town-search-click"><span class="icon">🔍</span><span class="text"><strong>町名から場所を探す</strong><small>町名・読み仮名・郵便番号で検索して位置を確認</small></span><span class="arrow">›</span></a><a class="card" href="all-area-transport.html" data-umami-event="nishinomiya-transport-map-click"><span class="icon">🛣️</span><span class="text"><strong>交通入り全域図</strong><small>町名と主な鉄道・道路を一度に確認</small></span><span class="arrow">›</span></a><a class="card" href="all-area.html?v=6.5.189" data-umami-event="nishinomiya-blank-map-click"><span class="icon">⬜</span><span class="text"><strong>白地図で町名を確認</strong><small>気になる場所をタップして町名と区域を確認</small></span><span class="arrow">›</span></a></div></section>
 <section class="menu-section"><div class="section-head">暮らしの地図</div><div class="group-grid two">
-<a class="card" href="sweets/"><span class="icon">🍰</span><span class="text"><strong>西宮お菓子マップ</strong><small>市内の和菓子店・洋菓子店を地図と一覧から探す</small></span><span class="arrow">›</span></a>
-<a class="card" href="bakeries/nishinomiya-bread-map.html"><span class="icon">🥐</span><span class="text"><strong>西宮パン屋マップ</strong><small>市内のパン屋・ベーカリーを地図と一覧から探す</small></span><span class="arrow">›</span></a>
-<a class="card" href="jisha/"><span class="icon">⛩️</span><span class="text"><strong>神社・寺院マップ</strong><small>市内の神社・寺院を地図で確認</small></span><span class="arrow">›</span></a>
-<a class="card" href="nishinomiya-intersections-map.html"><span class="icon">🚦</span><span class="text"><strong>西宮市の交差点看板マップ</strong><small>市内の交差点看板を地図で確認</small></span><span class="arrow">›</span></a>
-<a class="card" href="okome-map.html"><span class="icon">🍚</span><span class="text"><strong>【参考】おこめ券取扱店舗の記録</strong><small>2026年9月30日期限のおこめ券の取扱店舗を地図で振り返る</small></span><span class="arrow">›</span></a>
+<a class="card" href="sweets/" data-umami-event="nishinomiya-sweets-click"><span class="icon">🍰</span><span class="text"><strong>西宮お菓子マップ</strong><small>市内の和菓子店・洋菓子店を地図と一覧から探す</small></span><span class="arrow">›</span></a>
+<a class="card" href="bakeries/nishinomiya-bread-map.html" data-umami-event="nishinomiya-bakery-click"><span class="icon">🥐</span><span class="text"><strong>西宮パン屋マップ</strong><small>市内のパン屋・ベーカリーを地図と一覧から探す</small></span><span class="arrow">›</span></a>
+<a class="card" href="jisha/" data-umami-event="nishinomiya-jisha-click"><span class="icon">⛩️</span><span class="text"><strong>神社・寺院マップ</strong><small>市内の神社・寺院を地図で確認</small></span><span class="arrow">›</span></a>
+<a class="card" href="nishinomiya-intersections-map.html" data-umami-event="nishinomiya-intersections-click"><span class="icon">🚦</span><span class="text"><strong>西宮市の交差点看板マップ</strong><small>市内の交差点看板を地図で確認</small></span><span class="arrow">›</span></a>
+<a class="card" href="okome-map.html" data-umami-event="nishinomiya-okome-map-click"><span class="icon">🍚</span><span class="text"><strong>【参考】おこめ券取扱店舗の記録</strong><small>2026年9月30日期限のおこめ券の取扱店舗を地図で振り返る</small></span><span class="arrow">›</span></a>
 </div></section></nav>
-<p class="note">町名学習の通常モードでは、一丁目・二丁目などは同じ町名としてまとめています。</p><p class="version">Version 6.5.249</p><details class="hero-credit"><summary>表紙イラスト・市域の出典</summary><p>市域の輪郭は、国土交通省「<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html" target="_blank" rel="noopener">国土数値情報（行政区域データ）2026年版</a>」を加工して作成しました（CC BY 4.0）。北を上にし、縦横比を保って表示しています。境界未確定箇所の暫定境界を含む場合があります。風景は地域のモチーフを組み合わせた独自イラストで、実際の位置関係を示すものではありません。</p></details><footer>個人制作の地域ガイド<br>© KUSSOON 2026 All Rights Reserved.</footer>
-</main><script src="/nishinomiya/site-identity.js"></script></body></html>
+<p class="note">町名学習の通常モードでは、一丁目・二丁目などは同じ町名としてまとめています。</p><p class="version">Version 6.5.250</p><details class="hero-credit"><summary>表紙イラスト・市域の出典</summary><p>市域の輪郭は、国土交通省「<a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2026.html" target="_blank" rel="noopener">国土数値情報（行政区域データ）2026年版</a>」を加工して作成しました（CC BY 4.0）。北を上にし、縦横比を保って表示しています。境界未確定箇所の暫定境界を含む場合があります。風景は地域のモチーフを組み合わせた独自イラストで、実際の位置関係を示すものではありません。</p></details><footer>個人制作の地域ガイド<br>© KUSSOON 2026 All Rights Reserved.</footer>
+</main><script src="/nishinomiya/site-identity.js"></script><script>
+// Count valid submissions, including Enter, without collecting the input.
+(function () {
+  document.querySelectorAll('form[data-kussoon-search-event]').forEach(function (form) {
+    var sending = false;
+    form.addEventListener('submit', function (event) {
+      if (event.defaultPrevented) return;
+      if (sending) { event.preventDefault(); return; }
+      if (!window.umami || typeof window.umami.track !== 'function') return;
+      event.preventDefault();
+      sending = true;
+      var finished = false;
+      function proceed() {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        sending = false;
+        HTMLFormElement.prototype.submit.call(form);
+      }
+      var timer = setTimeout(proceed, 300);
+      try {
+        Promise.resolve(window.umami.track(form.getAttribute('data-kussoon-search-event')))
+          .then(proceed, proceed);
+      } catch (error) { proceed(); }
+    });
+  });
+})();
+</script>
+</body></html>
