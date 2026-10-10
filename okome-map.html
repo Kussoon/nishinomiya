@@ -171,6 +171,22 @@
       overflow-wrap: anywhere;
     }
   </style>
+<!-- Kussoon: Umami analytics (query values are not collected) -->
+<script>
+window.kussoonUmamiBeforeSend = function (type, payload) {
+  ['url', 'referrer'].forEach(function (key) {
+    if (typeof payload[key] === 'string') {
+      payload[key] = payload[key].split(/[?#]/)[0];
+    }
+  });
+  return payload;
+};
+</script>
+<script defer src="https://cloud.umami.is/script.js"
+        data-website-id="8beb23a4-a36f-4aff-b082-bec86e01a2f7"
+        data-domains="kussoon.com,www.kussoon.com"
+        data-exclude-search="true" data-exclude-hash="true"
+        data-before-send="kussoonUmamiBeforeSend"></script>
 </head>
 <body>
   <header>
@@ -196,7 +212,7 @@
         <input id="search" type="search" placeholder="店名・住所を検索" autocomplete="off" aria-label="店名・住所を検索">
         <div id="results" role="listbox"></div>
       </div>
-      <button id="locate" type="button">現在地</button>
+      <button id="locate" type="button" data-umami-event="nishinomiya-okome-locate-click">現在地</button>
     </div>
   </header>
   <main><div id="map" aria-label="おこめ券取扱店舗の地図"></div></main>

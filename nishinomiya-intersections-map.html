@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="canonical" href="https://kussoon.com/nishinomiya/nishinomiya-intersections-map.html">
 <meta name="description" content="西宮市の交差点看板202件を地区別・道路別・地図上で確認できる試作版リスト">
-<title>西宮市 交差点看板リスト 試作版 Ver.0.8.39</title>
+<title>西宮市 交差点看板リスト 試作版 Ver.0.8.40</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -82,10 +82,26 @@
   .map-fit-button:hover { background:#f4f4f4; }
   .map-fit-button:focus-visible { outline:3px solid #236aa6; outline-offset:-3px; }
 </style>
+<!-- Kussoon: Umami analytics (query values are not collected) -->
+<script>
+window.kussoonUmamiBeforeSend = function (type, payload) {
+  ['url', 'referrer'].forEach(function (key) {
+    if (typeof payload[key] === 'string') {
+      payload[key] = payload[key].split(/[?#]/)[0];
+    }
+  });
+  return payload;
+};
+</script>
+<script defer src="https://cloud.umami.is/script.js"
+        data-website-id="8beb23a4-a36f-4aff-b082-bec86e01a2f7"
+        data-domains="kussoon.com,www.kussoon.com"
+        data-exclude-search="true" data-exclude-hash="true"
+        data-before-send="kussoonUmamiBeforeSend"></script>
 </head>
 <body>
 <header>
-  <h1>西宮市 交差点看板リスト 試作版 Ver.0.8.39</h1>
+  <h1>西宮市 交差点看板リスト 試作版 Ver.0.8.40</h1>
   <span class="meta">全202件（地図202件・工事中保留2件を含む）｜更新 2026/10/08</span>
 </header>
 <div class="trial"><strong>試作版・トライアルデータ</strong>　看板一覧 Ver.0.9.51を反映。交差点名を覚えたり場所を確認したりするための補助マップです。同じ区間の愛称と県道番号は「愛称（県道番号）」で表示します。道路の絞り込みは国道・県道・愛称のある道路を対象とし、管理番号だけの市道は掲載していません。接続道路欄は、確認できた対象道路のみを表示します。公開対象は西宮市内のみです。鳴尾町4丁目東は登録削除、津門西・甲武橋南？は履歴のみ保持。甲子園口北町はユーザー位置確認済みです。工事中の西宝橋南詰・大多田橋は、現在看板なしの保留地点として残しています。現地確認状況は各地点の吹き出しに表示します。交差点名・位置は、現地確認、現地画像、複数の公開地図を照合して独自に整理しており、各サービスの地図画像やスクリーンショットは転載していません。位置修正内容はこの端末のブラウザ内に保存されます。「現在地」は、ボタンを押して許可した場合に限り端末内で利用し、運営者へ送信しません。</div>
@@ -100,11 +116,11 @@
       <select id="areaFilter" aria-label="地区で絞り込み"><option value="">全地区</option></select>
     </div>
     <div class="controls">
-      <button class="btn" id="locateBtn">◎ 現在地</button>
+      <button class="btn" id="locateBtn" data-umami-event="nishinomiya-intersections-locate-click">◎ 現在地</button>
       <button class="btn" id="reviewOnlyBtn">？ 要確認のみ</button>
-      <button class="btn" id="nearBtn">近い順</button>
+      <button class="btn" id="nearBtn" data-umami-event="nishinomiya-intersections-near-click">近い順</button>
       <button class="btn" id="resetBtn">全体表示</button>
-      <button class="btn" id="mapExpandBtn">⛶ 地図を大きく</button>
+      <button class="btn" id="mapExpandBtn" data-umami-event="nishinomiya-intersections-expand-click">⛶ 地図を大きく</button>
       <button class="btn" id="editBtn">位置監査</button>
     </div>
     <div class="editbox" id="editBox">
