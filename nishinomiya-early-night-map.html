@@ -69,6 +69,13 @@
 #map .k-pin-card .k-pin-actions button:active,#map .k-pin-card .k-pin-actions a:active{background:#d5ebfc}
 .item{scroll-margin-top:20px}
 .item.k-item-focused{outline:3px solid #45a4d5;outline-offset:2px}
+
+/* v0.1.9: selected pin stays visible ABOVE its preview, never a floating unrelated box. */
+#map .k-pin-card{max-height:calc(100% - 65px);overflow-y:auto;overscroll-behavior:contain}
+#map .k-pin-card::before{top:-8px;bottom:auto;border-top:1px solid #b8c9d9;border-left:1px solid #b8c9d9;transform:translateX(-50%) rotate(45deg)}
+#map .k-pin-card::after{content:"";position:absolute;top:-25px;left:calc(var(--arrow-left,50%) - 1px);height:17px;width:2px;background:#245f86;pointer-events:none}
+#map .k-pin-card{overflow:visible}
+#map .k-pin-card .k-pin-address{overflow-wrap:anywhere}
 </style>
 <script>function kussoonUmamiSanitize(type,payload){if(payload&&typeof payload==='object'){if(payload.url){try{const u=new URL(payload.url,location.origin);payload.url=u.origin+u.pathname}catch(e){}}if(payload.referrer){try{const u=new URL(payload.referrer,location.origin);payload.referrer=u.origin+u.pathname}catch(e){}}}return payload}</script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="8beb23a4-a36f-4aff-b082-bec86e01a2f7" data-before-send="kussoonUmamiSanitize"></script>
@@ -79,7 +86,7 @@
 <div id="map" role="region" aria-label="西宮市の店舗地図"></div><p class="map-tip">地図を拡大したり、下の一覧から店舗を選ぶことができます。座標未登録店舗は一覧のみです。</p>
 <section class="section"><h2>店舗一覧 <span class="count" id="count"></span></h2><div class="results" id="results"></div></section>
 <details><summary>掲載情報について</summary><p>営業時間は2026年10月23日時点の管理台帳に基づきます。未確認の値は未確認と表示しています。臨時変更・祝日の例外等がありますので訪問前には各店舗の公式情報をご覧ください。店の閉店時刻はラストオーダーや入店可能時刻の保証ではありません。</p><p>地図：© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> ／ 地図表示：Leaflet。店舗情報はKussoon編集データと店舗公式サイト・公開情報をもとにしています。</p></details>
-<footer><a href="https://kussoon.com/">トップページ</a>　｜　<a href="https://kussoon.com/maps/unified-bread-map.html">阪神間パン屋マップ</a>　｜　<a href="https://kussoon.com/nishinomiya/sweets/">西宮市お菓子マップ</a><p>西宮市 早朝パン屋・夜カフェマップ v0.1.8（試作）／情報整理基準日 2026-10-23</p></footer></main><button type="button" id="backToTop" aria-label="ページの先頭に戻る" hidden>↑ 先頭に戻る</button>
+<footer><a href="https://kussoon.com/">トップページ</a>　｜　<a href="https://kussoon.com/maps/unified-bread-map.html">阪神間パン屋マップ</a>　｜　<a href="https://kussoon.com/nishinomiya/sweets/">西宮市お菓子マップ</a><p>西宮市 早朝パン屋・夜カフェマップ v0.1.9（試作）／情報整理基準日 2026-10-23</p></footer></main><button type="button" id="backToTop" aria-label="ページの先頭に戻る" hidden>↑ 先頭に戻る</button>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 'use strict';const STORES=[{"id":"NMY-0001","name":"サンドイッチカフェ はるいろ","address":"兵庫県西宮市甲子園口3-21-3","lat":34.73611317,"lng":135.3737646,"cats":["morning"],"hours":["06:30–15:30","06:30–15:30","06:30–15:30","06:30–15:30","06:30–15:30","06:30–15:30","06:30–15:30"],"holiday":"不定休","area":"甲子園口","station":"JR甲子園口","url":"https://www.facebook.com/haruiro0103/","status":"一部未確認","notes":[],"verified":true,"idx":1},{"id":"NMY-0002","name":"ブーランジェリー・フリアンド 本店","address":"兵庫県西宮市若松町3-1","lat":34.74255286052046,"lng":135.3334804473788,"cats":["morning"],"hours":["07:00–19:00","定休","定休","07:00–19:00","07:00–19:00","07:00–19:00","07:00–19:00"],"holiday":"火・水、年末年始・お盆臨時休業","area":"夙川・若松町","station":"阪急夙川／JRさくら夙川","url":"https://friandeboulangerie.com/店舗情報/","status":"営業時間の確認情報あり","notes":[],"verified":true,"idx":2},{"id":"NMY-0003","name":"K’s Gebäck（ケーズケベック）","address":"兵庫県西宮市南越木岩町4-22 カーサヴィエント1階101","lat":34.749109584553,"lng":135.3269536986,"cats":["morning"],"hours":["07:00–19:00","07:00–19:00","07:00–19:00","定休","07:00–19:00","07:00–19:00","07:00–19:00"],"holiday":"木（参考）","area":"苦楽園","station":"阪急苦楽園口","url":"https://www.instagram.com/ksgeback/","status":"一部未確認","notes":[],"verified":true,"idx":3},{"id":"NMY-0005","name":"リトルインディアン","address":"兵庫県西宮市小松南町3-1-8","lat":34.72179866,"lng":135.37749622,"cats":["morning"],"hours":["06:00–18:30","定休","定休","06:00–18:30","06:00–18:30","06:00–18:30","06:00–18:30"],"holiday":"火・水（参考）","area":"武庫川・小松","station":"阪神武庫川","url":"","status":"一部未確認","notes":["開店時刻は6:00／6:30の情報があり、要確認"],"verified":true,"idx":5},{"id":"NMY-0006","name":"オンコー アン マタン（Encore un matin）","address":"兵庫県西宮市川添町4-2 1F","lat":34.72970524,"lng":135.33157023,"cats":["morning"],"hours":["定休","定休","定休","10:00–17:00","09:00–18:00","07:00–18:00","07:00–18:00"],"holiday":"月・火・水（公式索引）","area":"香櫨園・川添","station":"阪神香櫨園","url":"https://lit.link/encoreunmatin","status":"営業時間の確認情報あり","notes":["7時開店は土・日曜のみ"],"verified":true,"idx":6},{"id":"NMY-0007","name":"サニーサイド 西宮大社店","address":"兵庫県西宮市大社町1-44","lat":34.75059409,"lng":135.34183613,"cats":["morning"],"hours":["07:30–19:00","07:30–19:00","07:30–19:00","07:30–19:00","07:30–19:00","07:30–19:00","07:30–19:00"],"holiday":"第2火曜日","area":"大社・広田","station":"阪急苦楽園口（参考）","url":"https://www.sunny-side.co.jp/shop_infomation","status":"営業時間の確認情報あり","notes":[],"verified":true,"idx":7},{"id":"NMY-0008","name":"サニーサイド 夙川グリーンプレイス店","address":"兵庫県西宮市大谷町7-4 D棟 夙川グリーンプレイス","lat":34.7391074,"lng":135.319664,"cats":["morning"],"hours":["07:30–20:00","07:30–20:00","07:30–20:00","07:30–20:00","07:30–20:00","07:30–20:00","07:30–20:00"],"holiday":"要確認（公式ページ記載なし）","area":"夙川・大谷町","station":"阪急夙川","url":"https://www.sunny-side.co.jp/shop_infomation","status":"営業時間の確認情報あり","notes":[],"verified":true,"idx":8},{"id":"NMY-0009","name":"スターバックス コーヒー 西宮建石店","address":"兵庫県西宮市建石町2-33","lat":34.728446,"lng":135.333953,"cats":["night"],"hours":["07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00"],"holiday":"不定休（公式索引）","area":"香櫨園・建石","station":"阪神香櫨園","url":"https://store.starbucks.co.jp/detail-4127/","status":"一部未確認","notes":[],"verified":true,"idx":9},{"id":"NMY-0010","name":"Cafe & Bar STARK","address":"兵庫県西宮市下大市東町4-2-101","lat":34.75701359,"lng":135.35846803,"cats":["night"],"hours":["12:00–17:00／20:00–翌01:00","12:00–17:00／20:00–翌01:00","12:00–17:00／20:00–翌01:00","12:00–17:00／20:00–翌01:00","12:00–17:00／20:00–翌01:00","14:00–17:00／20:00–翌01:00","14:00–17:00／20:00–翌01:00"],"holiday":"要確認（公式内不定期／年中無休、予約サイト木曜）","area":"門戸厄神","station":"阪急門戸厄神","url":"https://www.nextvisionjp.net/blank-2","status":"一部未確認","notes":["夜間営業時間の記載に曜日等の不一致あり"],"verified":true,"idx":10},{"id":"NMY-0011","name":"快活CLUB 国道2号西宮店","address":"兵庫県西宮市六湛寺町1-13 ドン・キホーテ西宮店3F","lat":34.7385821,"lng":135.3433334,"cats":["net"],"hours":["00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00"],"holiday":"年中無休","area":"JR西宮・六湛寺","station":"JR西宮","url":"https://www.kaikatsu.jp/shop/detail/20566.html","status":"営業時間の確認情報あり","notes":["利用料金は公式ページでご確認ください"],"verified":true,"idx":11},{"id":"NMY-0012","name":"快活CLUB 西宮丸橋店","address":"兵庫県西宮市丸橋町4-24","lat":34.7516669,"lng":135.3529325,"cats":["net"],"hours":["00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00","00:00–翌00:00"],"holiday":"年中無休","area":"西宮北口・丸橋","station":"阪急門戸厄神","url":"https://www.kaikatsu.jp/shop/detail/20942.html","status":"営業時間の確認情報あり","notes":["利用料金は公式ページでご確認ください"],"verified":true,"idx":12},{"id":"NMY-0015","name":"VIE DE FRANCE 西宮店","address":"兵庫県西宮市田中町1-6 エビスタ西宮1F","lat":34.73700169,"lng":135.3381199,"cats":["morning","night"],"hours":["07:00–22:00","07:00–22:00","07:00–22:00","07:00–22:00","07:00–22:00","07:00–22:00","07:00–22:00"],"holiday":"要確認（公式記載なし）","area":"阪神西宮・田中町","station":"阪神西宮","url":"https://shop.viedefrance.co.jp/detail/238/","status":"営業時間の確認情報あり","notes":["7時開店・22時閉店（両方のカテゴリに該当）"],"verified":true,"idx":15},{"id":"NMY-0016","name":"コメダ珈琲店 甲子園駅前店","address":"兵庫県西宮市甲子園七番町1ー27","lat":34.723455,"lng":135.363694,"cats":["night"],"hours":["07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00"],"holiday":"なし","area":"甲子園","station":"阪神甲子園","url":"https://www.komeda.co.jp/shop/detail.html?id=655","status":"営業時間の確認情報あり","notes":[],"verified":true,"idx":16},{"id":"NMY-0017","name":"コメダ珈琲店 阪神西宮店","address":"兵庫県西宮市六湛寺町14−5","lat":34.737796,"lng":135.339751,"cats":["night"],"hours":["07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00"],"holiday":"なし","area":"阪神西宮・六湛寺","station":"阪神西宮","url":"https://www.komeda.co.jp/shop/detail.html?id=672","status":"営業時間の確認情報あり","notes":[],"verified":true,"idx":17},{"id":"NMY-0018","name":"コメダ珈琲店 阪神今津駅前店","address":"兵庫県西宮市今津水波町2−2SENSE BLDG 今津駅前 1階","lat":34.730805,"lng":135.351201,"cats":["night"],"hours":["07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00","07:00–23:00"],"holiday":"なし","area":"今津","station":"阪神今津","url":"https://www.komeda.co.jp/shop/detail.html?id=1189","status":"営業時間の確認情報あり","notes":[],"verified":true,"idx":18},{"id":"NMY-0019","name":"フレッズカフェ 西宮北口店","address":"兵庫県西宮市高松町6-20 阪急西宮北口駅今津線宝塚行きホーム","lat":34.746433,"lng":135.356964,"cats":["morning"],"hours":["07:00–21:00","07:00–21:00","07:00–21:00","07:00–21:00","07:00–21:00","07:00–21:00","07:00–20:00"],"holiday":"年中無休（臨時休業を除く）","area":"西宮北口","station":"阪急西宮北口","url":"https://www.ekinaka.hankyu-hanshin.co.jp/shop/sh243/","status":"一部未確認","notes":["阪急西宮北口駅の改札内、今津線宝塚行きホーム","ピンはおおよその位置です：阪急西宮北口駅・今津線宝塚方面ホーム付近（駅構内の概略位置）"],"verified":true,"idx":19,"approxPin":true},{"id":"NMY-0020","name":"THE TERRACE","address":"兵庫県西宮市湯元町4-14","lat":34.773,"lng":135.309,"cats":["night"],"hours":["要確認","要確認","要確認","要確認","22:00–翌01:00","22:00–翌01:00","要確認"],"holiday":"","area":"湯元町","station":"阪急夙川からバス","url":"https://www.cafetheterrace.com/cafe/","status":"一部未確認","notes":["夜カフェは金・土曜のみ22時〜翌1時","ピンはおおよその位置です：西宮市湯元町周辺の暫定位置（店舗敷地とは未照合）"],"verified":true,"idx":20,"approxPin":true},{"id":"NMY-0021","name":"ダディーズベーカリー 西宮店","address":"兵庫県西宮市山口町船坂90","lat":34.800531,"lng":135.285864,"cats":["morning"],"hours":["09:00–17:00","定休","09:00–17:00","09:00–17:00","09:00–17:00","08:00–17:00","08:00–17:00"],"holiday":"火曜日（祝日・特別日程は公式カレンダー優先）","area":"山口町船坂","station":"自動車アクセス","url":"https://yamanopann.com/shop/","status":"一部未確認","notes":["土日祝だけ8時開店、平日は9時開店","ピンはおおよその位置です：山口町船坂の町域代表地点（店舗所在地そのものではありません）"],"verified":true,"idx":21,"approxPin":true},{"id":"NMY-0022","name":"リトルマーメイド 甲子園プラス店","address":"兵庫県西宮市甲子園町8-15 甲子園プラス2F","lat":34.720242,"lng":135.362543,"cats":["morning"],"hours":["08:00–20:00","08:00–20:00","08:00–20:00","08:00–20:00","08:00–20:00","08:00–20:00","08:00–20:00"],"holiday":"","area":"甲子園","station":"阪神甲子園","url":"https://www.littlemermaid.jp/shopsearch/hyogo/post-465.html","status":"一部未確認","notes":["ピンはおおよその位置です：甲子園プラス建物付近（施設2階の店舗位置とは未照合）"],"verified":true,"idx":22,"approxPin":true}];const dNames=['月','火','水','木','金','土','日'];const categories={morning:'早朝パン屋',night:'夜間カフェ',net:'24時間ネットカフェ'};const colors={morning:'#da7d29',night:'#546bc9',net:'#26a184'};let filter='all';const map=L.map('map',{zoomControl:false,scrollWheelZoom:false}).setView([34.753,135.344],12);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(map);// Zoom controls and a reset-to-overview button share one upper-right stack.
@@ -107,18 +114,29 @@ document.getElementById('map').appendChild(pinCard);
 L.DomEvent.disableClickPropagation(pinCard);
 let activePin=null;
 function hidePinCard(){pinCard.hidden=true;activePin=null;}
+// Keep the preview BELOW its selected pin, with a pointer on the top edge.
+// Do not flip it above a marker: instead shift the map when needed.
 function positionPinCard(){
  if(!activePin||pinCard.hidden)return;
  const pt=map.latLngToContainerPoint(activePin.getLatLng());
- const width=pinCard.offsetWidth,height=pinCard.offsetHeight;
- const mapSize=map.getSize();
- const left=Math.max(8,Math.min(pt.x-width/2,mapSize.x-width-8));
- // Place below the selected marker when possible; flip upwards near the map bottom.
- const below=pt.y+18;
- const top=below+height<=mapSize.y-7?below:Math.max(6,pt.y-height-19);
+ const size=map.getSize(),width=pinCard.offsetWidth,height=pinCard.offsetHeight;
+ const left=Math.max(8,Math.min(pt.x-width/2,size.x-width-8));
+ const top=pt.y+25;
  pinCard.style.left=left+'px';pinCard.style.top=top+'px';
  pinCard.style.setProperty('--arrow-left',Math.max(14,Math.min(width-14,pt.x-left))+'px');
- pinCard.classList.toggle('above-pin',top<pt.y);
+}
+function ensurePinCardFits(){
+ if(!activePin||pinCard.hidden)return;
+ const pt=map.latLngToContainerPoint(activePin.getLatLng());
+ const size=map.getSize(),w=pinCard.offsetWidth,h=pinCard.offsetHeight;
+ // A 25px gap shows the selected dot and the triangle connector.
+ const availableBottom=size.y-h-34;
+ const desiredY=Math.min(size.y*.40,Math.max(22,availableBottom));
+ const desiredX=Math.max(w/2+10,Math.min(size.x-w/2-10,pt.x));
+ const dx=pt.x-desiredX;
+ const dy=pt.y>availableBottom?pt.y-desiredY:pt.y<18?pt.y-18:0;
+ if(Math.abs(dx)>1||Math.abs(dy)>1)map.panBy([dx,dy],{animate:false});
+ positionPinCard();
 }
 function showPinCard(marker,store){
  activePin=marker;
@@ -145,7 +163,7 @@ function showPinCard(marker,store){
    destination.classList.add('k-item-focused');
    destination.scrollIntoView({behavior:'smooth',block:'start'});
  });
- pinCard.hidden=false;positionPinCard();
+ pinCard.hidden=false;ensurePinCardFits();
 }
 
 map.on('move zoom resize',positionPinCard);
@@ -194,7 +212,7 @@ const backToTop=document.getElementById('backToTop');
 let scrollingScheduled=false;
 function updateBackToTop(){backToTop.hidden=window.scrollY<420;scrollingScheduled=false;}
 window.addEventListener('scroll',()=>{if(!scrollingScheduled){scrollingScheduled=true;requestAnimationFrame(updateBackToTop)}},{passive:true});
-backToTop.addEventListener('click',()=>{if(activePin&&!pinCard.hidden)positionPinCard();window.scrollTo({top:0,behavior:'smooth'});});
+backToTop.addEventListener('click',()=>{if(activePin&&!pinCard.hidden)ensurePinCardFits();window.scrollTo({top:0,behavior:'smooth'});});
 updateBackToTop();
 window.addEventListener('load',()=>map.invalidateSize({pan:false}));
 window.addEventListener('pageshow',()=>map.invalidateSize({pan:false}));
