@@ -86,31 +86,44 @@ header nav,header h1,header p{position:relative;z-index:1;}
 @media(max-width:620px){header::before{width:190px;height:190px;left:-28px;}header::after{width:172px;height:172px;right:-27px;}}
 /* v0.2.2: consistent formal footer. */
 footer{line-height:1.8;}footer .site-links{display:flex;flex-wrap:wrap;gap:5px 14px;margin:8px 0 11px}footer .site-links a{white-space:normal}footer .site-small{font-size:.84rem;color:var(--muted);margin:8px 0}footer .site-title{font-weight:700;margin:13px 0 3px}footer .site-policy{border:1px solid var(--border);padding:11px 13px;border-radius:9px;background:var(--card);margin-top:12px}footer .site-policy summary{cursor:pointer;font-weight:700}footer .site-policy p{margin:8px 0 0}
+
+/* v0.2.3: compact, centered site-information footer matching Nishinomiya guide. */
+#site-footer{max-width:850px;margin:34px auto 0;padding:14px 12px 30px;text-align:center;color:var(--muted);line-height:1.8;border-top:1px solid var(--border)}
+#site-footer .footer-version{font-size:.9rem;margin:3px 0 19px;letter-spacing:.03em;opacity:.82}
+#site-footer .footer-legal-links{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 22px;margin:0 auto 22px}
+#site-footer .footer-legal-links a{color:var(--muted);text-decoration:underline;text-underline-offset:4px;font-size:.92rem}
+#site-footer .footer-caption{margin:15px 0 3px;font-size:.91rem}
+#site-footer .footer-copyright{margin:0;font-size:.9rem}
+#site-footer .footer-detail-group{max-width:720px;margin:auto;text-align:left}
+#site-footer .footer-detail-group details:not([open]){display:none}
+#site-footer .footer-detail-group details{font-size:.88rem;margin:7px 0;padding:8px 12px;text-align:left}
+#site-footer .footer-detail-group p{margin:8px 0;line-height:1.65}
+@media(max-width:480px){#site-footer .footer-legal-links{gap:7px 15px}#site-footer .footer-legal-links a{font-size:.86rem}}
 </style>
 <script>function kussoonUmamiSanitize(type,payload){if(payload&&typeof payload==='object'){if(payload.url){try{const u=new URL(payload.url,location.origin);payload.url=u.origin+u.pathname}catch(e){}}if(payload.referrer){try{const u=new URL(payload.referrer,location.origin);payload.referrer=u.origin+u.pathname}catch(e){}}}return payload}</script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="8beb23a4-a36f-4aff-b082-bec86e01a2f7" data-before-send="kussoonUmamiSanitize"></script>
 </head><body><header><nav><a href="https://kussoon.com/">Kussoon トップ</a></nav><h1>西宮市 早朝パン屋・夜カフェマップ</h1><p>朝8:00までに開くパン屋 ／ 夜22:00以降に閉まるカフェ ／ 24時間ネットカフェ</p></header>
 <main><div class="filters" role="group" aria-label="業態の絞り込み"><button type="button" data-filter="all" aria-pressed="true">すべて</button><button type="button" data-filter="morning" aria-pressed="false">🥐 朝8時までに開店するパン屋</button><button type="button" data-filter="night" aria-pressed="false">☕ 22時以降まで開いているカフェ</button><button type="button" data-filter="net" aria-pressed="false">🖥️ 24時間ネットカフェ</button></div>
 <div class="toolbar"><input id="q" type="search" placeholder="店名・地域名・駅名で検索" aria-label="店舗検索"><select id="sort" aria-label="表示順"><option value="time" selected>営業時間順</option><option value="name">店名順</option><option value="area">エリア順</option></select><select id="weekday" aria-label="曜日"><option value="all">曜日を問わない</option><option value="0">月曜</option><option value="1">火曜</option><option value="2">水曜</option><option value="3">木曜</option><option value="4">金曜</option><option value="5">土曜</option><option value="6">日曜</option></select></div>
-<div class="legend"><span><i class="dot morning"></i>早朝パン屋</span><span><i class="dot night"></i>夜間カフェ</span><span><i class="dot net"></i>24時間ネットカフェ</span><span>※ 店舗代表地点。入口位置ではない場合があります</span></div>
-<div id="map" role="region" aria-label="西宮市の店舗地図"></div><p class="map-tip">地図を拡大したり、下の一覧から店舗を選ぶことができます。座標未登録店舗は一覧のみです。</p>
+<div class="legend"><span><i class="dot morning"></i>早朝パン屋</span><span><i class="dot night"></i>夜間カフェ</span><span><i class="dot net"></i>24時間ネットカフェ</span></div>
+<div id="map" role="region" aria-label="西宮市の店舗地図"></div>
 <section class="section"><h2>店舗一覧 <span class="count" id="count"></span></h2><div class="results" id="results"></div></section>
-<details><summary>掲載情報について</summary><p>営業時間は2026年10月23日時点の管理台帳に基づきます。未確認の値は未確認と表示しています。臨時変更・祝日の例外等がありますので訪問前には各店舗の公式情報をご覧ください。店の閉店時刻はラストオーダーや入店可能時刻の保証ではありません。</p><p>地図：© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> ／ 地図表示：Leaflet。店舗情報はKussoon編集データと店舗公式サイト・公開情報をもとにしています。</p></details>
-<footer id="site-footer" aria-label="サイト情報とリンク">
-<div class="site-title">Kussoon｜関連ページ</div>
-<nav class="site-links" aria-label="サイト内リンク">
-<a href="https://kussoon.com/">Kussoon トップ</a>
-<a href="https://kussoon.com/maps/unified-bread-map.html">阪神間 パン屋マップ</a>
-<a href="https://kussoon.com/nishinomiya/sweets/">西宮市 お菓子マップ</a>
-<a href="https://kussoon.com/driving/vehicleregistrationplates/region/index.html">全国ナンバープレート地域名マップ</a>
+<footer id="site-footer" aria-label="サイト情報">
+<p class="footer-version">Version 0.2.3</p>
+<nav class="footer-legal-links" aria-label="サイト情報へのリンク">
+<a href="#footer-about" data-open-footer="footer-about">このサイトについて</a>
+<a href="#footer-privacy" data-open-footer="footer-privacy">プライバシー</a>
+<a href="#footer-sources" data-open-footer="footer-sources">データ出典</a>
+<a href="#footer-notes" data-open-footer="footer-notes">利用上の注意</a>
 </nav>
-<details class="site-policy"><summary>広告・プライバシーについて</summary>
-<p>このサイトでは、利用状況を把握するためUmamiによるアクセス解析を使用しています。検索語や地図上の操作で得られる位置情報は解析イベントとして送信しません。</p>
-<p>今後Google AdSense等の広告を掲載する場合、Googleなどの第三者配信事業者がCookieを利用して、ユーザーの閲覧情報に基づく広告を表示することがあります。広告におけるデータの利用については、<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" rel="noopener">Googleによる広告でのデータ利用</a>および<a href="https://adssettings.google.com/" target="_blank" rel="noopener">広告の設定</a>をご参照ください。</p>
-<p>この地図の店舗情報や営業時間は変更される場合があります。ご利用前に店舗の公式情報をお確かめください。</p>
-</details>
-<p class="site-small">西宮市 早朝パン屋・夜カフェマップ｜公開準備版 v0.2.2（2026-10-24）</p>
-<p class="site-small">店舗データ整理基準日：2026-10-23 ／ 地図 © OpenStreetMap contributors ／ © Kussoon</p>
+<div class="footer-detail-group">
+<details id="footer-about"><summary>このサイトについて</summary><p>Kussoonが個人制作する、西宮市内で朝8時までに開店するパン屋・夜22時以降まで開いているカフェ・24時間ネットカフェを探すための地図です。</p><p><a href="https://kussoon.com/">Kussoon トップ</a></p></details>
+<details id="footer-privacy"><summary>プライバシー</summary><p>アクセス状況の把握にUmamiを使用しています。サイト内検索語、地図上の座標、入力した内容を解析イベントとして送信しない設計です。</p><p>広告を掲載する場合、Google等の広告配信事業者がCookieを利用する場合があります。詳しくは<a href="https://policies.google.com/technologies/ads?hl=ja" target="_blank" rel="noopener">Googleの広告に関する説明</a>をご覧ください。</p></details>
+<details id="footer-sources"><summary>データ出典</summary><p>店舗の名称・住所・営業時間は店舗公式サイト、公式SNS、施設公式ページ等の公開情報をもとに整理しました。店舗データの整理基準日：2026年10月23日。</p><p>背景地図：© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>／地図表示：<a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a>。</p></details>
+<details id="footer-notes"><summary>利用上の注意</summary><p>営業時間・定休日は変更される場合があります。確認できない情報は「未確認」と表示しています。訪問前には店舗の公式情報をご確認ください。</p><p>地図のピンは店舗・施設の代表位置を示す場合があり、入口位置とは限りません。</p></details>
+</div>
+<p class="footer-caption">個人制作の地域ガイド</p>
+<p class="footer-copyright">© KUSSOON 2026 All Rights Reserved.</p>
 </footer></main><button type="button" id="backToTop" aria-label="ページの先頭に戻る" hidden>↑ 先頭に戻る</button>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
@@ -242,4 +255,5 @@ updateBackToTop();
 window.addEventListener('load',()=>map.invalidateSize({pan:false}));
 window.addEventListener('pageshow',()=>map.invalidateSize({pan:false}));
 if(window.ResizeObserver){new ResizeObserver(()=>map.invalidateSize({pan:false})).observe(document.getElementById('map'));}
+document.querySelectorAll('[data-open-footer]').forEach(link=>link.addEventListener('click',()=>{const target=document.getElementById(link.dataset.openFooter);if(target)target.open=true;}));
 </script></body></html>
