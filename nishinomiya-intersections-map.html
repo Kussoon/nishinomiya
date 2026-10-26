@@ -86,8 +86,6 @@
   .subtitle { color:var(--sub); margin:7px 0 10px; font-size:.95rem; }
   .meta { display:block; font-size:.8rem; }
   #page-content { max-width:1200px; margin:0 auto; padding:0 16px; }
-  .page-tools { display:flex; justify-content:flex-end; font-size:.8rem; }
-  .page-tools a { display:inline-flex; align-items:center; min-height:36px; }
   .about-map { border:1px solid var(--line); border-radius:10px; background:var(--card); padding:10px 14px; }
   .legend { padding:12px 2px; background:transparent; border:0; gap:8px 18px; }
   #wrap { display:grid; grid-template-columns:minmax(0,1fr) 330px; height:clamp(480px,68vh,640px); min-height:0; overflow:hidden; border:1px solid var(--line); border-radius:12px; background:var(--card); }
@@ -144,7 +142,6 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
   <span class="meta">202地点（工事中・看板なし2地点を含む）｜更新 2026/10/26</span>
 </header>
 <main id="page-content">
-<div class="page-tools"><a href="#page-footer">ページ下部へ ↓</a></div>
 <details class="about-map"><summary>このマップについて</summary><p>西宮市の交差点名や青看板を確認し、地域の道や場所を覚えるための補助マップです。交差点名・位置は、現地確認や公開地図などを照合して整理しています。</p><p>現地確認とストリートビューの年月は、それぞれ現地で確認した時点と写真の撮影時点を示します。現況と異なる場合があります。工事中で看板がない地点はオレンジの丸で表示します。</p><p>道路名は確認できたものを表示します。同じ区間の愛称と県道番号は「愛称（県道番号）」にまとめています。</p><p>「現在地」「近い順」は許可した場合のみ端末の位置情報を利用し、運営者やアクセス解析へ送信しません。各サービスの地図画像やスクリーンショットは転載していません。</p></details>
 
 <div class="legend" aria-label="地図の凡例"><span><i class="legend-dot legend-normal"></i>交差点</span><span><i class="legend-dot legend-multi"></i>複数地点</span><span><i class="legend-dot legend-missing"></i>工事中・看板なし</span></div>
@@ -175,7 +172,7 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
     <div class="footer-links"><a class="footer-link" href="/">⌂ Kussoonトップ</a><a class="footer-link" href="/driving/">運転・モビリティ</a><a class="footer-link" href="/nishinomiya/">西宮市トップ</a></div>
     <a class="footer-top" href="#page-top">↑ 先頭に戻る</a>
   </nav>
-  <p class="footer-version">Version 1.0.1</p>
+  <p class="footer-version">Version 1.0.2</p>
   <nav class="footer-info" aria-label="サイト情報"><a href="/about/">このサイトについて</a><a href="/privacy/">プライバシー</a><a href="/sources/">データ出典</a><a href="/terms/">利用上の注意</a></nav>
   <p class="footer-tagline">個人制作の地域ガイド</p>
   <p class="footer-copyright">© KUSSOON 2026 All Rights Reserved.</p>
