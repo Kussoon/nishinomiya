@@ -110,6 +110,7 @@ footer{line-height:1.8;}footer .site-links{display:flex;flex-wrap:wrap;gap:5px 1
 <section class="section"><h2>店舗一覧 <span class="count" id="count"></span></h2><div class="results" id="results"></div></section>
 <footer id="site-footer" aria-label="サイト情報">
 <p class="footer-version">Version 0.2.3</p>
+<nav aria-label="サイト共通案内" style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin:12px 0;width:100%"><a href="/privacy/">プライバシーポリシー</a></nav>
 <nav class="footer-legal-links" aria-label="サイト情報へのリンク">
 <a href="#footer-about" data-open-footer="footer-about">このサイトについて</a>
 <a href="#footer-privacy" data-open-footer="footer-privacy">プライバシー</a>
@@ -256,4 +257,5 @@ window.addEventListener('load',()=>map.invalidateSize({pan:false}));
 window.addEventListener('pageshow',()=>map.invalidateSize({pan:false}));
 if(window.ResizeObserver){new ResizeObserver(()=>map.invalidateSize({pan:false})).observe(document.getElementById('map'));}
 document.querySelectorAll('[data-open-footer]').forEach(link=>link.addEventListener('click',()=>{const target=document.getElementById(link.dataset.openFooter);if(target)target.open=true;}));
-</script></body></html>
+</script><script defer src="/common/footer-links.js"></script>
+</body></html>
