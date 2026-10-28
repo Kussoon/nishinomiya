@@ -187,6 +187,16 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
         data-domains="kussoon.com,www.kussoon.com"
         data-exclude-search="true" data-exclude-hash="true"
         data-before-send="kussoonUmamiBeforeSend"></script>
+  <style id="site-info-style">
+    .site-info-slot { position: relative; font-weight: 700; }
+    .site-info-slot > span { visibility: hidden; }
+    #siteInfoOpen { position: absolute; inset: 0; width: 100%; padding: 0; min-height: 0; border-radius: 0; background: none; color: #fff1c9; font: inherit; font-weight: 700; text-decoration: underline; }
+    #siteInfo { width: min(420px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 14px; padding: 20px; color: var(--ink); background: var(--paper); }
+    #siteInfo::backdrop { background: rgb(15 52 40 / .6); }
+    #siteInfo h2 { margin: 0 0 16px; font-size: 20px; }
+    #siteInfo nav { display: grid; gap: 12px; margin-top: 16px; }
+    #siteInfo a { display: block; padding: 8px; color: #12664e; line-height: 1.5; }
+  </style>
 </head>
 <body>
   <header>
@@ -200,7 +210,7 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
       <div class="source-links">
         <a href="https://www.nishi.or.jp/shisei/chihousousei/bukkakoutou/c_01722025121213044.html" target="_blank" rel="noopener">西宮市の制度説明</a>
         <a href="index.html">西宮市トップへ戻る</a>
-        <a href="/about/">このサイトについて</a>
+        <span class="site-info-slot"><span aria-hidden="true">このサイトについて</span><button id="siteInfoOpen" type="button" aria-haspopup="dialog" aria-controls="siteInfo">サイト情報</button></span>
         <a href="/privacy/">プライバシー</a>
         <a href="/sources/">データ出典</a>
         <a href="/terms/">利用上の注意</a>
@@ -321,6 +331,28 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
         .bindPopup('現在地').addTo(map).openPopup();
     });
     map.on('locationerror', () => alert('現在地を取得できませんでした。端末の位置情報設定をご確認ください。'));
+  </script>
+  <dialog id="siteInfo" aria-labelledby="siteInfoTitle">
+    <h2 id="siteInfoTitle">サイト情報</h2>
+    <button id="siteInfoClose" type="button" autofocus>閉じる</button>
+    <nav aria-label="サイト共通案内">
+      <a href="/">Kussoonトップ</a>
+      <a href="/sitemap/">サイトマップ</a>
+      <a href="/about/">このサイトについて</a>
+      <a href="/contact/">お問い合わせ</a>
+      <a href="/privacy/">プライバシーポリシー</a>
+      <a href="/sources/">データ出典</a>
+      <a href="/terms/">利用上の注意</a>
+    </nav>
+  </dialog>
+  <script>
+    (() => {
+      const dialog = document.getElementById('siteInfo');
+      const opener = document.getElementById('siteInfoOpen');
+      opener.addEventListener('click', () => dialog.showModal());
+      document.getElementById('siteInfoClose').addEventListener('click', () => dialog.close());
+      dialog.addEventListener('close', () => opener.focus());
+    })();
   </script>
 </body>
 </html>
