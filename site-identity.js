@@ -63,6 +63,33 @@
     }
   }
 
+  // Add shared site links to the existing city navigation without duplicating it.
+  const sharedLinks = [
+    ['/', 'Kussoonトップ'],
+    ['/sitemap/', 'サイトマップ'],
+    ['/contact/', 'お問い合わせ']
+  ];
+  const siteNav = [...document.querySelectorAll('nav')].find(nav => {
+    const urls = [...nav.querySelectorAll('a[href]')].map(a => {
+      try { return new URL(a.getAttribute('href'), location.href).pathname; }
+      catch (_) { return ''; }
+    });
+    return urls.includes('/privacy/') && urls.includes('/sources/') && urls.includes('/terms/');
+  });
+  if (siteNav) {
+    const existing = new Set([...siteNav.querySelectorAll('a[href]')].map(a => {
+      try { return new URL(a.getAttribute('href'), location.href).pathname; }
+      catch (_) { return ''; }
+    }));
+    for (const [href, label] of sharedLinks.reverse()) {
+      if (existing.has(href)) continue;
+      const a = document.createElement('a');
+      a.href = href;
+      a.textContent = label;
+      siteNav.prepend(a);
+    }
+  }
+
   document.querySelectorAll('a,button').forEach(element => {
     const text = element.textContent.trim();
     if (!/^(← )?(ゲームトップへ|トップページ)$/.test(text)) return;
