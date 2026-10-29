@@ -462,7 +462,7 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
     },520);
   }
 
-  function showTown(item) {
+  function showTown(item, {preserveView = false} = {}) {
     stopFlashing();
     pendingItem = item;
     byId('selectedName').textContent = item.name;
@@ -479,7 +479,7 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
     }
     selectedLayer = item.layer;
     pendingItem = null;
-    map.fitBounds(allBounds, {padding:[8,8],animate:false});
+    if (!preserveView) map.fitBounds(allBounds, {padding:[8,8],animate:false});
     status.textContent = `${item.name}を地図に表示しています。`;
     startFlashing(item.layer);
     openRoutePopup(item,item.layer);
@@ -694,7 +694,10 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
       renderedLayers.forEach((layer,index) => {
         const name = mergedFeatures[index]?.properties?.S_NAME || featureName(layer.feature);
         const item = searchItems.find(candidate => candidate.name === name);
-        if (item) item.layer = layer;
+        if (item) {
+          item.layer = layer;
+          layer.on('click', () => showTown(item, {preserveView:true}));
+        }
       });
       allBounds = townLayer.getBounds();
       map.fitBounds(allBounds,{padding:[8,8],animate:false});
