@@ -47,6 +47,8 @@
     .feedback.good{background:#dff7e9;color:#08743f}.feedback.bad{background:#ffe5e5;color:#a52121}
     .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
     #map{height:min(68vh,620px);min-height:480px;background:#dfeaf1}
+    .wheel-hint{display:none;position:absolute;z-index:500;right:8px;top:55px;max-width:70%;padding:4px 7px;border-radius:7px;background:#fffffff0;color:#34546a;font-size:11px;line-height:1.35;box-shadow:0 1px 4px #0002;pointer-events:none}
+    @media (hover:hover) and (pointer:fine){.wheel-hint{display:block}}
     .tools{position:absolute;z-index:500;right:8px;top:8px}.tools button{border:0;border-radius:10px;background:#fff;color:var(--navy);font-weight:900;padding:9px 11px;box-shadow:0 2px 8px #16365c33}
     .result{padding:17px;margin:11px 0;text-align:center}.score{font-size:clamp(48px,15vw,72px);line-height:1;font-weight:950;color:var(--red);margin:12px}.result h2{color:var(--navy)}
     .result p{line-height:1.65}.credit{margin-top:11px;padding-top:9px;border-top:1px solid #cad8e3;font-size:9px;line-height:1.5;color:#657786}.credit a{color:#356f9f}
@@ -89,6 +91,7 @@
     <div class="map-wrap">
       <div id="map" aria-label="西宮市コミュニティ場所当て地図"></div>
       <div class="tools"><button type="button" id="resetView">全体表示</button></div>
+      <div class="wheel-hint" id="wheelHint" aria-live="polite">地図をクリックするとホイールで拡大・縮小できます</div>
     </div>
   </section>
 
@@ -139,7 +142,15 @@
     overviewContainer.style.setProperty('--label-shadow-blur',`${3*scale}px`);
   }
   overviewMap.on('zoom zoomend',updateOverviewLabelScale);
-  const map = L.map('map',{zoomControl:true,attributionControl:false,minZoom:10,maxZoom:18,zoomSnap:.1});
+  const map = L.map('map',{zoomControl:true,attributionControl:false,minZoom:10,maxZoom:18,zoomSnap:.1,scrollWheelZoom:false,doubleClickZoom:false});
+  let lastPointerType='mouse',lastAnswerName=null,lastAnswerAt=-Infinity,lastAnswerPoint=null;
+  document.addEventListener('pointerdown',event=>{lastPointerType=event.pointerType||'mouse';},true);
+  document.addEventListener('click',event=>{
+    if((event.pointerType||lastPointerType)!=='mouse')return;
+    const active=map.getContainer().contains(event.target);
+    if(active)map.scrollWheelZoom.enable();else map.scrollWheelZoom.disable();
+    document.getElementById('wheelHint').textContent=active?'ホイールで拡大・縮小できます':'地図をクリックするとホイールで拡大・縮小できます';
+  },true);
   let mapping;
   let communityLayer;
   let allBounds;
@@ -175,6 +186,7 @@
 
   function loadQuestion(){
     clearMarks();
+    lastAnswerName=null;lastAnswerAt=-Infinity;lastAnswerPoint=null;
     target=order[index];locked=false;
     prompt.textContent=target;
     counter.textContent=`${index+1} / ${order.length}`;
@@ -194,8 +206,14 @@
     loadQuestion();
   }
 
-  function handleAnswer(info,layer){
+  function handleAnswer(info,layer,event){
     if(!target||locked)return;
+    const original=event.originalEvent;
+    const point=original&&Number.isFinite(original.clientX)&&Number.isFinite(original.clientY)?{x:original.clientX,y:original.clientY}:null;
+    const sameCommunity=info.community===lastAnswerName;
+    const nearby=point&&lastAnswerPoint&&Math.hypot(point.x-lastAnswerPoint.x,point.y-lastAnswerPoint.y)<=8;
+    if((sameCommunity&&original?.detail>1)||((sameCommunity||nearby)&&performance.now()-lastAnswerAt<400))return;
+    lastAnswerName=info.community;lastAnswerAt=performance.now();lastAnswerPoint=point;
     if(info.community==='対象外（水域）'){
       feedback.className='feedback bad';feedback.textContent='そこは港湾水域です。陸地から探してください。';
       return;
@@ -316,7 +334,7 @@
     }
     communityLayer=L.geoJSON({type:'FeatureCollection',features},{
       style:baseStyle,
-      onEachFeature(feature,layer){layer.on('click',()=>handleAnswer(infoFor(feature),layer));}
+      onEachFeature(feature,layer){layer.on('click',event=>handleAnswer(infoFor(feature),layer,event));}
     }).addTo(map);
     allBounds=communityLayer.getBounds();map.fitBounds(allBounds,{padding:[5,5]});
   }).catch(error=>{
