@@ -146,7 +146,7 @@
   let lastPointerType='mouse',lastAnswerName=null,lastAnswerAt=-Infinity,lastAnswerPoint=null;
   document.addEventListener('pointerdown',event=>{lastPointerType=event.pointerType||'mouse';},true);
   document.addEventListener('click',event=>{
-    if((event.pointerType||lastPointerType)!=='mouse'||overviewContainer.contains(event.target))return;
+    if((event.pointerType||lastPointerType)!=='mouse')return;
     const active=map.getContainer().contains(event.target);
     if(active)map.scrollWheelZoom.enable();else map.scrollWheelZoom.disable();
     document.getElementById('wheelHint').textContent=active?'ホイールで拡大・縮小できます':'地図をクリックするとホイールで拡大・縮小できます';
