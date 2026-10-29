@@ -44,6 +44,8 @@
     .selection-actions{display:flex;justify-content:center;margin:-3px 0 10px}
     .transport-toggle{min-height:44px;padding:9px 20px;border:2px solid #8fc5e2;border-radius:999px;background:#fff;color:var(--navy);font-size:16px;font-weight:900;box-shadow:0 3px 10px #16365c24;cursor:pointer}
     .transport-toggle:disabled{opacity:.58;cursor:wait}
+    .wheel-hint{display:none;margin:6px 4px;color:#526b7d;font-size:12px;line-height:1.4}
+    @media (hover:hover) and (pointer:fine){.wheel-hint{display:block}}
     .map-wrap{position:relative;border:3px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #16365c33;background:#dfeaf1}
     #map{height:min(58vh,620px);min-height:420px;background:#dfeaf1;--transport-label-font-size:6.4px;--transport-label-pad-y:.7px;--transport-label-pad-x:1.5px;--transport-label-radius:2.5px;--station-label-font-size:5.8px}
     .tools{position:absolute;z-index:500;right:8px;top:8px}
@@ -117,6 +119,7 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
     <button class="transport-toggle" type="button" id="transportToggle" disabled data-umami-event="nishinomiya-town-search-transport-click">交通入りで見る</button>
   </div>
 
+  <p class="wheel-hint" id="wheelHint" aria-live="polite">地図をクリックするとホイールで拡大・縮小できます</p>
   <div class="map-wrap">
     <div id="map" aria-label="検索した町の位置を示す西宮市の地図"></div>
     <div class="tools"><button type="button" id="resetView">全体表示</button></div>
@@ -203,8 +206,17 @@ window.kussoonUmamiBeforeSend = function (type, payload) {
     attributionControl:false,
     minZoom:9,
     maxZoom:19,
-    zoomSnap:.1
+    zoomSnap:.1,
+    scrollWheelZoom:false
   });
+  let lastPointerType='mouse';
+  document.addEventListener('pointerdown',event=>{lastPointerType=event.pointerType||'mouse'},true);
+  document.addEventListener('click',event=>{
+    if((event.pointerType||lastPointerType)!=='mouse')return;
+    const active=mapElement.contains(event.target);
+    if(active)map.scrollWheelZoom.enable();else map.scrollWheelZoom.disable();
+    byId('wheelHint').textContent=active?'ホイールで拡大・縮小できます':'地図をクリックするとホイールで拡大・縮小できます';
+  },true);
   map.createPane('waterAreas');
   map.getPane('waterAreas').style.zIndex = 402;
   map.createPane('transportExpressways');
